@@ -1,2 +1,4 @@
 # LoadDef
-A Python-based toolkit to model elastic deformation caused by surface mass loading on spherically symmetric bodies
+A Python-based toolkit to model elastic deformation caused by surface mass loading on spherically symmetric bodies.
+
+The source code is available under the "release" link above.
