@@ -49,7 +49,8 @@ rfm = "cm"
 # Greens Function File
 #  :: May be load Green's function file output directly from run_gf.py (norm_flag = False)
 #  :: May be from a published table, normalized according to Farrell (1972) conventions [theta, u_norm, v_norm]
-grn_file = ("../output/Greens_Functions/" + rfm + "_PREM.txt")
+pmod = "PREM"
+grn_file = ("../output/Greens_Functions/" + rfm + "_" + pmod + ".txt")
 norm_flag  = False
 
 # Full Path to Load Directory and Prefix of Filename
@@ -96,7 +97,7 @@ lsmask_file = ("../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 sta_file = ("../input/Station_Locations/PBO_Select.txt")
 
 # Optional: Additional string to include in output filenames (e.g. "_2019")
-outstr = ("")
+outstr = ("_" + pmod)
 
 # ------------------ END USER INPUTS ----------------------- #
 
