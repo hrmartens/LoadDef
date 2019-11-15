@@ -1,0 +1,118 @@
+###########################################################################
+# LoadDef Quick Start Guide                                               #
+# For more information, see the User Manual                               #
+###########################################################################
+
+The best way to get started with LoadDef is to work through the examples
+in the `working' directory.
+
+---
+
+Before getting started, you will need to ensure that certain Python
+libraries are properly installed. You may use a package-management system,
+such as `Anaconda', or have a system administrator install the packages.
+
+To install via Anaconda:
+
+We recommend creating a dedicated environment for LoadDef. 
+
+At the command line, run:
+  conda config --prepend channels conda-forge
+  conda create -n LDEF python=3.7 basemap mpi4py scipy netCDF4 pyshp shapely
+
+To activate the new environment, run:
+  conda activate LDEF
+
+If the above activation does not work, please try:
+  source activate LDEF
+
+LoadDef should now be ready to use. To deactivate the new environment when you are finished, you may run:
+  conda deactivate
+
+--
+
+You should be all set with the following if the Anaconda environment was created successfully:
+
+Required packages to use the main features of LoadDef include:
+NumPy
+SciPy
+math
+sys
+os
+datetime
+mpi4py
+
+Optional packages to take advantage of additional LoadDef features include:
+mpl_toolkits.basemap
+shapefile
+shapely
+pyproj
+netCDF4
+
+--
+
+With the required packages installed, navigate to the LoadDef `working'
+directory. Now, you are ready to compute Love numbers for PREM by typing:
+
+mpirun -np 2 python run_ln.py
+
+If you have lots of processors at your disposal, you can change the `2' 
+to a larger number. 
+
+The default will be to compute Love numbers from n=0 to n=10,000. The output
+will be directed to a folder called `output' (created on the first run). 
+Navigate up one directory from the `working' directory, and you should see
+the new `output' directory listed there. 
+
+---
+
+Once the Love numbers have been computed, you are ready to compute
+load Greens functions. Navigate back into the `working' directory, and type:
+
+mpirun -np 2 python run_gf.py
+
+The Greens functions will automatically start computing, and be 
+directed to the `output' folder.
+
+---
+
+Love-number partial derivatives can be computed in a similar way:
+
+mpirun -np 2 python run_pl.py
+
+The output will appear in the `output' folder.
+
+---
+
+To compute load-induced surface displacements, a load model must first be
+generated. The `GRDGEN/load_models/' folder contains multiple scripts for
+converting standard load models into LoadDef format. 
+
+For example, navigate to /input/Load_Models/TPXO8-Atlas/ and run the script
+to download the M2 ocean tide model. Next, go to /GRDGEN/load_files/ and 
+run gen_otl.py. It is already set up to convert the TPXO8-Atlas model into
+standard LoadDef format. 
+
+After a load model has been converted to LoadDef format, and load Greens 
+functions have been computed, you are ready to compute surface displacements.
+Navigate into the `working' folder, and modify the user parameters to reflect
+the location and name of your load model and Greens function files. The script
+is already set up for the TPXO8-Atlas example. 
+
+Then, you are ready to run the program by typing:
+
+mpirun -np 1 python run_cn.py
+
+Here, it will NOT be an advantage to use more than 1 processor, UNLESS you 
+have multiple load models to convolve for a single station. 
+
+That's it! The output will be directed to the `output' folder.
+ 
+---
+
+More information on all of the examples listed above can be found in the
+User Manual, which should have come with the software.
+
+Good luck and have fun! Please reach out to me with questions or bugs:
+hilary.martens@umontana.edu
+
