@@ -90,9 +90,11 @@ generated. The `GRDGEN/load_models/' folder contains multiple scripts for
 converting standard load models into LoadDef format. 
 
 For example, navigate to /input/Load_Models/TPXO8-Atlas/ and run the script
-to download the M2 ocean tide model. Next, go to /GRDGEN/load_files/ and 
-run gen_otl.py. It is already set up to convert the TPXO8-Atlas model into
-standard LoadDef format. 
+to download the M2 ocean tide model (note: you may need to email the authors
+of the TPXO models now to download the data!). Next, go to /GRDGEN/load_files/ 
+and run gen_otl.py. It is already set up to convert the TPXO8-Atlas model into
+standard LoadDef format. If you are using a different ocean-tide model, you
+can simply update the lines at the top of the script under "User Inputs". 
 
 After a load model has been converted to LoadDef format, and load Greens 
 functions have been computed, you are ready to compute surface displacements.
