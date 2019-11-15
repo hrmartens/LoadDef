@@ -61,7 +61,7 @@ loadfile_directory = ("../output/Grid_Files/nc/OTL/")  # Example 1 (ocean tidal 
 #  :: Note: For Load Files Organized by Date, the End of Filename Name Must be in the Format yyyymmddhhmnsc.txt
 #  :: Note: If not organized by date, files may be organized by tidal harmonic, for example (i.e. a unique filename ending)
 #  :: Note: Output names (within output files) will be determined by extension following last underscore character (e.g., date/harmonic/model)
-loadfile_prefix = ("convgf_TPXO8-Atlas") # Example 1 (ocean tidal loading)
+loadfile_prefix = ("convgf_FES2014") # Example 1 (ocean tidal loading)
 #loadfile_prefix = ("convgf_ntol") # Example 2 (time series)
 
 # LoadFile Format: ["nc", "txt"]
@@ -147,7 +147,7 @@ for jj in range(0,numel):
         my_lon = lon[jj]
 
     # If Rank is Master, Output Station Name
-    my_sta = my_sta.decode()
+    # my_sta = my_sta.decode()
     if (rank == 0):
         print(' ')
         print(':: Starting on Station: ' + my_sta)
