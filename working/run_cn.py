@@ -147,7 +147,10 @@ for jj in range(0,numel):
         my_lon = lon[jj]
 
     # If Rank is Master, Output Station Name
-    # my_sta = my_sta.decode()
+    try: 
+        my_sta = my_sta.decode()
+    except: 
+        print(':: No need to decode station.')
     if (rank == 0):
         print(' ')
         print(':: Starting on Station: ' + my_sta)
