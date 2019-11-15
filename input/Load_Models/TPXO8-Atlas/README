@@ -1,0 +1,5 @@
+The TPXO8-Atlas model may be obtained from Oregon State University:
+http://volkov.oce.orst.edu/tides/tpxo8_atlas.html
+
+For example, for the M2 harmonic:
+wget ftp://ftp.oce.orst.edu/dist/tides/TPXO8_atlas_30_v1_nc/hf.m2_tpxo8_atlas_30c_v1.nc

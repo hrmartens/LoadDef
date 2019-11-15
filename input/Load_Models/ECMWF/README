@@ -1,0 +1,17 @@
+To dowload ECMWF:
+
+Go to the ECMWF website, and login (or register for an account):
+http://www.ecmwf.int/
+
+Navigate to the MARS data retrieval interface (ECMWF Public Datasets web interface) for ERA-Interim:
+http://apps.ecmwf.int/datasets/data/interim-full-daily/
+
+Select the month you would like to download.
+
+Select step 0 (limits the results to only analyzed fields | http://www.ecmwf.int/en/faq/what-are-steps-surface-daily-fields-era-interim).
+
+Select all four times (0,6,12,18).
+
+Select "surface pressure".
+
+Download netCDF (may need to rename the long gibberish names after download is complete).

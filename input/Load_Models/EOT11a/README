@@ -1,0 +1,5 @@
+The EOT11a model may be obtained from the Open Altimeter Database (OpenADB):
+https://openadb.dgfi.tum.de/en/products/empirical-ocean-tide-model/
+
+To access the products via ftp (registration may be required):
+ftp://dgfi.tum.de/pub/EOT11a/
