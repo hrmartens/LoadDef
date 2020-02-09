@@ -41,22 +41,22 @@ def main(delinc1,delinc2,delinc3,delinc4,delinc5,delinc6,izb,z2b,z3b,z4b,z5b,azi
     # z5b     = zone 5 boundary
 
     # Determine Cell Grid Lines
-    inum1 = (izb/delinc1)+1.                           # number of increments, inner zone
+    inum1 = int((izb/delinc1)+1.)                      # number of increments, inner zone
     ldel1 = np.linspace(0.,izb,num=inum1)              # delta values for inner zone
-    inum2 = ((z2b-izb)/delinc2)
+    inum2 = int((z2b-izb)/delinc2)
     ldel2 = np.linspace(izb+delinc2,z2b,num=inum2)
-    inum3 = ((z3b-z2b)/delinc3)
+    inum3 = int((z3b-z2b)/delinc3)
     ldel3 = np.linspace(z2b+delinc3,z3b,num=inum3)
-    inum4 = ((z4b-z3b)/delinc4)
+    inum4 = int((z4b-z3b)/delinc4)
     ldel4 = np.linspace(z3b+delinc4,z4b,num=inum4)
-    inum5 = ((z5b-z4b)/delinc5)
+    inum5 = int((z5b-z4b)/delinc5)
     ldel5 = np.linspace(z4b+delinc5,z5b,num=inum5)
-    inum6 = ((180.-z5b)/delinc6)                       # number of increments, outerzone
-    ldel6 = np.linspace(z5b+delinc6,180.,num=inum6)    # delta values for outer zone
-    gldel  = np.concatenate([ldel1,ldel2,ldel3,ldel4,ldel5,ldel6]) # delta values for inner and outer zones
-    inuma = (360./azinc)+1.                            # number of azimuthal increments
-    lazm  = np.linspace(0.,360.,num=inuma)             # azimuthal values for mesh
-    glazm  = lazm[0:-1]                                # don't include last element (same as first element)    
+    inum6 = int((180.-z5b)/delinc6)                     # number of increments, outerzone
+    ldel6 = np.linspace(z5b+delinc6,180.,num=inum6)     # delta values for outer zone
+    gldel = np.concatenate([ldel1,ldel2,ldel3,ldel4,ldel5,ldel6]) # delta values for inner and outer zones
+    inuma = int((360./azinc)+1.)                        # number of azimuthal increments
+    lazm  = np.linspace(0.,360.,num=inuma)              # azimuthal values for mesh
+    glazm = lazm[0:-1]                                  # don't include last element (same as first element)    
 
     # Determine Unit Area of Each Cell
     unit_area = []
