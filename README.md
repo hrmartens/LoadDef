@@ -17,7 +17,7 @@ Martens, H.R., Rivera, L., Simons, M., & Ito, T. (2016). The sensitivity of surf
 
 Martens, H.R., Simons, M., Owen, S., & Rivera, L. (2016). Observations of ocean tidal load response in South America from sub-daily GPS positions. Geophys. J. Int., 205(3): 1637–1664. https://doi.org/10.1093/gji/ggw087.
 
-The complete and most up-to-date source code is available under the "Clone or Download" button above (green button). 
+The complete and most up-to-date source code is available under the "Clone or Download" button above (green button): https://github.com/hrmartens/LoadDef/archive/master.zip
 
 (Older versions of the software can be found by following this link: https://github.com/hrmartens/LoadDef/releases)
 
