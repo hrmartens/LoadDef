@@ -164,7 +164,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
 #        plt.show()
 
         # Compute Asymptotic Load Love Numbers
-        myn = np.linspace(startn,stopn,num=((stopn-startn)+1.),endpoint=True)
+        myn = np.linspace(startn,stopn,num=((stopn-startn)+1),endpoint=True)
         hprime_asym,nkprime_asym,nlprime_asym,h_inf,h_inf_prime,l_inf,l_inf_prime, \
             k_inf,k_inf_prime = compute_asymptotic_LLN.main(myn,piG,lnd,mnd,gnd,rnd,adim,L_sc)
 
