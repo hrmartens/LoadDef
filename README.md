@@ -9,6 +9,8 @@ papers in presentations and publications (see list below).
 
 If you use LoadDef in a significant way and/or require individualized support, we also kindly request that you consider inviting the first author of LoadDef (Hilary Martens) to participate as a co-author on your publication or presentation. Developing and maintaining LoadDef requires considerable time and effort, and we appreciate the opportunity to participate in projects that take advantage of the LoadDef software. Thank you. 
 
+--
+
 For more information, please see:
 
 Martens, H.R., Rivera, L., & Simons, M. (2019). LoadDef: A Python-based toolkit to model elastic deformation caused by surface mass loading on spherically symmetric bodies. Earth and Space Science, 6. https://doi.org/10.1029/2018ea000462.
