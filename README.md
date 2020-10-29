@@ -8,7 +8,7 @@ The LoadDef software is largely a product of Hilary Martens’s PhD research wor
 Simons (Caltech) and Luis Rivera (Universite de Strasbourg). We distribute the software free of charge with
 the hope that you may find it useful in your own research and educational pursuits. In the normal scientific
 practice, we request that you recognize the efforts of the authors by citing appropriate peer-reviewed
-papers in presentations and publications (see list below) and optionally by inviting co-authorship.
+papers in presentations and publications (see list below) and we welcome invitations for co-authorship.
 
 ### To acknowledge use of this software, please cite the following publication:
 
