@@ -81,7 +81,7 @@ last_date = [2016,3,1,0,0,0]
 regular = True
 
 # Load Density
-#  Recommended: 1025-1035 for oceanic loads (e.g., FES2014, ECCO2); 1 for atmospheric loads (e.g. ECMWF)
+#  Recommended: 1025-1035 kg/m^3 for oceanic loads (e.g., FES2014, ECCO2); 1 kg/m^3 for atmospheric loads (e.g. ECMWF); 1000 kg/m^3 for fresh water
 ldens = 1030.0
   
 # Ocean/Land Mask 
