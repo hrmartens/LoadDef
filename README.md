@@ -11,16 +11,16 @@ the hope that you may find it useful in your own research and educational pursui
 practice, we kindly request that you recognize the efforts of the authors by citing appropriate peer-reviewed
 papers in presentations and publications (see list below).
 
-Additional Request: LoadDef took many years of effort to develop and requires ongoing effort to support and maintain. 
+** Additional Request: LoadDef took many years of effort to develop and requires ongoing effort to support and maintain. 
 If you find LoadDef useful, we kindly request that you consider the option of inviting the lead author (Hilary Martens) 
 to participate as a co-author on your work in addition to a citation. Thank you! 
 
-To acknowledge use of this software, please cite the following publication:
+** To acknowledge use of this software, please cite the following publication:
 
 Martens, H.R., Rivera, L., & Simons, M. (2019). LoadDef: A Python-based toolkit to model elastic deformation caused 
 by surface mass loading on spherically symmetric bodies. Earth and Space Science, 6. https://doi.org/10.1029/2018ea000462.
 
-Additional publications associated with the software that you may find useful:
+** Additional publications associated with the software that you may find useful:
 
 Martens, H.R., & M. Simons (2020). A comparison of predicted and observed ocean tidal loading in Alaska. Geophys. J. Int., 
 223(1): 454–470, https://doi.org/10.1093/gji/ggaa323.
