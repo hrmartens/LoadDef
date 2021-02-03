@@ -15,14 +15,11 @@ papers in presentations and publications (see list below) and we welcome invitat
 Martens, H.R., Rivera, L., & Simons, M. (2019). LoadDef: A Python-based toolkit to model elastic deformation caused 
 by surface mass loading on spherically symmetric bodies. Earth and Space Science, 6. https://doi.org/10.1029/2018ea000462.
 
-### Additional Request: 
-
-LoadDef took many years of effort to develop and requires ongoing effort to support and maintain. 
-If you find LoadDef useful, we kindly request that you consider the option of inviting the lead author (Hilary Martens) 
-to participate as a co-author on your work in addition to a citation. Thank you! 
+LoadDef took years to develop and requires ongoing effort to support and maintain. We welcome opportunities to 
+collaborate as co-authors on project applications that make use of the LoadDef software and documentation. If you have 
+any questions about the software or would like to discuss a particular project idea further, please get in touch! Thanks!
 
 Hilary Martens, University of Montana
-
 hilary.martens@umontana.edu
 
 ### Additional publications associated with the software that you may find useful:
