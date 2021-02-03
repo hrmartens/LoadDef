@@ -8,16 +8,17 @@ The LoadDef software is largely a product of Hilary Martens’s PhD research wor
 Simons (Caltech) and Luis Rivera (Universite de Strasbourg). We distribute the software free of charge with
 the hope that you may find it useful in your own research and educational pursuits. In the normal scientific
 practice, we request that you recognize the efforts of the authors by citing appropriate peer-reviewed
-papers in presentations and publications (see list below) and we welcome invitations for co-authorship.
+paper(s) in presentations and publications (see list below) and we welcome opportunities for collaboration. Please
+feel free to reach out with any questions you may have about the software or its applications. 
 
 ### To acknowledge use of this software, please cite the following publication:
 
 Martens, H.R., Rivera, L., & Simons, M. (2019). LoadDef: A Python-based toolkit to model elastic deformation caused 
 by surface mass loading on spherically symmetric bodies. Earth and Space Science, 6. https://doi.org/10.1029/2018ea000462.
 
-LoadDef took years to develop and requires ongoing effort to support and maintain. We welcome opportunities to 
-collaborate as co-authors on project applications that make use of the LoadDef software and documentation. If you have 
-any questions about the software or would like to discuss a particular project idea further, please get in touch! Thanks!
+We also welcome opportunities to collaborate as co-author(s) on project applications that make use of the LoadDef software 
+and documentation. If you have any questions about the software or would like to discuss a particular project idea further, 
+please get in touch! Thanks!
 
 Hilary Martens, University of Montana
 
