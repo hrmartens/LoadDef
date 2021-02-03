@@ -20,6 +20,7 @@ collaborate as co-authors on project applications that make use of the LoadDef s
 any questions about the software or would like to discuss a particular project idea further, please get in touch! Thanks!
 
 Hilary Martens, University of Montana
+
 hilary.martens@umontana.edu
 
 ### Additional publications associated with the software that you may find useful:
