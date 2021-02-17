@@ -111,23 +111,11 @@ def dYdr(si,Y,n,wnd,ond,piG,m, lndi, rndi, mndi, gndi, YP):
     c66 = -2./si
 
     # USE PROPAGATOR MATRIX TECHNIQUE TO COMPUTE dY/dr
-    YP[0] = c11 * Y[0] + c12 * Y[1] + c13 * Y[2]
-    YP[1] = c21 * Y[0] + c22 * Y[1] + c23 * Y[2] + c24 * Y[3] + c26 * Y[5]
-    YP[2] = c31 * Y[0] + c33 * Y[2] + c34 * Y[3]
-    YP[3] = c41 * Y[0] + c42 * Y[1] + c43 * Y[2] + c44 * Y[3] + c45 * Y[4]
-    YP[4] = c51 * Y[0] + c56 * Y[5]
-    YP[5] = c63 * Y[2] + c65 * Y[4] + c66 * Y[5]
-
-    YP[0+6] = c11 * Y[0+6] + c12 * Y[1+6] + c13 * Y[2+6]
-    YP[1+6] = c21 * Y[0+6] + c22 * Y[1+6] + c23 * Y[2+6] + c24 * Y[3+6] + c26 * Y[5+6]
-    YP[2+6] = c31 * Y[0+6] + c33 * Y[2+6] + c34 * Y[3+6]
-    YP[3+6] = c41 * Y[0+6] + c42 * Y[1+6] + c43 * Y[2+6] + c44 * Y[3+6] + c45 * Y[4+6]
-    YP[4+6] = c51 * Y[0+6] + c56 * Y[5+6]
-    YP[5+6] = c63 * Y[2+6] + c65 * Y[4+6] + c66 * Y[5+6]
-
-    YP[0+12] = c11 * Y[0+12] + c12 * Y[1+12] + c13 * Y[2+12]
-    YP[1+12] = c21 * Y[0+12] + c22 * Y[1+12] + c23 * Y[2+12] + c24 * Y[3+12] + c26 * Y[5+12]
-    YP[2+12] = c31 * Y[0+12] + c33 * Y[2+12] + c34 * Y[3+12]
-    YP[3+12] = c41 * Y[0+12] + c42 * Y[1+12] + c43 * Y[2+12] + c44 * Y[3+12] + c45 * Y[4+12]
-    YP[4+12] = c51 * Y[0+12] + c56 * Y[5+12]
-    YP[5+12] = c63 * Y[2+12] + c65 * Y[4+12] + c66 * Y[5+12]
+    for i in range(3):
+        offset = 6 * i
+        YP[0+offset] = c11 * Y[0+offset] + c12 * Y[1+offset] + c13 * Y[2+offset]
+        YP[1+offset] = c21 * Y[0+offset] + c22 * Y[1+offset] + c23 * Y[2+offset] + c24 * Y[3+offset] + c26 * Y[5+offset]
+        YP[2+offset] = c31 * Y[0+offset] + c33 * Y[2+offset] + c34 * Y[3+offset]
+        YP[3+offset] = c41 * Y[0+offset] + c42 * Y[1+offset] + c43 * Y[2+offset] + c44 * Y[3+offset] + c45 * Y[4+offset]
+        YP[4+offset] = c51 * Y[0+offset] + c56 * Y[5+offset]
+        YP[5+offset] = c63 * Y[2+offset] + c65 * Y[4+offset] + c66 * Y[5+offset]
