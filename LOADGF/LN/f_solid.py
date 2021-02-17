@@ -27,7 +27,8 @@ import time
 
 
 #def main(si,Y,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m):
-def main(si,Y,n,tck_lmrg,wnd,ond,piG,m):
+#def main(si,Y,n,tck_lmrg,wnd,ond,piG,m):
+def main(si,Y,n,bsp,wnd,ond,piG,m):
 
     # slow part is now this evaluation
     # Interpolate Parameters at Current Radius
@@ -37,7 +38,11 @@ def main(si,Y,n,tck_lmrg,wnd,ond,piG,m):
     # gndi = float(interpolate.splev(si,tck_gnd,der=0))
 
     # a bit faster, but still slow with merged coefficients
-    lndi, rndi, mndi, gndi = map(float, interpolate.splev(si, tck_lmrg))
+    #lndi, rndi, mndi, gndi = map(float, interpolate.splev(si, tck_lmrg))
+
+    # another 2.5 times faster using the BSpline class. I assume this is
+    # because it uses arrays instead of lists
+    lndi, rndi, mndi, gndi = bsp(si)
 
     # create workspace to avoid allocations on the c-side
     YP = np.zeros(18)

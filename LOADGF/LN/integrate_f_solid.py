@@ -24,6 +24,7 @@ import numpy as np
 import sys
 from scipy.integrate import ode
 from LOADGF.LN import f_solid
+from scipy.interpolate import BSpline
 
 def main(Yi,int_start,int_stop,num_soln,backend,nstps,\
     abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m):
@@ -38,9 +39,13 @@ def main(Yi,int_start,int_stop,num_soln,backend,nstps,\
 
     # merge the spline coefficients to use the more efficient vectorized
     # version of splec instead of calling it 4 times
-    tck_lmrg = [tck_lnd[0],
-                [tck_lnd[1], tck_mnd[1], tck_rnd[1], tck_gnd[1]],
-                tck_lnd[2]]
+    #tck_lmrg = [tck_lnd[0],
+    #            np.array([tck_lnd[1], tck_mnd[1], tck_rnd[1], tck_gnd[1]]),
+    #            tck_lnd[2]]
+
+    bsp = BSpline(tck_lnd[0],
+                  np.array([tck_lnd[1], tck_mnd[1], tck_rnd[1], tck_gnd[1]]).T,
+                  tck_lnd[2])
 
     # Initialize Solver
     solver = ode(f_solid.main)
@@ -48,7 +53,8 @@ def main(Yi,int_start,int_stop,num_soln,backend,nstps,\
     solver.set_initial_value(Yi,int_start)
 
     # solver.set_f_params(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-    solver.set_f_params(n,tck_lmrg,wnd,ond,piG,m)
+    #solver.set_f_params(n,tck_lmrg,wnd,ond,piG,m)
+    solver.set_f_params(n,bsp,wnd,ond,piG,m)
 
     # Integrate
     while solver.successful() and (solver.t + dsc) < int_stop-eps:
