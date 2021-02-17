@@ -1,7 +1,7 @@
 # *********************************************************************
 # FUNCTION TO INTEGRATE Y-SOLUTIONS THROUGH A MANTLE LAYER
 #
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS
 #
 # This file is part of LoadDef.
 #
@@ -29,7 +29,7 @@ from scipy import interpolate
 
 def main(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,\
     num_soln,backend,abs_tol,rel_tol,nstps,m,inf_tol,s,soc,**kwargs):
- 
+
     # Determine Starting Radius
     s_start_ind = np.where((s**n) > inf_tol)
     s_start_ind = s_start_ind[0]
@@ -40,10 +40,10 @@ def main(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,\
         s_start = soc+0.001
 
     # Unpack any kwargs
-    if 's_0' in kwargs: 
+    if 's_0' in kwargs:
         s_start = kwargs['s_0']
         #for key, value in kwargs.iteritems():
-        #    print "%s = %s" % (key,value)    
+        #    print "%s = %s" % (key,value)
 
     # ***************** HOMOGENEOUS SPHERE W/ Y-VARIABLES ********************* #
     # Compute Starting Solutions From Homogeneous Sphere
@@ -54,13 +54,23 @@ def main(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,\
     # Integrate From Starting Radius to Surface
     int_start = s_start
     int_stop  = s[-1]
-    Y1,sint1mt = integrate_f_solid.main(Y1i,int_start,int_stop,num_soln,backend,nstps,\
-        abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-    Y2,sint2mt = integrate_f_solid.main(Y2i,int_start,int_stop,num_soln,backend,nstps,\
-        abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-    Y3,sint3mt = integrate_f_solid.main(Y3i,int_start,int_stop,num_soln,backend,nstps,\
+
+    #Y1,sint1mt = integrate_f_solid.main(Y1i,int_start,int_stop,num_soln,backend,nstps,\
+    #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
+    #Y2,sint2mt = integrate_f_solid.main(Y2i,int_start,int_stop,num_soln,backend,nstps,\
+    #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
+    #Y3,sint3mt = integrate_f_solid.main(Y3i,int_start,int_stop,num_soln,backend,nstps,\
+    #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
+
+    Y123i = np.concatenate([Y1i, Y2i, Y3i])
+    Y123, sint1mt = integrate_f_solid.main(Y123i,int_start,int_stop,num_soln,backend,nstps,\
         abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
     # ************************************************************************* #
+
+    Y123 = np.array(Y123)
+    Y1 = list(Y123[:, 0:6])
+    Y2 = list(Y123[:, 6:12])
+    Y3 = list(Y123[:, 12:18])
 
     # Return Solutions (sint = normalized radii at solution locations)
     return Y1, Y2, Y3, sint1mt
