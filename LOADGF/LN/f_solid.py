@@ -38,11 +38,11 @@ def main(si,Y,n,bsp,wnd,ond,piG,m):
     # gndi = float(interpolate.splev(si,tck_gnd,der=0))
 
     # a bit faster, but still slow with merged coefficients
-    #lndi, rndi, mndi, gndi = map(float, interpolate.splev(si, tck_lmrg))
+    #lndi, mndi, rndi, gndi = map(float, interpolate.splev(si, tck_lmrg))
 
     # another 2.5 times faster using the BSpline class. I assume this is
     # because it uses arrays instead of lists
-    lndi, rndi, mndi, gndi = bsp(si)
+    lndi, mndi, rndi, gndi = bsp(si)
 
     # create workspace to avoid allocations on the c-side
     YP = np.zeros(18)
