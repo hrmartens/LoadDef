@@ -62,11 +62,13 @@ def main(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,\
     #Y3,sint3mt = integrate_f_solid.main(Y3i,int_start,int_stop,num_soln,backend,nstps,\
     #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
 
+    # integrate the 3 solutions at once, using 18 degrees of freedom in the ODE
     Y123i = np.concatenate([Y1i, Y2i, Y3i])
     Y123, sint1mt = integrate_f_solid.main(Y123i,int_start,int_stop,num_soln,backend,nstps,\
         abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
     # ************************************************************************* #
 
+    # unpack the 3 solutions
     Y123 = np.array(Y123)
     Y1 = list(Y123[:, 0:6])
     Y2 = list(Y123[:, 6:12])

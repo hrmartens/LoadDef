@@ -31,30 +31,24 @@ def main(si,Y,n,tck_lmrg,wnd,ond,piG,m):
 
     # slow part is now this evaluation
     # Interpolate Parameters at Current Radius
-    #lndi = float(interpolate.splev(si,tck_lnd,der=0))
-    #rndi = float(interpolate.splev(si,tck_rnd,der=0))
-    #mndi = float(interpolate.splev(si,tck_mnd,der=0))
-    #gndi = float(interpolate.splev(si,tck_gnd,der=0))
+    # lndi = float(interpolate.splev(si,tck_lnd,der=0))
+    # rndi = float(interpolate.splev(si,tck_rnd,der=0))
+    # mndi = float(interpolate.splev(si,tck_mnd,der=0))
+    # gndi = float(interpolate.splev(si,tck_gnd,der=0))
 
-    # a = time.time()
-
+    # a bit faster, but still slow with merged coefficients
     lndi, rndi, mndi, gndi = map(float, interpolate.splev(si, tck_lmrg))
 
-    # b = time.time()
-
+    # create workspace to avoid allocations on the c-side
     YP = np.zeros(18)
-    #YP = np.zeros(6)
     dYdr(si,Y,n,wnd,ond,piG,m,lndi, rndi, mndi, gndi, YP)
-
-    # c = time.time()
-    # print((b-a)/(c-b))
 
     return YP
 
-
+# just in time compile this function to C
 @numba.jit(
     numba.void(
-        numba.float64,
+        numba.float64,      # define all types to help the compiler optimize
         numba.float64[:],
         numba.float64,
         numba.float64,
@@ -67,8 +61,8 @@ def main(si,Y,n,tck_lmrg,wnd,ond,piG,m):
         numba.float64,
         numba.float64[:],
     ),
-    cache=True,
-    nopython=True,
+    cache=True,     # avoid recompilation after resarting python
+    nopython=True,  # avoid callbacks to python
 )
 def dYdr(si,Y,n,wnd,ond,piG,m, lndi, rndi, mndi, gndi, YP):
 
@@ -111,6 +105,8 @@ def dYdr(si,Y,n,wnd,ond,piG,m, lndi, rndi, mndi, gndi, YP):
     c66 = -2./si
 
     # USE PROPAGATOR MATRIX TECHNIQUE TO COMPUTE dY/dr
+    # use simple loops instead of numpy functions to avoid callbacks
+    # these loops compile very well in the jit
     for i in range(3):
         offset = 6 * i
         YP[0+offset] = c11 * Y[0+offset] + c12 * Y[1+offset] + c13 * Y[2+offset]

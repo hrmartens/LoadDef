@@ -36,6 +36,8 @@ def main(Yi,int_start,int_stop,num_soln,backend,nstps,\
     Yint = []
     sint = []
 
+    # merge the spline coefficients to use the more efficient vectorized
+    # version of splec instead of calling it 4 times
     tck_lmrg = [tck_lnd[0],
                 [tck_lnd[1], tck_mnd[1], tck_rnd[1], tck_gnd[1]],
                 tck_lnd[2]]
