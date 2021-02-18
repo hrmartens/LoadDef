@@ -55,24 +55,17 @@ def main(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,\
     int_start = s_start
     int_stop  = s[-1]
 
-    #Y1,sint1mt = integrate_f_solid.main(Y1i,int_start,int_stop,num_soln,backend,nstps,\
-    #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-    #Y2,sint2mt = integrate_f_solid.main(Y2i,int_start,int_stop,num_soln,backend,nstps,\
-    #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-    #Y3,sint3mt = integrate_f_solid.main(Y3i,int_start,int_stop,num_soln,backend,nstps,\
-    #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-
     # integrate the 3 solutions at once, using 18 degrees of freedom in the ODE
     Y123i = np.concatenate([Y1i, Y2i, Y3i])
     Y123, sint1mt = integrate_f_solid.main(Y123i,int_start,int_stop,num_soln,backend,nstps,\
         abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-    # ************************************************************************* #
 
     # unpack the 3 solutions
     Y123 = np.array(Y123)
     Y1 = list(Y123[:, 0:6])
     Y2 = list(Y123[:, 6:12])
     Y3 = list(Y123[:, 12:18])
+    # ************************************************************************* #
 
     # Return Solutions (sint = normalized radii at solution locations)
     return Y1, Y2, Y3, sint1mt
