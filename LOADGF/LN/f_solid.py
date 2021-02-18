@@ -21,55 +21,47 @@
 # *********************************************************************
 
 import numpy as np
-from scipy import interpolate
 import numba
-import time
 
 
-#def main(si,Y,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m):
-#def main(si,Y,n,tck_lmrg,wnd,ond,piG,m):
-def main(si,Y,n,bsp,wnd,ond,piG,m):
+def main(si,Y,n,model_radii,model_lmrg,wnd,ond,piG,m):
+    # not sure why, bit ODE seems not to like calling a numba compiled function
+    # directly, hence some boilerplate
+    return dYdr(si,Y,n,model_radii,model_lmrg,wnd,ond,piG,m)
 
-    # slow part is now this evaluation
-    # Interpolate Parameters at Current Radius
-    # lndi = float(interpolate.splev(si,tck_lnd,der=0))
-    # rndi = float(interpolate.splev(si,tck_rnd,der=0))
-    # mndi = float(interpolate.splev(si,tck_mnd,der=0))
-    # gndi = float(interpolate.splev(si,tck_gnd,der=0))
-
-    # a bit faster, but still slow with merged coefficients
-    #lndi, mndi, rndi, gndi = map(float, interpolate.splev(si, tck_lmrg))
-
-    # another 2.5 times faster using the BSpline class. I assume this is
-    # because it uses arrays instead of lists
-    lndi, mndi, rndi, gndi = bsp(si)
-
-    # create workspace to avoid allocations on the c-side
-    YP = np.zeros(18)
-    dYdr(si,Y,n,wnd,ond,piG,m,lndi, rndi, mndi, gndi, YP)
-
-    return YP
 
 # just in time compile this function to C
 @numba.jit(
-    numba.void(
+    numba.float64[:](
         numba.float64,      # define all types to help the compiler optimize
         numba.float64[:],
         numba.float64,
+        numba.float64[:],
+        numba.float64[:,:],
         numba.float64,
         numba.float64,
         numba.float64,
         numba.int64,
-        numba.float64,
-        numba.float64,
-        numba.float64,
-        numba.float64,
-        numba.float64[:],
     ),
     cache=True,     # avoid recompilation after resarting python
     nopython=True,  # avoid callbacks to python
 )
-def dYdr(si,Y,n,wnd,ond,piG,m, lndi, rndi, mndi, gndi, YP):
+def dYdr(si,Y,n,model_radii,model_lmrg,wnd,ond,piG,m):
+
+    # create workspace to avoid allocations on the c-side
+    YP = np.zeros(18)
+
+    # find layer in the model
+    idx = np.searchsorted(model_radii, si)
+
+    # hand written linear interpolation
+    r1 = model_radii[idx-1]
+    r2 = model_radii[idx]
+
+    lndi, mndi, rndi, gndi = (
+        (model_lmrg[idx-1] * (r2 - si) + model_lmrg[idx] * (si - r1)) /
+        (r2 - r1)
+    )
 
     # Compute n1, Beta, Delta, and Epsilon Parameters
     # See Smylie (2013)
@@ -110,6 +102,7 @@ def dYdr(si,Y,n,wnd,ond,piG,m, lndi, rndi, mndi, gndi, YP):
     c66 = -2./si
 
     # USE PROPAGATOR MATRIX TECHNIQUE TO COMPUTE dY/dr
+    # loop over the three independent solutions
     # use simple loops instead of numpy functions to avoid callbacks
     # these loops compile very well in the jit
     for i in range(3):
@@ -120,3 +113,5 @@ def dYdr(si,Y,n,wnd,ond,piG,m, lndi, rndi, mndi, gndi, YP):
         YP[3+offset] = c41 * Y[0+offset] + c42 * Y[1+offset] + c43 * Y[2+offset] + c44 * Y[3+offset] + c45 * Y[4+offset]
         YP[4+offset] = c51 * Y[0+offset] + c56 * Y[5+offset]
         YP[5+offset] = c63 * Y[2+offset] + c65 * Y[4+offset] + c66 * Y[5+offset]
+
+    return YP
