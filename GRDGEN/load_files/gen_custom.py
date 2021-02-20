@@ -116,7 +116,7 @@ if initial_grid is not None:
 else:
     lats = np.arange(-90.,90.,gspace) + (gspace/2.0)
     lons = np.arange(0.,360.,gspace) + (gspace/2.0)
-    xv,yv = sc.meshgrid(lons,lats)
+    xv,yv = np.meshgrid(lons,lats)
     llon = np.ravel(xv)
     llat = np.ravel(yv)
     amp = np.zeros((len(llon),))
