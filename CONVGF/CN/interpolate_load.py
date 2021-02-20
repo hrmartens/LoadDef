@@ -26,7 +26,6 @@ from scipy import interpolate
 from mpl_toolkits.basemap import interp # If no basemap module, comment out and use gridddata below instead
 from math import pi
 import sys
-import time
 
 def main(ilat,ilon,llat,llon,lreal,limag,regular):
 
@@ -79,7 +78,6 @@ def main(ilat,ilon,llat,llon,lreal,limag,regular):
         #ic1 = flreal.ev(ilat,ilon)
         #ic2 = flimag.ev(ilat,ilon)
     else:
-        start = time.clock()
         # OPTION 1: Interpolate Using Griddata (Faster than LinearNDInterpolator)
         ic1 = interpolate.griddata((llat,llon),lreal,(ilat,ilon),method='linear',fill_value=0.)
         ic2 = interpolate.griddata((llat,llon),limag,(ilat,ilon),method='linear',fill_value=0.)
@@ -89,8 +87,6 @@ def main(ilat,ilon,llat,llon,lreal,limag,regular):
         # Evaluate Interpolator
         #ic1 = flreal(ilat,ilon)
         #ic2 = flimag(ilat,ilon)
-        end = time.clock()
-        #print("%.2gs" % (end-start))
 
     # Return Loads at Integration Mesh Points
     return ic1,ic2
