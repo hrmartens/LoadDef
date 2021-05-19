@@ -58,7 +58,7 @@ outdir = "../../output/Grid_Files/LandDB/"
 # Create the Grid
 x_range = np.arange(west,east,grid_spacing_x)
 y_range = np.arange(south,north,grid_spacing_y)
-xv,yv = sc.meshgrid(x_range,y_range)
+xv,yv = np.meshgrid(x_range,y_range)
 mylon = np.ravel(xv)
 mylat = np.ravel(yv)
 num = np.arange(0,len(mylat),1)
