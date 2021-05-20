@@ -53,15 +53,15 @@ from CONVGF.utility import read_AmpPha
 # --------------- SPECIFY USER INPUTS --------------------- #
  
 # 1. Specify the full path to the desired tidal model: Examples Provided
-loadfile = ("../../input/Load_Models/TPXO9-Atlas/h_o1_tpxo9_atlas_30.nc")
-#loadfile = ("../../input/Load_Models/FES2014/m2.nc")
+#loadfile = ("../../input/Load_Models/TPXO9-Atlas/h_o1_tpxo9_atlas_30.nc")
+loadfile = ("../../input/Load_Models/FES2014/m2.nc")
 #loadfile = ("../../input/Load_Models/GOT4.10/got410c.m2.dat")
   
 # 2. Specify the type of loading model
-ftype = 14 # 1=FES2012, 2=FES2004, 3=TPXO8-Atlas, 4=GOT4.10c, 5=EOT11A, 6 = HAMTIDE11A, 7=OSU12, 8=LOCAL, 9=SCHWIDERSKI, 10=DTU10, 11=GOT4.10, 12=FES2014, 13=TPXO7-Atlas, 14=TPXO9-Atlas
+ftype = 12 # 1=FES2012, 2=FES2004, 3=TPXO8-Atlas, 4=GOT4.10c, 5=EOT11A, 6 = HAMTIDE11A, 7=OSU12, 8=LOCAL, 9=SCHWIDERSKI, 10=DTU10, 11=GOT4.10, 12=FES2014, 13=TPXO7-Atlas, 14=TPXO9-Atlas
   
 # 3. Specify the tidal harmonic
-harmonic = ("O1")
+harmonic = ("M2")
 
 # 4. Write Load Information to a netCDF-formatted File? (Default for convolution)
 write_nc = True
@@ -179,10 +179,10 @@ if (write_nc == True):
     amplitude = dataset.createDimension('amplitude',num_pts)
     phase = dataset.createDimension('phase',num_pts)
     # Create variables
-    latitudes = dataset.createVariable('latitude',np.float,('latitude',))
-    longitudes = dataset.createVariable('longitude',np.float,('longitude',))
-    amplitudes = dataset.createVariable('amplitude',np.float,('amplitude',))
-    phases = dataset.createVariable('phase',np.float,('phase',))
+    latitudes = dataset.createVariable('latitude',float,('latitude',))
+    longitudes = dataset.createVariable('longitude',float,('longitude',))
+    amplitudes = dataset.createVariable('amplitude',float,('amplitude',))
+    phases = dataset.createVariable('phase',float,('phase',))
     # Add units
     latitudes.units = 'degree_north'
     longitudes.units = 'degree_east'
