@@ -30,7 +30,7 @@ sys.path.append(os.getcwd() + "/../../")
 
 # IMPORT PYTHON MODULES
 import numpy as np
-from LOADGF.utility import read_earth_model
+from LOADGF.utility import read_planet_model
 from LOADGF.utility import convert_to_SI
 from LOADGF.utility import compute_elastic_moduli
 
