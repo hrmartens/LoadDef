@@ -176,10 +176,10 @@ if (write_nc == True):
     amplitude = dataset.createDimension('amplitude',num_pts)
     phase = dataset.createDimension('phase',num_pts)
     # Create variables
-    latitudes = dataset.createVariable('latitude',np.float,('latitude',))
-    longitudes = dataset.createVariable('longitude',np.float,('longitude',))
-    amplitudes = dataset.createVariable('amplitude',np.float,('amplitude',))
-    phases = dataset.createVariable('phase',np.float,('phase',))
+    latitudes = dataset.createVariable('latitude',float,('latitude',))
+    longitudes = dataset.createVariable('longitude',float,('longitude',))
+    amplitudes = dataset.createVariable('amplitude',float,('amplitude',))
+    phases = dataset.createVariable('phase',float,('phase',))
     # Add units
     latitudes.units = 'degree_north'
     longitudes.units = 'degree_east'
