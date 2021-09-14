@@ -46,7 +46,7 @@ density    = 5.  # g/cc
 radius = 6371.   # km
 
 # Number of Radial Steps to Write Out
-num_steps = 100.
+num_steps = 100
 
 # Optionally Add a Small Fluid Layer?
 small_fluid = False
@@ -54,6 +54,8 @@ small_fluid = False
 # BEGIN CODE
 
 # Ensure that the Output Directories Exist
+if not (os.path.isdir("../../output/")):
+    os.makedirs("../../output")
 if not (os.path.isdir("../../output/Planet_Models/")):
     os.makedirs("../../output/Planet_Models")
 
