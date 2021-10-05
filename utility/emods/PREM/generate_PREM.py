@@ -44,7 +44,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist = []
 
     # Inner Core
-    ic = np.linspace(0.,1221.5,num=(1221.5/interval_cores)+1.,endpoint=True)
+    ic = np.linspace(0.,1221.5,num=int(1221.5/interval_cores)+1,endpoint=True)
     icnorm = np.divide(ic,radius)
     icrho = 13.0885-8.8381*np.square(icnorm)
     icvp = 11.2622-6.3640*np.square(icnorm)
@@ -59,7 +59,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(ic) 
 
     # Outer Core
-    oc = np.linspace(1221.5,3480.0,num=((3480.0-1221.5)/interval_cores)+1.,endpoint=True)
+    oc = np.linspace(1221.5,3480.0,num=int((3480.0-1221.5)/interval_cores)+1,endpoint=True)
     ocnorm = np.divide(oc,radius)
     ocrho = 12.5815-1.2638*ocnorm-3.6426*np.square(ocnorm)-5.5281*np.power(ocnorm,3.)
     ocvp = 11.0487-4.0362*ocnorm+4.8023*np.square(ocnorm)-13.5732*np.power(ocnorm,3.)
@@ -74,7 +74,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(oc)
     
     # Lower Mantle
-    lm = np.linspace(3480.0,3630.0,num=((3630.0-3480.0)/interval_lowerMantle)+1.,endpoint=True)
+    lm = np.linspace(3480.0,3630.0,num=int((3630.0-3480.0)/interval_lowerMantle)+1,endpoint=True)
     lmnorm = np.divide(lm,radius)
     lmrho = 7.9565-6.4761*lmnorm+5.5283*np.square(lmnorm)-3.0807*np.power(lmnorm,3.)
     lmvp = 15.3891-5.3181*lmnorm+5.5242*np.square(lmnorm)-2.5514*np.power(lmnorm,3.)
@@ -89,8 +89,8 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(lm)
 
     # Lower Mantle 2a
-#    lm = np.linspace(3630.0,5200.0,num=((5200.0-3630.0)/interval_lowerMantle)+1.,endpoint=True)
-    lm = np.linspace(3630.0,5600.0,num=((5600.0-3630.0)/interval_lowerMantle)+1.,endpoint=True)
+#    lm = np.linspace(3630.0,5200.0,num=int((5200.0-3630.0)/interval_lowerMantle)+1,endpoint=True)
+    lm = np.linspace(3630.0,5600.0,num=int((5600.0-3630.0)/interval_lowerMantle)+1,endpoint=True)
     lmnorm = np.divide(lm,radius)
     lmrho = 7.9565-6.4761*lmnorm+5.5283*np.square(lmnorm)-3.0807*np.power(lmnorm,3.)
     lmvp = 24.9520-40.4673*lmnorm+51.4832*np.square(lmnorm)-26.6419*np.power(lmnorm,3.)
@@ -105,7 +105,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(lm)
 
     # Lower Mantle 2b
-#    lm = np.linspace(5200.0,5600.0,num=((5600.0-5200.0)/interval_upperMantle)+1.,endpoint=True)
+#    lm = np.linspace(5200.0,5600.0,num=int((5600.0-5200.0)/interval_upperMantle)+1,endpoint=True)
 #    lmnorm = np.divide(lm,radius)
 #    lmrho = 7.9565-6.4761*lmnorm+5.5283*np.square(lmnorm)-3.0807*np.power(lmnorm,3.)
 #    lmvp = 24.9520-40.4673*lmnorm+51.4832*np.square(lmnorm)-26.6419*np.power(lmnorm,3.)
@@ -120,7 +120,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
 #    rdist.extend(lm)
 
     # Lower Mantle 3
-    lm = np.linspace(5600.0,5701.0,num=((5701.0-5600.0)/interval_upperMantle)+1.,endpoint=True)
+    lm = np.linspace(5600.0,5701.0,num=int((5701.0-5600.0)/interval_upperMantle)+1,endpoint=True)
     lmnorm = np.divide(lm,radius)
     lmrho = 7.9565-6.4761*lmnorm+5.5283*np.square(lmnorm)-3.0807*np.power(lmnorm,3.)
     lmvp = 29.2766-23.6027*lmnorm+5.5242*np.square(lmnorm)-2.5514*np.power(lmnorm,3.)
@@ -135,7 +135,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(lm)
 
     # Transition Zone 1
-    tz = np.linspace(5701.0,5771.0,num=((5771.0-5701.0)/interval_upperMantle)+1.,endpoint=True)
+    tz = np.linspace(5701.0,5771.0,num=int((5771.0-5701.0)/interval_upperMantle)+1,endpoint=True)
     tznorm = np.divide(tz,radius)
     tzrho = 5.3197-1.4836*tznorm
     tzvp = 19.0957-9.8672*tznorm
@@ -150,7 +150,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(tz)
 
     # Transition Zone 2
-    tz = np.linspace(5771.0,5971.0,num=((5971.0-5771.0)/interval_upperMantle)+1.,endpoint=True)
+    tz = np.linspace(5771.0,5971.0,num=int((5971.0-5771.0)/interval_upperMantle)+1,endpoint=True)
     tznorm = np.divide(tz,radius)
     tzrho = 11.2494-8.0298*tznorm
     tzvp = 39.7027-32.6166*tznorm
@@ -165,7 +165,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(tz)
 
     # Transition Zone 3
-    tz = np.linspace(5971.0,6151.0,num=((6151.0-5971.0)/interval_upperMantle)+1.,endpoint=True)
+    tz = np.linspace(5971.0,6151.0,num=int((6151.0-5971.0)/interval_upperMantle)+1,endpoint=True)
     tznorm = np.divide(tz,radius)
     tzrho = 7.1089-3.8045*tznorm
     tzvp = 20.3926-12.2569*tznorm
@@ -180,7 +180,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(tz)
 
     # LVZ
-    lv = np.linspace(6151.0,6291.0,num=((6291.0-6151.0)/interval_upperMantle)+1.,endpoint=True)
+    lv = np.linspace(6151.0,6291.0,num=int((6291.0-6151.0)/interval_upperMantle)+1,endpoint=True)
     lvnorm = np.divide(lv,radius)
     lvrho = 2.6910+0.6924*lvnorm
     # Effective Isotropic Velocities
@@ -198,7 +198,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(lv)
 
     # LID
-    ld = np.linspace(6291.0,6346.6,num=((6346.6-6291.0)/interval_upperMantle)+1.,endpoint=True)
+    ld = np.linspace(6291.0,6346.6,num=int((6346.6-6291.0)/interval_upperMantle)+1,endpoint=True)
     ldnorm = np.divide(ld,radius)
     ldrho = 2.6910+0.6924*ldnorm
     # Effective Isotropic Velocities
@@ -216,7 +216,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(ld)
 
     # Crust 1
-    cr = np.linspace(6346.6,6356.0,num=((6356.0-6346.6)/interval_crust)+1.,endpoint=True)
+    cr = np.linspace(6346.6,6356.0,num=int((6356.0-6346.6)/interval_crust)+1,endpoint=True)
     crnorm = np.divide(cr,radius)
     crrho = np.ones((len(cr),))*2.900
     crvp = np.ones((len(cr),))*6.800
@@ -231,7 +231,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(cr)
 
     # Crust 2
-    cr = np.linspace(6356.0,6368.0,num=((6368.0-6356.0)/interval_crust)+1.,endpoint=True)
+    cr = np.linspace(6356.0,6368.0,num=int((6368.0-6356.0)/interval_crust)+1,endpoint=True)
     crnorm = np.divide(cr,radius)
     crrho = np.ones((len(cr),))*2.600
     crvp = np.ones((len(cr),))*5.800
@@ -246,7 +246,7 @@ def main(interval_cores,interval_lowerMantle,interval_upperMantle,interval_crust
     rdist.extend(cr)
 
     # Top Layer
-    cr = np.linspace(6368.0,6371.0,num=((6371.0-6368.0)/interval_crust)+1.,endpoint=True)
+    cr = np.linspace(6368.0,6371.0,num=int((6371.0-6368.0)/interval_crust)+1,endpoint=True)
     crnorm = np.divide(cr,radius)
     crrho = np.ones((len(cr),))*1.020
     crvp = np.ones((len(cr),))*1.450
