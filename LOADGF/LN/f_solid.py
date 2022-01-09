@@ -92,7 +92,13 @@ def main(si,Y,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m):
         [c61, c62, c63, c64, c65, c66]])
 
     # USE PROPAGATOR MATRIX TECHNIQUE TO COMPUTE dY/dr
-    YP = np.dot(A,Y)
+    # Original code
+    #YP = np.dot(A,Y)
+    # Updated code (all three solutions together)
+    YP1 = np.dot(A,Y[0:6])
+    YP2 = np.dot(A,Y[6:12])
+    YP3 = np.dot(A,Y[12:18])
+    YP = np.concatenate([YP1,YP2,YP3])
 
     # RETURN UPDATED DERIVATIVES
     return YP
