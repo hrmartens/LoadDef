@@ -60,7 +60,7 @@ interp_emod : Optionally interpolate the planetary model to a different resoluti
     Default is False (see LOADGF/LN/prepare_planet_model.py)
 
 kx : Order of the spline fit for the planetary model (1=linear; 3=cubic)
-    Default is 1 (recommended)
+    Default is 1 (recommended; non-linear values have not been tested and may yield unexpected results)
 
 delim : Delimiter for the planetary model file
     Default is None (Whitespace)
