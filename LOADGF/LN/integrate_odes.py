@@ -41,7 +41,7 @@ from LOADGF.LN import compute_solutions
 from scipy import interpolate
 
 def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
-    num_soln,backend,abs_tol,rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull):
+    num_soln,backend,abs_tol,rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=1):
 
     # Determine the maximum n for which whole-planet integration will be performed (if not specified by user)
     if nmaxfull is None:
@@ -98,7 +98,7 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
  
         # Perform the Integration Through Full Earth
         Y1, Y2, Y3, sint_mt = integrate_fullEarth.main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
-            num_soln,backend,abs_tol,rel_tol,nstps,order,adim,gsdim,L_sc,T_sc,inf_tol,s)
+            num_soln,backend,abs_tol,rel_tol,nstps,order,adim,gsdim,L_sc,T_sc,inf_tol,s,kx=kx)
 
         # Apply Boundary Conditions at Surface
         m_load,m_pot,m_str,m_shr = apply_boundary_conditions.main(n,Y1[-1],Y2[-1],Y3[-1],gnd[-1],piG)
@@ -125,7 +125,7 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
 
         # Perform the Integration Through the Mantle Only
         Y1, Y2, Y3, sint_mt = integrate_mantle.main(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,\
-            num_soln,backend,abs_tol,rel_tol,nstps,order,inf_tol,s,soc)
+            num_soln,backend,abs_tol,rel_tol,nstps,order,inf_tol,s,soc,kx=kx)
 
         # Apply Boundary Conditions at Surface
         m_load,m_pot,m_str,m_shr = apply_boundary_conditions.main(n,Y1[-1],Y2[-1],Y3[-1],gnd[-1],piG)
