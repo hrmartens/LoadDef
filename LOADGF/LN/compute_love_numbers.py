@@ -204,7 +204,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     else:
     
         myn = myn_mix = hprime = nlprime = nkprime = hpot = nlpot = nkpot = hstr = nlstr = nkstr = hshr = nlshr = nkshr = None
-        s_min = tck_lnd = tck_mnd = tck_rnd = tck_gnd = wnd = ond = None
+        s_min = tck_lnd = tck_mnd = tck_rnd = tck_gnd = wnd = ond = kx = None
         piG = sic = soc = small = backend = abs_tol = rel_tol = nstps = None
         order = gnd = adim = gsdim = L_sc = T_sc = inf_tol = s = None
         sint_mt = Yload = Ypot = Ystr = Yshr = None
@@ -238,6 +238,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     tck_gnd = comm.bcast(tck_gnd, root=0)
     wnd = comm.bcast(wnd, root=0)
     ond = comm.bcast(ond, root=0)
+    kx = comm.bcast(kx, root=0)
     piG = comm.bcast(piG, root=0)
     sic = comm.bcast(sic, root=0)
     soc = comm.bcast(soc, root=0)
@@ -285,7 +286,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         hprime_sub[ii],nlprime_sub[ii],nkprime_sub[ii],hpot_sub[ii],nlpot_sub[ii],nkpot_sub[ii],hstr_sub[ii],nlstr_sub[ii],nkstr_sub[ii],\
             hshr_sub[ii],nlshr_sub[ii],nkshr_sub[ii],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
             integrate_odes.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
-                rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull)
+                rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx)
 
     # Gather Results 
     comm.Gatherv(hprime_sub, [hprime, (sendcounts, None), MPI.DOUBLE], root=0)
