@@ -19,7 +19,7 @@ We recommend creating a dedicated environment for LoadDef.
 At the command line, run:
   conda config --prepend channels conda-forge
   conda config --set channel_priority strict
-  conda create -n LDEF python=3.7 basemap mpi4py scipy netCDF4 pyshp shapely
+  conda create -n LDEF python=3.7 basemap mpi4py scipy netCDF4 pyshp shapely numba
 
 To activate the new environment, run:
   conda activate LDEF
@@ -42,6 +42,7 @@ sys
 os
 datetime
 mpi4py
+numba
 
 Optional packages to take advantage of additional LoadDef features include:
 mpl_toolkits.basemap
