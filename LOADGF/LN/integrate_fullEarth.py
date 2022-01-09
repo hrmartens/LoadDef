@@ -33,7 +33,7 @@ from LOADGF.LN import integrate_f_solid_Z
 from scipy import interpolate
 
 def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
-    num_soln,backend,abs_tol,rel_tol,nstps,m,a,gs,L_sc,T_sc,inf_tol,s):
+    num_soln,backend,abs_tol,rel_tol,nstps,m,a,gs,L_sc,T_sc,inf_tol,s,kx=1):
  
     # Compute Starting Solutions By Power Series Expansion
     #Y = fundamental_solutions_powser.main(s_min,n,tck_lnd,tck_mnd,tck_rnd,wnd,ond,piG,m); Z = None
@@ -50,12 +50,15 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
         # Integrate Through Inner Core
         int_start = s_min
         int_stop  = sic-small
-        Y1,sint1ic = integrate_f_solid.main(Y1i,int_start,int_stop,num_soln,backend,nstps,\
-            abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-        Y2,sint2ic = integrate_f_solid.main(Y2i,int_start,int_stop,num_soln,backend,nstps,\
-            abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-        Y3,sint3ic = integrate_f_solid.main(Y3i,int_start,int_stop,num_soln,backend,nstps,\
-            abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
+        # integrate the 3 solutions at once, using 18 degrees of freedom in the ODE
+        Y123i = np.concatenate([Y1i, Y2i, Y3i])
+        Y123, sint1ic = integrate_f_solid.main(Y123i,int_start,int_stop,num_soln,backend,nstps,\
+            abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m,kx=kx)
+        # unpack the 3 solutions
+        Y123 = np.array(Y123)
+        Y1 = list(Y123[:, 0:6])
+        Y2 = list(Y123[:, 6:12])
+        Y3 = list(Y123[:, 12:18])
   
     # Z-transform Solutions (Smylie 2013)
     if Z is not None: 
@@ -101,12 +104,15 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
     # Integrate Through Mantle
     int_start = soc+small
     int_stop  = s[-1]
-    Y1,sint1mt = integrate_f_solid.main(YMT1i,int_start,int_stop,num_soln,backend,nstps,\
-        abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-    Y2,sint2mt = integrate_f_solid.main(YMT2i,int_start,int_stop,num_soln,backend,nstps,\
-        abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
-    Y3,sint3mt = integrate_f_solid.main(YMT3i,int_start,int_stop,num_soln,backend,nstps,\
-        abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
+    # integrate the 3 solutions at once, using 18 degrees of freedom in the ODE
+    Y123i = np.concatenate([YMT1i, YMT2i, YMT3i])
+    Y123, sint1mt = integrate_f_solid.main(Y123i,int_start,int_stop,num_soln,backend,nstps,\
+        abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m,kx=kx)
+    # unpack the 3 solutions
+    Y123 = np.array(Y123)
+    Y1 = list(Y123[:, 0:6])
+    Y2 = list(Y123[:, 6:12])
+    Y3 = list(Y123[:, 12:18])
 
     # Return Mantle Solutions (sint = normalized radii at solution points)
     return Y1, Y2, Y3, sint1mt
