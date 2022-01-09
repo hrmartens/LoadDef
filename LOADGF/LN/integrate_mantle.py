@@ -56,6 +56,14 @@ def main(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,\
     # Integrate From Starting Radius to Surface
     int_start = s_start
     int_stop  = s[-1]
+    
+    # Original code
+    #Y1,sint1mt = integrate_f_solid.main(Y1i,int_start,int_stop,num_soln,backend,nstps,\
+    #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
+    #Y2,sint2mt = integrate_f_solid.main(Y2i,int_start,int_stop,num_soln,backend,nstps,\
+    #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
+    #Y3,sint3mt = integrate_f_solid.main(Y3i,int_start,int_stop,num_soln,backend,nstps,\
+    #    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
 
     # integrate the 3 solutions at once, using 18 degrees of freedom in the ODE
     Y123i = np.concatenate([Y1i, Y2i, Y3i])
