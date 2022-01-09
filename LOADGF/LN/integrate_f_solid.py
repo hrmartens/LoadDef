@@ -1,7 +1,7 @@
 # *********************************************************************
 # FUNCTION TO INTEGRATE Y-SOLUTIONS THROUGH A SOLID LAYER (n>=1)
 #
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS
 #
 # This file is part of LoadDef.
 #
@@ -24,9 +24,10 @@ import numpy as np
 import sys
 from scipy.integrate import ode
 from LOADGF.LN import f_solid
+from LOADGF.LN import f_solid_linear
 
 def main(Yi,int_start,int_stop,num_soln,backend,nstps,\
-    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m):
+    abs_tol,rel_tol,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m,kx=1):
 
     # Compute Solution Step Size
     dsc = (int_stop-int_start)/num_soln
@@ -36,10 +37,21 @@ def main(Yi,int_start,int_stop,num_soln,backend,nstps,\
     Yint = []
     sint = []
 
-    # Initialize Solver
-    solver = ode(f_solid.main).set_integrator(backend,atol=abs_tol,rtol=rel_tol,nsteps=nstps)
-    solver.set_initial_value(Yi,int_start).set_f_params(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
+    # if interpolation is linear, then map spline coefficients to arrays
+    if (kx == 1): 
+        model_radii = tck_lnd[0][1:-1]
+        model_lmrg = np.array([tck_lnd[1], tck_mnd[1], tck_rnd[1],tck_gnd[1]]).T[:-2]
 
+    # Initialize Solver
+    if (kx == 1): 
+        solver = ode(f_solid_linear.main)
+        solver.set_integrator(backend,atol=abs_tol,rtol=rel_tol,nsteps=nstps)
+        solver.set_initial_value(Yi,int_start)
+        solver.set_f_params(n,model_radii,model_lmrg,wnd,ond,piG,m)
+    else: 
+        solver = ode(f_solid.main).set_integrator(backend,atol=abs_tol,rtol=rel_tol,nsteps=nstps)
+        solver.set_initial_value(Yi,int_start).set_f_params(n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m)
+ 
     # Integrate
     while solver.successful() and (solver.t + dsc) < int_stop-eps:
         solver.integrate(solver.t + dsc)
@@ -53,7 +65,7 @@ def main(Yi,int_start,int_stop,num_soln,backend,nstps,\
         print('')
         sys.exit()
 
-    # If not yet to the stopping radius, continue one last step 
+    # If not yet to the stopping radius, continue one last step
     if (max(sint) < int_stop):
         solver.integrate(int_stop)
         Yint.append(solver.y)
