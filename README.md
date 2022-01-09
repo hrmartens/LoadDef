@@ -42,6 +42,10 @@ The complete and most up-to-date source code is available under the "Code" butto
 
 (Older versions of the software can be found by following this link: https://github.com/hrmartens/LoadDef/releases.)
 
+## Thank you:
+
+Martin van Driel, ETH Zurich: Updated linear interpolation algorithm for the Love-number computation to improve computational efficiency [integrate_mantle.py; integrate_f_solid.py; f_solid_linear.py].
+
 ## Questions and bugs:
 
 Please refer questions and requests for updates to:
