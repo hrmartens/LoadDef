@@ -217,7 +217,7 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
     # Gather the Processor Workloads for All Processors
     sendcounts = comm.gather(procN, root=0)
 
-    # Scatter the Date Locations (By Index)
+    # Scatter the File Locations (By Index)
     d_sub = np.empty((procN,))
     comm.Scatterv([file_idx, (sendcounts, None), cntype], d_sub, root=0)
 
@@ -233,7 +233,7 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
     file_exts = comm.bcast(file_exts, root=0)
     file_idx = comm.bcast(file_idx, root=0)
 
-    # Loop Through the Dates
+    # Loop Through the Files 
     eamp_sub = np.empty((len(d_sub),))
     epha_sub = np.empty((len(d_sub),))
     namp_sub = np.empty((len(d_sub),))
@@ -242,7 +242,7 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
     vpha_sub = np.empty((len(d_sub),))
     for ii in range(0,len(d_sub)):
         current_d = int(d_sub[ii]) # Index
-        mfile = load_files[current_d] # Vector-Format Date
+        mfile = load_files[current_d] # Vector-Format 
         file_ext = file_exts[current_d] # File Extension
         print('Working on File: %s | Number: %6d of %6d | Rank: %6d' %(file_ext, (ii+1), len(d_sub), rank))
         # Check if Loadfile Exists
@@ -275,7 +275,7 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
     # Print Output to Files and Return Variables
     if (rank == 0):
 
-        # Re-organize Dates
+        # Re-organize Files 
         narr,nidx = np.unique(file_idx,return_index=True)
         eamp = eamp[nidx]; namp = namp[nidx]; vamp = vamp[nidx]
         epha = epha[nidx]; npha = npha[nidx]; vpha = vpha[nidx]
