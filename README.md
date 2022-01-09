@@ -38,7 +38,13 @@ sub-daily GPS positions. Geophys. J. Int., 205(3): 1637–1664. https://doi.org/
 
 ## Software access and updates:
 
-The complete and most up-to-date source code is available under the "Code" button above (green button): https://github.com/hrmartens/LoadDef/archive/master.zip.
+The complete and most up-to-date source code is available under the "Code" button above (green button).
+
+From a terminal, the software can be downloaded using git: 
+git clone https://github.com/hrmartens/LoadDef.git
+
+Alternatively, the software can be downloaded as a zip file: 
+https://github.com/hrmartens/LoadDef/archive/master.zip.
 
 (Older versions of the software can be found by following this link: https://github.com/hrmartens/LoadDef/releases.)
 
