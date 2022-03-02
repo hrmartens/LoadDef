@@ -26,6 +26,7 @@ from mpi4py import MPI
 import numpy as np
 import datetime
 import scipy as sc
+import netCDF4
 from scipy import interpolate
 from CONVGF.utility import read_greens_fcn_file
 from CONVGF.utility import read_greens_fcn_file_norm
@@ -80,7 +81,7 @@ izb     : inner zone boundary (degrees; 0<izb<z2b)
     Default is 0.02
 
 z2b     : zone 2 boundary (degrees; izb<z2b<z3b)
-    Default is 0.05
+    Default is 0.1
 
 z3b     : zone 3 boundary (degrees; z2b<z3b<z4b)
     Default is 1.0
@@ -91,25 +92,27 @@ z4b     : zone 4 boundary (degrees; z3b<z4b<z5b)
 z5b     : zone 5 boundary (degrees; z4b<z5b<180)
     Default is 90.0
 
-azminc  : azimuthal increment
-    Default is 0.1
+azminc  : azimuthal increment # NOTE: Maybe should match azminc with delinc5 (i.e., keep azminc consistent with theta increment at 90 degrees from station,
+                              #       where azimuth and theta increments are consistent in horizontal distance along planet's surface)
+                              #       :: azminc*sin(theta) ~ delinc
+    Default is 0.5 
 
 mass_cons  :  option to enforce mass conservation by removing the spatial mean from the load grid
     Default is False
 
 """
 
-def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_file,lsmask_type,loadfile_format,rank,procN,comm,\
+def main(grn_file,norm_flag,load_files,regular,lslat,lslon,lsmask,rlat,rlon,stname,cnv_out,lsmask_type,loadfile_format,rank,procN,comm,\
     load_density=1030.0,rad=6371000.,delinc1=0.0002,delinc2=0.001,delinc3=0.01,delinc4=0.1,delinc5=0.5,delinc6=1.0,\
-    izb=0.02,z2b=0.05,z3b=1.0,z4b=10.0,z5b=90.0,azminc=0.1,mass_cons=False):
-
+    izb=0.02,z2b=0.1,z3b=1.0,z4b=10.0,z5b=90.0,azminc=0.5,mass_cons=False):
+ 
     # Determine Number of Load Files
     if isinstance(load_files,float) == True:
         numel = 1
     else: 
         numel = len(load_files)
 
-    # Only the Main Processor Will Do This: 
+    # Only the Main Processor Will Do This:
     if (rank == 0):
 
         # Print Number of Files Read In
@@ -117,32 +120,60 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
         print(display)
         print(" ")
 
-        # Generate an Array of File Indices
-        file_idx = np.linspace(0,numel,num=numel,endpoint=False)
-        np.random.shuffle(file_idx)
-
-        # Create Array of Filename Extensions
-        file_exts = []
-        for qq in range(0,numel):
-            mfile = load_files[qq]
-            str_components = mfile.split('_')
-            cext = str_components[-1]
-            if (loadfile_format == "txt"):
-                file_exts.append(cext[0:-4]) 
-            elif (loadfile_format == "nc"):
-                file_exts.append(cext[0:-3]) 
-            else:
-                print(':: Error. Invalid file format for load models. [load_convolution.py]')
-                sys.exit()
+        # Determine whether load file was supplied as a list of cells, or as traditional load files
+        if (loadfile_format == "bbox"): # list of cells
+            # Ensure only one file is read in for this format
+            if (numel > 1):
+                sys.exit(":: Error: For load files in 'bbox' format (i.e., a list of bounding boxes), only one file can be read in at a time. [load_convolution.py]")
+            # Read in the file
+            loadgrid = load_files[0]
+            lcext = loadgrid[-2::]
+            if (lcext == 'xt'):
+                file_ids = np.loadtxt(loadgrid,usecols=(4,),unpack=True,dtype='U')
+                slat,nlat,wlon,elon = np.loadtxt(loadgrid,usecols=(0,1,2,3),unpack=True)
+            elif (lcext == 'nc'):
+                f = netCDF4.Dataset(loadgrid)
+                file_ids = f.variables['cell_ids'][:]
+                slat = f.variables['slatitude'][:]
+                nlat = f.variables['nlatitude'][:]
+                wlon = f.variables['wlongitude'][:]
+                elon = f.variables['elongitude'][:]
+                f.close()
+            # Ensure that Bounding Box Longitudes are in Range 0-360
+            for yy in range(0,len(wlon)):
+                if (wlon[yy] < 0.):
+                    wlon[yy] += 360.
+                if (elon[yy] < 0.):
+                    elon[yy] += 360.
+            # Generate an array of cell indices
+            file_idx = np.linspace(0,len(file_ids),num=(len(file_ids)),endpoint=False)
+            np.random.shuffle(file_idx)
+        else:
+            # Generate an Array of File Indices
+            file_idx = np.linspace(0,numel,num=numel,endpoint=False)
+            np.random.shuffle(file_idx)
+            # Create Array of Filename Extensions
+            file_ids = []
+            for qq in range(0,numel):
+                mfile = load_files[qq]
+                str_components = mfile.split('_')
+                cext = str_components[-1]
+                if (loadfile_format == "txt"):
+                    file_ids.append(cext[0:-4]) 
+                elif (loadfile_format == "nc"):
+                    file_ids.append(cext[0:-3])
+                else:
+                    print(':: Error. Invalid file format for load models. [load_convolution.py]')
+                    sys.exit()
 
         # Initialize Arrays
-        eamp = np.empty((len(load_files),))
-        epha = np.empty((len(load_files),))
-        namp = np.empty((len(load_files),))
-        npha = np.empty((len(load_files),))
-        vamp = np.empty((len(load_files),))
-        vpha = np.empty((len(load_files),))
-
+        eamp = np.empty((len(file_ids),))
+        epha = np.empty((len(file_ids),))
+        namp = np.empty((len(file_ids),))
+        npha = np.empty((len(file_ids),))
+        vamp = np.empty((len(file_ids),))
+        vpha = np.empty((len(file_ids),))
+ 
         # Read Greens Function File
         if norm_flag == True:
             theta,u,v,unormFarrell,vnormFarrell = read_greens_fcn_file_norm.main(grn_file,rad)
@@ -168,26 +199,6 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
         # Compute Geographic Coordinates of Integration Mesh Cell Midpoints
         ilat,ilon,iarea = intmesh2geogcoords.main(rlat,rlon,ldel,lazm,unit_area)
 
-        # Read in the Land-Sea Mask
-        if (lsmask_type > 0):
-            lslat,lslon,lsmask = read_lsmask.main(lsmask_file)
-        else: 
-            #lslat = ilat[0::10]
-            #lslon = ilon[0::10]
-            #lsmask = np.ones((len(lslat),)) * -1.
-            # Doesn't really matter so long as there are some values filled in with something other than 1 or 2
-            lat1d = np.arange(-90.,90.,2.)
-            lon1d = np.arange(0.,360.,2.)
-            olon,olat = np.meshgrid(lon1d,lat1d)
-            lslat = olat.flatten()
-            lslon = olon.flatten()
-            lsmask = np.ones((len(lslat),)) * -1.
-        print(':: Finished Reading in LSMask.')
-
-        # Ensure that Land-Sea Mask Longitudes are in Range 0-360
-        neglon_idx = np.where(lslon<0.)
-        lslon[neglon_idx] = lslon[neglon_idx] + 360.
- 
         # Ensure that Station Location is in Range 0-360
         if (rlon < 0.):
             rlon += 360.
@@ -207,8 +218,9 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
     # If I'm a Worker, I Know Nothing About the Data
     else:
  
-        file_idx = file_exts = eamp = epha = namp = npha = vamp = vpha = None
+        file_idx = file_ids = eamp = epha = namp = npha = vamp = vpha = None
         ldel = lazm = uint = vint = ilat = ilon = iarea = delta = haz = ur = ue = un = lsmk = None
+        slat = nlat = wlon = elon = None
 
     # Create a Data Type for the Convolution Results
     cntype = MPI.DOUBLE.Create_contiguous(1)
@@ -230,8 +242,13 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
     un    = comm.bcast(un, root=0)
     load_density  = comm.bcast(load_density, root=0)
     lsmk  = comm.bcast(lsmk, root=0)
-    file_exts = comm.bcast(file_exts, root=0)
+    file_ids = comm.bcast(file_ids, root=0)
     file_idx = comm.bcast(file_idx, root=0)
+    if (loadfile_format == "bbox"):
+        slat = comm.bcast(slat, root=0)
+        nlat = comm.bcast(nlat, root=0)
+        wlon = comm.bcast(wlon, root=0)
+        elon = comm.bcast(elon, root=0)
 
     # Loop Through the Files 
     eamp_sub = np.empty((len(d_sub),))
@@ -242,21 +259,30 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
     vpha_sub = np.empty((len(d_sub),))
     for ii in range(0,len(d_sub)):
         current_d = int(d_sub[ii]) # Index
-        mfile = load_files[current_d] # Vector-Format 
-        file_ext = file_exts[current_d] # File Extension
-        print('Working on File: %s | Number: %6d of %6d | Rank: %6d' %(file_ext, (ii+1), len(d_sub), rank))
-        # Check if Loadfile Exists
-        if (os.path.isfile(mfile)):
-            # Compute Convolution for Current File
-            eamp_sub[ii],epha_sub[ii],namp_sub[ii],npha_sub[ii],vamp_sub[ii],vpha_sub[ii] = perform_convolution.main(\
-                mfile,ilat,ilon,iarea,load_density,ur,ue,un,lsmk,lsmask_type,file_ext,regular,mass_cons,loadfile_format)
-        else: # File Does Not Exist
-            eamp_sub[ii] = np.nan
-            epha_sub[ii] = np.nan
-            namp_sub[ii] = np.nan
-            npha_sub[ii] = np.nan
-            vamp_sub[ii] = np.nan
-            vpha_sub[ii] = np.nan
+        if (loadfile_format == "bbox"):
+            cslat = slat[current_d]
+            cnlat = nlat[current_d]
+            cwlon = wlon[current_d]
+            celon = elon[current_d]
+            mfile = [cslat,cnlat,cwlon,celon]
+            file_id = file_ids[current_d] # File Extension
+            print(':: Working on Cell: %s | Number: %6d of %6d | Rank: %6d' %(file_id, (ii+1), len(d_sub), rank))
+        else: 
+            mfile = load_files[current_d] # Vector-Format 
+            file_id = file_ids[current_d] # File Extension
+            print(':: Working on File: %s | Number: %6d of %6d | Rank: %6d' %(file_id, (ii+1), len(d_sub), rank))
+            # Check if Loadfile Exists
+            if not (os.path.isfile(mfile)): # file does not exist
+                eamp_sub[ii] = np.nan
+                epha_sub[ii] = np.nan
+                namp_sub[ii] = np.nan
+                npha_sub[ii] = np.nan
+                vamp_sub[ii] = np.nan
+                vpha_sub[ii] = np.nan
+                continue
+        # Compute Convolution for Current File
+        eamp_sub[ii],epha_sub[ii],namp_sub[ii],npha_sub[ii],vamp_sub[ii],vpha_sub[ii] = perform_convolution.main(\
+            mfile,ilat,ilon,iarea,load_density,ur,ue,un,lsmk,lsmask_type,file_id,regular,mass_cons,loadfile_format,stname)
 
     # Gather Results
     comm.Gatherv(eamp_sub, [eamp, (sendcounts, None), MPI.DOUBLE], root=0)
@@ -275,7 +301,7 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
     # Print Output to Files and Return Variables
     if (rank == 0):
 
-        # Re-organize Files 
+        # Re-organize Files
         narr,nidx = np.unique(file_idx,return_index=True)
         eamp = eamp[nidx]; namp = namp[nidx]; vamp = vamp[nidx]
         epha = epha[nidx]; npha = npha[nidx]; vpha = vpha[nidx]
@@ -293,18 +319,29 @@ def main(grn_file,norm_flag,load_files,regular,rlat,rlon,stname,cnv_out,lsmask_f
         # Prepare Data for Output (Create a Structured Array)
         rlat_arr = np.ones((len(eamp),)) * rlat
         rlon_arr = np.ones((len(eamp),)) * rlon
-        all_cnv_data = np.array(list(zip(file_exts,rlat_arr,rlon_arr,eamp,epha,namp,npha,vamp,vpha)), dtype=[('file_exts','U25'), \
-            ('rlat_arr',float),('rlon_arr',float),('eamp',float),('epha',float),('namp',float),('npha',float), \
-            ('vamp',float),('vpha',float)])
+        if (loadfile_format == "bbox"):
+            all_cnv_data = np.array(list(zip(file_ids,rlat_arr,rlon_arr,eamp,epha,namp,npha,vamp,vpha,slat,nlat,wlon,elon)), dtype=[('file_ids','U25'), \
+                ('rlat_arr',float),('rlon_arr',float),('eamp',float),('epha',float),('namp',float),('npha',float), \
+                ('vamp',float),('vpha',float),('slat',float),('nlat',float),('wlon',float),('elon',float)])
+        else:
+            all_cnv_data = np.array(list(zip(file_ids,rlat_arr,rlon_arr,eamp,epha,namp,npha,vamp,vpha)), dtype=[('file_ids','U25'), \
+                ('rlat_arr',float),('rlon_arr',float),('eamp',float),('epha',float),('namp',float),('npha',float), \
+                ('vamp',float),('vpha',float)])
 
         # Write Header Info to File
         hf = open(cnv_head,'w')
-        cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  V-Amp(mm)  V-Pha(deg) \n'
+        if (loadfile_format == "bbox"):
+            cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  V-Amp(mm)  V-Pha(deg)  S-Lat(deg)  N-Lat(deg)  W-Lon(deg)  E-Lon(deg) \n'
+        else:
+            cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  V-Amp(mm)  V-Pha(deg) \n'
         hf.write(cnv_str)
         hf.close()
 
         # Write Convolution Results to File
-        np.savetxt(cnv_body,all_cnv_data,fmt=["%s"] + ["%.8f",]*8,delimiter="      ")    
+        if (loadfile_format == "bbox"):
+            np.savetxt(cnv_body,all_cnv_data,fmt=["%s"] + ["%.8f",]*12,delimiter="      ")
+        else:
+            np.savetxt(cnv_body,all_cnv_data,fmt=["%s"] + ["%.8f",]*8,delimiter="      ")
 
         # Combine Header and Body Files
         filenames_cnv = [cnv_head, cnv_body]
