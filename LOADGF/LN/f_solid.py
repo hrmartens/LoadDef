@@ -94,6 +94,7 @@ def main(si,Y,n,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,m):
     # USE PROPAGATOR MATRIX TECHNIQUE TO COMPUTE dY/dr
     # Original code
     #YP = np.dot(A,Y)
+    # Only one Y solution computed at a time (still the case for computing partial derivatives)
     if (len(Y) == 6): 
         YP = np.dot(A,Y)
     # Updated code (all three solutions together)
