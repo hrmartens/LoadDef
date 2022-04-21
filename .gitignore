@@ -1,6 +1,6 @@
 # Don't track content of these folders
 output/
-input/Load_Models/FES2014/*.nc
+input/Load_Models/FES2014b/*.nc
 *.pyc
 __*__
 info.txt
