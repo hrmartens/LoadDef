@@ -62,7 +62,7 @@ loadfile_directory = ("../output/Grid_Files/nc/OTL/")  # Example 1 (ocean tidal 
 #  :: Note: For Load Files Organized by Date, the End of Filename Name Must be in the Format yyyymmddhhmnsc.txt
 #  :: Note: If not organized by date, files may be organized by tidal harmonic, for example (i.e. a unique filename ending)
 #  :: Note: Output names (within output files) will be determined by extension following last underscore character (e.g., date/harmonic/model)
-loadfile_prefix = ("convgf_FES2014") # Example 1 (ocean tidal loading)
+loadfile_prefix = ("convgf_FES2014b") # Example 1 (ocean tidal loading)
 #loadfile_prefix = ("convgf_ntol") # Example 2 (time series)
 
 # LoadFile Format: ["nc", "txt"]
