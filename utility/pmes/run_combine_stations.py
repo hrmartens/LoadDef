@@ -39,7 +39,7 @@ import numpy as np
 
 directory = ("../../output/Convolution/")
 prefix = ("cn_LandAndOceans_")
-suffix = ("cf_convgf_disk_PREM_dens1000.txt") 
+suffix = ("ce_convgf_disk_PREM_dens1000.txt") 
 
 #### BEGIN CODE ####
 
