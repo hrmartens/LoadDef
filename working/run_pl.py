@@ -145,7 +145,6 @@ if (rank == 0):
 else:
     compute_ln_partials.main(ln_n,ln_sint,ln_Yload,ln_Ypot,ln_Yshr,ln_Ystr,ln_h,ln_nl,ln_nk,ln_hpot,ln_nlpot,ln_nkpot,ln_hshr,ln_nlshr,ln_nkshr,\
         ln_hstr,ln_nlstr,ln_nkstr,planet_model,rank,comm,size,par_out=file_ext,plot_figure=plot_fig)
-
     # Workers Will Know Nothing About the Data
     dht_dmu = dlt_dmu = dkt_dmu = dht_dK = dlt_dK = dkt_dK = dht_drho = dlt_drho = dkt_drho = None
     dhl_dmu = dll_dmu = dkl_dmu = dhl_dK = dll_dK = dkl_dK = dhl_drho = dll_drho = dkl_drho = None
