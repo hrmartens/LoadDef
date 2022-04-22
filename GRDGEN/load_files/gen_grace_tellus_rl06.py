@@ -61,7 +61,7 @@ flip = False
 tmrange = "%4d%02d%02d-%4d%02d%02d" % (start_year_tm, start_month_tm, start_day_tm, end_year_tm, end_month_tm, end_day_tm)
 add_tag = (tmrange + "_GRACE_Tellus_RL06")
 
-# Complete Pathname to Current GRACE File
+### Complete Pathname to Current GRACE File
 
 # First solution
 loadfile1 = grace_directory + "GRCTellus.JPL.200204_202201.GLO.RL06M.MSCNv02CRI.nc"
@@ -76,7 +76,7 @@ loadfile3 = None
 tag3 = ""
 
 # Scaling factors
-scaling = grace_directory + "CLM4.SCALE_FACTOR.DS.G300KM.RL05.DSTvSCS1409.nc"
+scaling = None
 
 # Average solutions
 avgsol = False

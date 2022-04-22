@@ -47,7 +47,6 @@ disk_lat = np.around(disk_lat,decimals=4) # round the disk latitude to 4 decimal
 
 # Grid Spacing
 gspace = 0.0002
-#gspace = 0.1 
 
 # Specify Bounding Box for Load Model (e.g. boundingbox.klokantech.com)
 #  :: In general, the longitude range should be [0,360]
@@ -66,8 +65,7 @@ nlat = np.around(nlat,decimals=4)
 pm_correct = False
 
 # Specify Load Height (meters)
-loadamp = 5
-#loadamp=0.203718 # Parsons
+loadamp = 1
  
 # Specify Phase (deg)
 loadpha=0.0
@@ -89,7 +87,6 @@ regular_grid = True
 
 # Output Filename
 outfile = ("disk_" + str(loadamp) + "m_" + str(disk_radius) + "km-NoTaper")
-#outfile = ("disk_" + str(int(loadamp)) + "m_" + str(disk_radius) + "km-NoTaper")
   
 # Write Load Information to a netCDF-formatted File? (Default for convolution)
 write_nc = True

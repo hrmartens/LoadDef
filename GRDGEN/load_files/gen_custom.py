@@ -52,7 +52,7 @@ nlat=10.  # range [-90,90]
 pm_correct = False
 
 # Specify Load Height (meters)
-loadamp=0.0
+loadamp=1.0
 
 # Specify Phase (deg)
 loadpha=0.0

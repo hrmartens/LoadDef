@@ -40,16 +40,16 @@ from CONVGF.CN import interpolate_lsmask
 # --------------- SPECIFY USER INPUTS --------------------- #
  
 # 1. Specify the region of interest
-slat = 31.0
-nlat = 49.5
-wlon = -126.0
-elon = -104.0  
+slat = 44.0
+nlat = 46.0
+wlon = -113.0
+elon = -111.0  
 
 # 2. Specify the cell size (in degrees)
 cell_size = 0.25 
  
 # 3. Apply a land-sea mask? 
-apply_ls = True
+apply_ls = False
 land_sea = ("../../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 ls_mask = 'land' # 'ocean' = keep ocean (including cells with partial ocean); 'land' = keep land (including cells with partial land)
  
