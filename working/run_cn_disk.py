@@ -173,16 +173,13 @@ for jj in range(0,numel):
         my_lat = lat[jj]
         my_lon = lon[jj]
 
-    # If Rank is Master, Output Station Name
+    # Decode station name if necessary
     try: 
         my_sta = my_sta.decode()
     except: 
         print(':: No need to decode station.')
-    if (rank == 0):
-        print(' ')
-        print(':: Starting on Station: ' + my_sta)
 
-    # If Rank is Master, Output Station Name
+    # If Rank is Main, Output Station Name
     if (rank == 0):
         print(' ')
         print(':: Starting on Station: ' + my_sta)
