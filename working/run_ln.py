@@ -92,7 +92,6 @@ if (rank == 0):
 else: 
     # Workers Compute Love Numbers
     compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext)
- 
     # Workers Will Know Nothing About the Data Used to Compute the GFs
     ln_n = ln_h = ln_nl = ln_nk = ln_h_inf = ln_l_inf = ln_k_inf = ln_h_inf_p = ln_l_inf_p = ln_k_inf_p = None
     ln_planet_radius = ln_planet_mass = ln_Yload = ln_Ypot = ln_Ystr = ln_Yshr = None
