@@ -93,17 +93,31 @@ lsmask_file = ("../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 # Station/Grid-Point Location File (Lat, Lon, StationName)
 sta_file = ("../input/Station_Locations/Lat_Profile_Select.txt")
 
-# -- Mesh Paramters --
+# -- Mesh Paramters -- High Resolution
+#del1 = 0.001    # increment in angular resolution (degrees) for innermost zone
+#del2 = 0.005    # increment in angular resolution for second zone
+#del3 = 0.01     # increment in angular resolution for third zone
+#del4 = 0.1      # increment in angular resolution for fourth zone
+#del5 = 0.5      # increment in angular resolution for fifth zone
+#del6 = 1.0      # increment in angular resolution for outermost zone
+#z1 = 11.0       # outer edge of innermost zone (degrees)
+#z2 = 15.0       # outer edge of second zone
+#z3 = 20.0       # outer edge of third zone
+#z4 = 30.0       # outer edge of fourth zone
+#z5 = 90.0       # outer edge of fifth zone
+#azm = 0.5       # increment in azimuthal resolution (degrees)
+ 
+# -- Mesh Paramters -- Lower Resolution (faster)
 del1 = 0.001    # increment in angular resolution (degrees) for innermost zone
 del2 = 0.005    # increment in angular resolution for second zone
 del3 = 0.01     # increment in angular resolution for third zone
 del4 = 0.1      # increment in angular resolution for fourth zone
 del5 = 0.5      # increment in angular resolution for fifth zone
 del6 = 1.0      # increment in angular resolution for outermost zone
-z1 = 11.0       # outer edge of innermost zone (degrees)
-z2 = 15.0       # outer edge of second zone
-z3 = 20.0        # outer edge of third zone
-z4 = 30.0       # outer edge of fourth zone
+z1 = 1.0        # outer edge of innermost zone (degrees)
+z2 = 2.0        # outer edge of second zone
+z3 = 10.0       # outer edge of third zone
+z4 = 50.0       # outer edge of fourth zone
 z5 = 90.0       # outer edge of fifth zone
 azm = 0.5       # increment in azimuthal resolution (degrees)
  
