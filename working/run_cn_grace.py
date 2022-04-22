@@ -120,6 +120,22 @@ if (rank == 0):
 if not (loadfile_format == "nc"):
     if not (loadfile_format == "txt"):
         print(":: Error: Invalid format for load files. See scripts in the /GRDGEN/load_files/ folder. Acceptable formats: netCDF, txt.")
+
+# Read in the Land-Sea Mask
+if (lsmask_type > 0):
+    lslat,lslon,lsmask = read_lsmask.main(lsmask_file)
+else:
+    # Doesn't really matter so long as there are some values filled in with something other than 1 or 2
+    lat1d = np.arange(-90.,90.,2.)
+    lon1d = np.arange(0.,360.,2.)
+    olon,olat = np.meshgrid(lon1d,lat1d)
+    lslat = olat.flatten()
+    lslon = olon.flatten()
+    lsmask = np.ones((len(lslat),)) * -1.
+print(':: Finished Reading in LSMask.')
+
+# Ensure that Land-Sea Mask Longitudes are in Range 0-360
+neglon_idx = np.where(lslon<0.)
  
 # Read Station & Date Range File
 lat,lon,sta = read_station_file.main(sta_file)
@@ -205,11 +221,11 @@ for jj in range(0,numel):
     # Perform the Convolution for Each Station
     if (rank == 0):
         eamp,epha,namp,npha,vamp,vpha = load_convolution.main(grn_file,norm_flag,load_files,regular,\
-            slat,slon,sname,cnv_out,lsmask_file,lsmask_type,loadfile_format,rank,procN,comm,load_density=ldens)
+            lslat,lslon,lsmask,slat,slon,sname,cnv_out,lsmask_type,loadfile_format,rank,procN,comm,load_density=ldens)
     # For Worker Ranks, Run the Code But Don't Return Any Variables
     else:
         load_convolution.main(grn_file,norm_flag,load_files,regular,\
-            slat,slon,sname,cnv_out,lsmask_file,lsmask_type,loadfile_format,rank,procN,comm,load_density=ldens)
+            lslat,lslon,lsmask,slat,slon,sname,cnv_out,lsmask_type,loadfile_format,rank,procN,comm,load_density=ldens)
 
     # Make Sure All Jobs Have Finished Before Continuing
     comm.Barrier()
