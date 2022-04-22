@@ -39,20 +39,28 @@ import numpy as np
 import math
 
 #### USER INPUT ####
+
 # Spherical Harmonic Degree
 cn = 2
+
 # Type of Love Number (Load = 'lln'; Potential/Tide = 'pln'; Shear = 'sln'; Stress (n=1) = 'sln')
 lntype = 'lln'
+
 # Earth Model
 emod = 'PREM'
+
 # Homogeneous Sphere? 
 homsph = False; hsvp = 10000.; hsvs = 5000.; hsrho = 5000.
+
 # Output Figure Name
 figname = ("Partial_Derivatives_"+lntype+"_n"+str(cn)+"_"+emod+".pdf")
+
 # Filenames for Partial Derivative Files
 partial = ("../../output/Love_Numbers/Partials/"+lntype+"_n"+str(cn)+"_"+emod+"_partials.txt")
+
 # Define the "Okubo & Saito (1983)" Normalization Factor
 osfact = 1. / (6371./1E4) 
+
 # Radius Range (km)
 #  :: rmin = 3480., n=2; rmin = 5850., n=100 ; rmin = 6330., n=1000 ; rmin = 6366., n=10000
 rmin = 3480.; rmax = 6371.
@@ -64,11 +72,14 @@ if (cn >= 10000.):
     rmin = 6366.; rmax = 6371.
 if (homsph == True):
     rmin = 80.; rmax = 6371.
+
 # Convert to Depth
 dmin = 6371.-rmin; dmax = 6371.-rmax
 useDepth = True # Toggle between depth and radius
+
 # Number of Ticks
 numxticks = 5
+
 # Tick Spacing (Y-axis)
 #  :: 500. for n=2; 100. for n=100; 10. for n=1000; 1. for n=10000
 ytickspace = 500.
@@ -80,11 +91,14 @@ if (cn >= 1000.):
     ytickspace = 10.
 if (cn >= 10000.):
     ytickspace = 1.
+
 # Xtick Format
 majorFormatter = FormatStrFormatter('%.3G')
 xtickrot = 25
+
 # Ytick Format
 majorFormatterY = FormatStrFormatter('%d')
+
 # Optionally Set XLims
 setXLim = True
 if (setXLim == True):
@@ -147,18 +161,18 @@ if ((cn==1) & (lntype=='sln')):
 # Read the Files
 rint,imnd,iknd,irnd,dh_dmu,dh_dK,dh_drho,dl_dmu,dl_dK,dl_drho,dk_dmu,dk_dK,dk_drho = np.loadtxt(partial,unpack=True,skiprows=7)
 
-# Find Depth Below Which Elastic Moduli Sensitivities are < Threshold
-#threshold = 0.0001
-#hmu_idx = np.where(np.absolute(dh_dmu)/max(np.absolute(dh_dmu)) < threshold); hmu_idx = hmu_idx[0]
-#print(('dh_dmu falls below ', threshold, ' at: ', max(rint[hmu_idx]))
-#lmu_idx = np.where(np.diff(dl_dmu) < threshold); lmu_idx = lmu_idx[0]
-#print(('diff(dl_dmu) falls below ', threshold, ' at: ', max(rint[lmu_idx]))
-#hka_idx = np.where(np.absolute(dh_dK)/max(np.absolute(dh_dK)) < threshold); hka_idx = hka_idx[0]
-#print(('dh_dka falls below ', threshold, ' at: ', max(rint[hka_idx]))
-#lka_idx = np.where(np.absolute(dl_dK)/max(np.absolute(dl_dK)) < threshold); lka_idx = lka_idx[0]
-#print(('dl_dka falls below ', threshold, ' at: ', max(rint[lka_idx]))
-#print(('(r/a)^10000, 3km: ', (6367./6371.)**10000.))
-#print(('(r/a)^100, 300km: ', (6071./6371.)**100.))
+### Find Depth Below Which Elastic Moduli Sensitivities are < Threshold
+# threshold = 0.0001
+# hmu_idx = np.where(np.absolute(dh_dmu)/max(np.absolute(dh_dmu)) < threshold); hmu_idx = hmu_idx[0]
+# print(('dh_dmu falls below ', threshold, ' at: ', max(rint[hmu_idx]))
+# lmu_idx = np.where(np.diff(dl_dmu) < threshold); lmu_idx = lmu_idx[0]
+# print(('diff(dl_dmu) falls below ', threshold, ' at: ', max(rint[lmu_idx]))
+# hka_idx = np.where(np.absolute(dh_dK)/max(np.absolute(dh_dK)) < threshold); hka_idx = hka_idx[0]
+# print(('dh_dka falls below ', threshold, ' at: ', max(rint[hka_idx]))
+# lka_idx = np.where(np.absolute(dl_dK)/max(np.absolute(dl_dK)) < threshold); lka_idx = lka_idx[0]
+# print(('dl_dka falls below ', threshold, ' at: ', max(rint[lka_idx]))
+# print(('(r/a)^10000, 3km: ', (6367./6371.)**10000.))
+# print(('(r/a)^100, 300km: ', (6071./6371.)**100.))
 
 # Integrate Partials
 int_dh_dmu = np.trapz(dh_dmu,rint)/rint[-1]

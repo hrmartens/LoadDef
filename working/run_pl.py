@@ -92,16 +92,13 @@ comm.Barrier()
 
 # Compute the Love numbers (Load and Potential)
 if (rank == 0):
-
     ln_n,ln_h,ln_nl,ln_nk,ln_h_inf,ln_l_inf,ln_k_inf,ln_h_inf_p,ln_l_inf_p,ln_k_inf_p,\
         ln_hpot,ln_nlpot,ln_nkpot,ln_hstr,ln_nlstr,ln_nkstr,ln_hshr,ln_nlshr,ln_nkshr,\
         ln_planet_radius,ln_planet_mass,ln_sint,ln_Yload,ln_Ypot,ln_Ystr,ln_Yshr,\
         ln_lmda_surface,ln_mu_surface = \
         compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,startn=firstn,stopn=finaln)
-
 # For Worker Ranks, Run the Code But Don't Return Any Variables
 else:
-
     compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,startn=firstn,stopn=finaln)
 
     # Workers Will Know Nothing About the Data Used to Compute the GFs
@@ -140,15 +137,12 @@ ln_Yshr          = comm.bcast(ln_Yshr, root=0)
 
 # Compute Partial Derivatives
 if (rank == 0):
-
     dht_dmu,dlt_dmu,dkt_dmu,dht_dK,dlt_dK,dkt_dK,dht_drho,dlt_drho,dkt_drho,dhl_dmu,dll_dmu,dkl_dmu,dhl_dK,dll_dK,dkl_dK,\
         dhl_drho,dll_drho,dkl_drho,dhs_dmu,dls_dmu,dks_dmu,dhs_dK,dls_dK,dks_dK,dhs_drho,dls_drho,dks_drho = \
         compute_ln_partials.main(ln_n,ln_sint,ln_Yload,ln_Ypot,ln_Yshr,ln_Ystr,ln_h,ln_nl,ln_nk,ln_hpot,ln_nlpot,ln_nkpot,ln_hshr,ln_nlshr,ln_nkshr,\
         ln_hstr,ln_nlstr,ln_nkstr,planet_model,rank,comm,size,par_out=file_ext,plot_figure=plot_fig)
-
 # For Worker Ranks, Run the Code But Don't Return Any Variables
 else:
-
     compute_ln_partials.main(ln_n,ln_sint,ln_Yload,ln_Ypot,ln_Yshr,ln_Ystr,ln_h,ln_nl,ln_nk,ln_hpot,ln_nlpot,ln_nkpot,ln_hshr,ln_nlshr,ln_nkshr,\
         ln_hstr,ln_nlstr,ln_nkstr,planet_model,rank,comm,size,par_out=file_ext,plot_figure=plot_fig)
 
