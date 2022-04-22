@@ -39,7 +39,7 @@ from CONVGF.utility import read_AmpPha
 # --------------- SPECIFY USER INPUTS --------------------- #
 
 # Define the disk radius in km
-disk_radius = 10 # in km
+disk_radius = 1 # in km
 
 # compute disk latitude in degrees (90 degrees lat at north pole, minus the disk radius divided by the km in 1 angular degree (pi * diameter / 360))
 disk_lat = 90 - (disk_radius / ((2*6371*np.pi)/360)) # latitude of the edge of the disk; north of here will have load, and south of here will have no load
