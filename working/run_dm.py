@@ -74,7 +74,7 @@ lsmask_type = 2
 lsmask_file = ("../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 
 # Station/Grid-Point Location File (Lat, Lon, StationName)
-sta_file_name = ("PBO_LoadDef")
+sta_file_name = ("NOTA")
 sta_file = ("../input/Station_Locations/" + sta_file_name + ".txt")
 
 # Optional: Additional string to include in output filenames (e.g. "_2019")
