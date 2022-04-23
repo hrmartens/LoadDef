@@ -167,7 +167,6 @@ if (rank == 0):
     print(':: Warning: Computing center of load cells. Special consideration should be made for cells spanning the prime meridian, if applicable.')
     lclat = (lcslat + lcnlat)/2.
     lclon = (lcwlon + lcelon)/2.
-
 # If I'm a Worker, I Know Nothing About the Data
 else:
     load_cells = lclat = lclon = lslat = lslon = lsmask = sta = lat = lon = numel = None 
