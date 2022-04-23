@@ -62,7 +62,7 @@ loadfile_directory = ("../output/Grid_Files/nc/OTL/")  # Example 1 (ocean tidal 
 #  :: Note: For Load Files Organized by Date, the End of Filename Name Must be in the Format yyyymmddhhmnsc.txt
 #  :: Note: If not organized by date, files may be organized by tidal harmonic, for example (i.e. a unique filename ending)
 #  :: Note: Output names (within output files) will be determined by extension following last underscore character (e.g., date/harmonic/model)
-loadfile_prefix = ("convgf_FES2014b") # Example 1 (ocean tidal loading)
+loadfile_prefix = ("convgf_GOT410c") # Example 1 (ocean tidal loading)
 #loadfile_prefix = ("convgf_ntol") # Example 2 (time series)
 
 # LoadFile Format: ["nc", "txt"]
@@ -95,7 +95,7 @@ lsmask_type = 1
 lsmask_file = ("../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 
 # Station/Grid-Point Location File (Lat, Lon, StationName)
-sta_file = ("../input/Station_Locations/PBO_Select.txt")
+sta_file = ("../input/Station_Locations/NOTA_Select.txt")
 
 # Optional: Additional string to include in output filenames (e.g. "_2019")
 outstr = ("_" + pmod)
