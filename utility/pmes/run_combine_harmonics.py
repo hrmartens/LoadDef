@@ -38,7 +38,7 @@ import numpy as np
 #### USER INPUT ####
 directory = ("../../output/Convolution/")
 prefix = ("cn_OceanOnly_")
-suffix = ("_cm_convgf_TPXO8-Atlas.txt")
+suffix = ("_cm_convgf_GOT410c_PREM.txt")
 
 #### BEGIN CODE ####
 
