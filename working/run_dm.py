@@ -46,7 +46,7 @@ from CONVGF.utility import read_lsmask
 # --------------- SPECIFY USER INPUTS --------------------- #
 
 # Reference Frame (used for filenames) [Blewitt 2003]
-rfm = "ce"
+rfm = "cf"
 
 # Greens Function File
 #  :: May be load Green's function file output directly from run_gf.py (norm_flag = False)
@@ -57,7 +57,8 @@ norm_flag  = False
 
 # Full Path to Grid File Containing Cells
 #  :: Format: south lat [float], north lat [float], west lon [float], east lon [float], unique cell id [string]
-gridname = ("cells_31.0_49.5_234.0_256.0_0.25")
+gridname = ("cells_44.0_46.0_247.0_249.0_0.25")
+#gridname = ("cells_31.0_49.5_234.0_256.0_0.25")
 loadgrid = ("../output/Grid_Files/nc/cells/" + gridname + ".nc") 
 
 # Load Density
@@ -67,14 +68,14 @@ ldens = 1000.0
 # Ocean/Land Mask 
 #  :: 0 = do not mask ocean or land (retain full model); 1 = mask out land (retain ocean); 2 = mask out oceans (retain land)
 #  :: Recommended: 1 for oceanic; 2 for atmospheric and continental water
-lsmask_type = 2
+lsmask_type = 0
 
 # Full Path to Land-Sea Mask File (May be Irregular and Sparse)
 #  :: Format: Lat, Lon, Mask [0=ocean; 1=land]
 lsmask_file = ("../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 
 # Station/Grid-Point Location File (Lat, Lon, StationName)
-sta_file_name = ("NOTA")
+sta_file_name = ("NOTA_Select")
 sta_file = ("../input/Station_Locations/" + sta_file_name + ".txt")
 
 # Optional: Additional string to include in output filenames (e.g. "_2019")
