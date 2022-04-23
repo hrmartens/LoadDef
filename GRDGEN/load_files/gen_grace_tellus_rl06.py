@@ -43,12 +43,12 @@ from GRDGEN.utility import read_grace_tellus
 grace_directory = ("../../input/Load_Models/GRACE-Tellus-RL06/")
 
 # Date Range for Temporal-Mean Computation (yyyy, mm, dd); End Day is Included (Files to be Read in)
-start_year_tm = 2002; start_month_tm = 1; start_day_tm = 1
-end_year_tm = 2022; end_month_tm = 1; end_day_tm = 1
+start_year_tm = 2019; start_month_tm = 10; start_day_tm = 1
+end_year_tm = 2021; end_month_tm = 10; end_day_tm = 1
   
 # Date Range for Output Files (yyyy, mm, dd); End Day is Included (Files to be Written out)
-start_year_out = 2002; start_month_out = 1; start_day_out = 1
-end_year_out = 2022; end_month_out = 1; end_day_out = 1
+start_year_out = 2019; start_month_out = 10; start_day_out = 1
+end_year_out = 2021; end_month_out = 10; end_day_out = 1
   
 # Remove spatial and temporal averages?
 rm_spatial_mean = False
@@ -222,7 +222,6 @@ for ii in range(0,len(date_list)):
             continue
             #to_mask[:,ii] = np.ones((grace_shape[0],)) # set mask to true
             #grace_amp[:,ii] = np.zeros((grace_shape[0],))
-        
         # Combine Amplitude and Phase 
         else:
             to_mask[:,ii] = np.zeros((grace_shape[0],))
@@ -230,7 +229,6 @@ for ii in range(0,len(date_list)):
             lat_array = llat.copy()
             lon_array = llon.copy()
             print(grace_amp.shape)
-        
     else: # File Does Not Exist
         print(':: Warning: Load File Does Not Exist.')
         #to_mask[:,ii] = np.ones((grace_shape[0],)) # set mask to true
@@ -246,7 +244,6 @@ print(grace_amp.shape)
 
 # Order of Removing the Temporal and Spatial Means
 if (flip == False): # Temporal then Spatial
- 
     # COMPUTE TEMPORAL MEAN
     if (rm_temporal_mean == True):
         grace_temporal_avg = np.average(grace_amp,axis=1)
@@ -262,9 +259,7 @@ if (flip == False): # Temporal then Spatial
             #print(max(grace_amp[:,jj])) 
         #print(grace_temporal_avg)
         #print(grace_amp)
-        
     grace_temporal_avg_array = grace_temporal_avg = None
-
     # COMPUTE SPATIAL MEAN
     if (rm_spatial_mean == True):
         # Mask the Array when Computing Spatial Averages
@@ -281,9 +276,7 @@ if (flip == False): # Temporal then Spatial
             #grace_amp[:,kk] = np.subtract(grace_amp[:,kk], grace_spatial_avg_array[:,kk])
             grace_amp[:,kk] = np.subtract(grace_amp[:,kk], grace_spatial_avg[kk])
     grace_spatial_avg_array = grace_spatial_avg = None
-
 else: # Spatial then Temporal
-
     # COMPUTE SPATIAL MEAN
     if (rm_spatial_mean == True):
         # Mask the Array when Computing Spatial Averages
@@ -299,7 +292,6 @@ else: # Spatial then Temporal
             #grace_amp[:,kk] = np.subtract(grace_amp[:,kk], grace_spatial_avg_array[:,kk])
             grace_amp[:,kk] = np.subtract(grace_amp[:,kk], grace_spatial_avg[kk])
     grace_spatial_avg_array = grace_spatial_avg = None
-
     # COMPUTE TEMPORAL MEAN
     if (rm_temporal_mean == True):
         grace_temporal_avg = np.average(grace_amp,axis=1)

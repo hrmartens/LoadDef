@@ -60,19 +60,19 @@ loadfile_directory = ("../output/Grid_Files/nc/GRACE/")
 #  :: Note: For Load Files Organized by Date, the End of Filename Name Must be in the Format yyyymmddhhmnsc.txt
 #  :: Note: If not organized by date, files may be organized by tidal harmonic, for example (i.e. a unique filename ending)
 #  :: Note: Output names (within output files) will be determined by extension following last underscore character (e.g., date/harmonic/model)
-loadfile_prefix = ("convgf_grace_rmTM1False_rmSM2False_20020101-20220101_GRACE_Tellus_RL06_JPL_ScalingFalse") 
+loadfile_prefix = ("convgf_grace_rmTM1False_rmSM2False_20191001-20211001_GRACE_Tellus_RL06_JPL_ScalingFalse") 
 
 # LoadFile Format: ["nc", "txt"]
 loadfile_format = "nc"
  
 # Are the Load Files Organized by Datetime?
 #  :: If False, all Files that match the loadfile directory and prefix will be analyzed.
-time_series = True  # Example 2 (time series)
+time_series = True  
 
 # Date Range for Computation (Year,Month,Day,Hour,Minute,Second)
 #  :: Note: Only used if 'time_series' is True
-frst_date = [2002,1,1,0,0,0]
-last_date = [2022,1,1,0,0,0]
+frst_date = [2019,10,1,0,0,0]
+last_date = [2021,10,1,0,0,0]
 
 # Are the load values on regular grids (speeds up interpolation); If unsure, leave as false.
 regular = True

@@ -36,10 +36,8 @@ from math import pi
 import matplotlib.pyplot as plt
 
 # Input Parameters
-station = ("P402")
-filename = ("cn_LandOnly_" + station + "_cf_convgf_atml")
-#filename = ("cn_OceanOnly_" + station + "_cf_convgf_ntol")
-#filename = ("cn_LandAndOceans_" + station + "_cf_convgf_grace")
+station = ("P144")
+filename = ("cn_LandAndOceans_" + station + "_cf_convgf_grace_rmTM1False_rmSM2False_20191001-20211001_GRACE_Tellus_RL06_JPL_ScalingFalse_PREM")
 ts_file = ("../../output/Convolution/" + filename + ".txt")
 figname = (filename + ".pdf")
 
