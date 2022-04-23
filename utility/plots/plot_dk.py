@@ -33,8 +33,8 @@ colors = ['black','blue']
 xmin = 89.5
 xmax = 90.0
 yminh = 0.0
-ymaxh = 2.0
-yminu = -10.0
+ymaxh = 1.0
+yminu = -5.0
 ymaxu = 2.0
 # Use Co-Latitude?
 colat = True
