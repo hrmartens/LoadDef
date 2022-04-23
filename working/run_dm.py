@@ -114,8 +114,8 @@ load_files.append(loadgrid)
 if (rank == 0):
     if not (os.path.isdir("../output/Convolution/")):
         os.makedirs("../output/Convolution/")
-    if not (os.path.isdir("../output/Jacobian/")):
-        os.makedirs("../output/Jacobian/")
+    if not (os.path.isdir("../output/DesignMatrix/")):
+        os.makedirs("../output/DesignMatrix/")
     if not (os.path.isdir("../output/Figures/")):
         os.makedirs("../output/Figures/")
 
@@ -192,7 +192,7 @@ if rank == size - 1:
 else:
     procN = nominal_load
 
-# Set up Jacobian matrix (rows = stations[e,n,u]; columns = load cells)
+# Set up Design matrix (rows = stations[e,n,u]; columns = load cells)
 if (rank == 0):
     desmat = np.zeros((numel*3, total_cells)) # Multiplication by 3 for 3 spatial dimensions (e,n,u)
     dmrows = np.empty((numel*3,),dtype='U10') # Assumes that station names are no more than 9 characters in length (with E, N, or U also appended)
@@ -255,7 +255,7 @@ for jj in range(0,numel):
         ndisp = np.multiply(namp,np.cos(np.multiply(npha,(np.pi/180.))))
         udisp = np.multiply(vamp,np.cos(np.multiply(vpha,(np.pi/180.))))
 
-        # Fill in Jacobian Matrix
+        # Fill in Design Matrix
         idxe = (jj*3)+0
         idxn = (jj*3)+1
         idxu = (jj*3)+2
@@ -272,11 +272,11 @@ for jj in range(0,numel):
         sclon[idxn] = slon
         sclon[idxu] = slon
 
-# Write Jacobian Matrix to File
+# Write Design Matrix to File
 if (rank == 0):
     print(":: Writing netCDF-formatted file.")
     f_out = ("designmatrix_" + rfm + "_" + outstr + ".nc")
-    f_file = ("../output/Jacobian/" + f_out)
+    f_file = ("../output/DesignMatrix/" + f_out)
     # Open new NetCDF file in "write" mode
     dataset = netCDF4.Dataset(f_file,'w',format='NETCDF4_CLASSIC')
     # Define dimensions for variables
