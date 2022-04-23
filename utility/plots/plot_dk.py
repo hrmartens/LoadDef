@@ -94,8 +94,6 @@ for ii in range(0,len(mods)):
         xminp = xmin2
         xmaxp = xmax2
         xlab = ("Angular Distance from Load Center (deg)")
-        print(xminp)
-        print(xmaxp)
         order = np.argsort(lat)
         lat = lat[order]
         lon = lon[order]
