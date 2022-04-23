@@ -67,7 +67,7 @@ loadfile_format = "nc"
  
 # Are the Load Files Organized by Datetime?
 #  :: If False, all Files that match the loadfile directory and prefix will be analyzed.
-time_series = False  # Example 1 (ocean tidal loading)
+time_series = False 
 
 # Date Range for Computation (Year,Month,Day,Hour,Minute,Second)
 #  :: Note: Only used if 'time_series' is True

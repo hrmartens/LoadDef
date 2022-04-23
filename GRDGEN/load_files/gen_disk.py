@@ -46,7 +46,7 @@ disk_lat = 90 - (disk_radius / ((2*6371*np.pi)/360)) # latitude of the edge of t
 disk_lat = np.around(disk_lat,decimals=4) # round the disk latitude to 4 decimal places
 
 # Grid Spacing
-gspace = 0.0002
+gspace = 0.0005
 
 # Specify Bounding Box for Load Model (e.g. boundingbox.klokantech.com)
 #  :: In general, the longitude range should be [0,360]
@@ -54,8 +54,8 @@ gspace = 0.0002
 #     the range should be [-180,0] for wlon and [0,180] for elon
 wlon=0. # range [0,360] | If Bounding Box Crosses Prime Meridian, range = [-180,0]
 elon=360. # range [0,360] | If Bounding Box Crosses Prime Meridian, range = [0,180]
-slat=(disk_lat - (gspace*4))  # range [-90,90] [Slightly south of the disk edge (make sure the grid resolution, set below, gets a row or two of high-res points here)]
-nlat=(disk_lat + (gspace*4))  # range [-90,90] [Slightly north of the disk edge (make sure the grid resolution, set below, gets a row or two of high-res points here)]
+slat=(disk_lat - (gspace*3))  # range [-90,90] [Slightly south of the disk edge (make sure the grid resolution, set below, gets a row or two of high-res points here)]
+nlat=(disk_lat + (gspace*3))  # range [-90,90] [Slightly north of the disk edge (make sure the grid resolution, set below, gets a row or two of high-res points here)]
 slat = np.around(slat,decimals=4)
 nlat = np.around(nlat,decimals=4)
 
