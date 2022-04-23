@@ -39,7 +39,7 @@ import numpy as np
 
 directory = ("../../output/Convolution/")
 prefix = ("cn_LandAndOceans_")
-suffix = ("ce_convgf_disk_PREM_dens1000.txt") 
+suffix = ("ce_convgf_disk_1m_PREM.txt") 
 
 #### BEGIN CODE ####
 
@@ -54,12 +54,14 @@ for myfile in os.listdir(directory):
     if myfile.endswith(suffix):
         if myfile.startswith(prefix):
             station_files.append(myfile)
+
+# Check for files
 if not station_files:
     sys.exit('No station files match the criteria.')
 
-# Loop through files
+# Loop through stations
 for ii in range(0,len(station_files)):
- 
+
     # Current file
     cfile = station_files[ii]
     print('Working on file: %s'%cfile)
@@ -159,4 +161,8 @@ for ii in range(0,len(station_files)):
 
             # Remove Header and Body Files
             os.remove(cnv_body)
+
+# Let us know when run is complete
+print('finished')
+
 

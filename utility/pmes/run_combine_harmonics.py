@@ -167,3 +167,7 @@ for ii in range(0,len(station_files)):
             # Remove Header and Body Files
             os.remove(cnv_body)
 
+# Let us know when run is complete
+print('finished')
+
+
