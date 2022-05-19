@@ -61,7 +61,9 @@ def main(Yi,int_start,int_stop,num_soln,backend,nstps,\
     # Test if there is enough model resolution to support integration
     if (len(sint) == 0):
         print('')
-        print(':: ERROR: Input structural model may be of insufficient resolution to support integration. [LOADGF/LN/integrate_f_solid.py]')
+        print(':: ERROR: Input structural model may be of insufficient resolution to support integration near the surface (at high degrees). [LOADGF/LN/integrate_f_solid.py]')
+        print('::        Recommendation: Add an extra layer 1 km below the surface (the extra layer can have the same properties as the upper-most layer in the original model).')
+        print('::                        If the input model is very coarse, consider adding additional layers; they can have the same material properties as the original model).')
         print('')
         sys.exit()
 
