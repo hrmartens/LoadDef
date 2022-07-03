@@ -4,6 +4,12 @@
 # PROGRAM TO GENERATE GRIDS FOR OCEANIC TIDAL LOADING AS A TIME SERIES
 # :: GRIDS GENERATED MAY BE USED BY LOADDEF (run_cn.py) OR IN GMT
 # 
+# NOTE: Times are given relative to the tidal cycle (not absolute times).
+#       In run_cn_otl.py, set time_series = False. 
+#       To convert to absolute time, it is necessary to compute the 
+#        astronomical argument (or phase), which is typically referenced
+#        to the peak in the equilibrium tide at the Greenwich Meridian. 
+# 
 # Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
@@ -151,10 +157,6 @@ elif (ftype == 14):
 else:
     print("Error: Incorrect ftype for Loading Model")
     sys.exit()
-
-## Force to Constant Value Everywhere
-##amp = np.zeros((len(amp),)) + 10.0
-##pha = np.zeros((len(pha),)) 
 
 # Compute Period (in seconds) and Frequency of Tidal Harmonic 
 per_sec = period * (60 * 60)
