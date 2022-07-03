@@ -40,38 +40,34 @@ import scipy as sc
 import datetime
 from CONVGF.CN import load_convolution
 from CONVGF.utility import read_station_file
-from CONVGF.utility import read_lsmask
 
 # --------------- SPECIFY USER INPUTS --------------------- #
 
 # Reference Frame (used for filenames) [Blewitt 2003]
-rfm = "cm"
+rfm = "ce"
 
 # Greens Function File
 #  :: May be load Green's function file output directly from run_gf.py (norm_flag = False)
 #  :: May be from a published table, normalized according to Farrell (1972) conventions [theta, u_norm, v_norm]
-pmod = "PREM"
-grn_file = ("../output/Greens_Functions/" + rfm + "_" + pmod + ".txt")
+pmodel = ("PREM")
+grn_file = ("../output/Greens_Functions/" + rfm + "_" + pmodel + ".txt")
 norm_flag  = False
-
+ 
 # Full Path to Load Directory and Prefix of Filename
-loadfile_directory = ("../output/Grid_Files/nc/OTL/")  # Example 1 (ocean tidal loading)
-#loadfile_directory = ("../output/Grid_Files/nc/NTOL/")  # Example 2 (time series)
+loadfile_directory = ("../output/Grid_Files/nc/Custom/")
 
 # Prefix for the Load Files (Load Directory will be Searched for all Files Starting with this Prefix)
 #  :: Note: For Load Files Organized by Date, the End of Filename Name Must be in the Format yyyymmddhhmnsc.txt
 #  :: Note: If not organized by date, files may be organized by tidal harmonic, for example (i.e. a unique filename ending)
 #  :: Note: Output names (within output files) will be determined by extension following last underscore character (e.g., date/harmonic/model)
-loadfile_prefix = ("convgf_GOT410c") # Example 1 (ocean tidal loading)
-#loadfile_prefix = ("convgf_ntol") # Example 2 (time series)
+loadfile_prefix = ("convgf_disk_1m")
 
 # LoadFile Format: ["nc", "txt"]
 loadfile_format = "nc"
  
 # Are the Load Files Organized by Datetime?
 #  :: If False, all Files that match the loadfile directory and prefix will be analyzed.
-time_series = False  # Example 1 (ocean tidal loading)
-#time_series = True  # Example 2 (time series)
+time_series = False 
 
 # Date Range for Computation (Year,Month,Day,Hour,Minute,Second)
 #  :: Note: Only used if 'time_series' is True
@@ -82,23 +78,51 @@ last_date = [2016,3,1,0,0,0]
 regular = True
 
 # Load Density
-#  Recommended: 1025-1035 kg/m^3 for oceanic loads (e.g., FES2014, ECCO2); 1 kg/m^3 for atmospheric loads (e.g. ECMWF); 1000 kg/m^3 for fresh water
-ldens = 1030.0
+#  Recommended: 1025-1035 for oceanic loads (e.g., FES2014, ECCO2); 1 for atmospheric loads (e.g. ECMWF)
+ldens = 1000.0
   
 # Ocean/Land Mask 
 #  :: 0 = do not mask ocean or land (retain full model); 1 = mask out land (retain ocean); 2 = mask out oceans (retain land)
 #  :: Recommended: 1 for oceanic; 2 for atmospheric
-lsmask_type = 1
+lsmask_type = 0
 
 # Full Path to Land-Sea Mask File (May be Irregular and Sparse)
 #  :: Format: Lat, Lon, Mask [0=ocean; 1=land]
 lsmask_file = ("../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
-
+ 
 # Station/Grid-Point Location File (Lat, Lon, StationName)
-sta_file = ("../input/Station_Locations/NOTA_Select.txt")
+sta_file = ("../input/Station_Locations/Lat_Profile_Select.txt")
 
+# -- Mesh Paramters -- High Resolution
+#del1 = 0.001    # increment in angular resolution (degrees) for innermost zone
+#del2 = 0.005    # increment in angular resolution for second zone
+#del3 = 0.01     # increment in angular resolution for third zone
+#del4 = 0.1      # increment in angular resolution for fourth zone
+#del5 = 0.5      # increment in angular resolution for fifth zone
+#del6 = 1.0      # increment in angular resolution for outermost zone
+#z1 = 11.0       # outer edge of innermost zone (degrees)
+#z2 = 15.0       # outer edge of second zone
+#z3 = 20.0       # outer edge of third zone
+#z4 = 30.0       # outer edge of fourth zone
+#z5 = 90.0       # outer edge of fifth zone
+#azm = 0.5       # increment in azimuthal resolution (degrees)
+ 
+# -- Mesh Paramters -- Lower Resolution (faster)
+del1 = 0.001    # increment in angular resolution (degrees) for innermost zone
+del2 = 0.01     # increment in angular resolution for second zone
+del3 = 0.1      # increment in angular resolution for third zone
+del4 = 0.2      # increment in angular resolution for fourth zone
+del5 = 0.5      # increment in angular resolution for fifth zone
+del6 = 1.0      # increment in angular resolution for outermost zone
+z1 = 0.6        # outer edge of innermost zone (degrees)
+z2 = 1.0        # outer edge of second zone
+z3 = 2.0        # outer edge of third zone
+z4 = 5.0        # outer edge of fourth zone
+z5 = 10.0       # outer edge of fifth zone
+azm = 1.0       # increment in azimuthal resolution (degrees)
+ 
 # Optional: Additional string to include in output filenames (e.g. "_2019")
-outstr = ("_" + pmod)
+outstr = ("_" + pmodel)
 
 # ------------------ END USER INPUTS ----------------------- #
 
@@ -163,11 +187,13 @@ for jj in range(0,numel):
         my_lat = lat[jj]
         my_lon = lon[jj]
 
-    # If Rank is Master, Output Station Name
+    # Decode station name if necessary
     try: 
         my_sta = my_sta.decode()
     except: 
         print(':: No need to decode station.')
+
+    # If Rank is Main, Output Station Name
     if (rank == 0):
         print(' ')
         print(':: Starting on Station: ' + my_sta)
@@ -224,12 +250,18 @@ for jj in range(0,numel):
 
     # Perform the Convolution for Each Station
     if (rank == 0):
-        eamp,epha,namp,npha,vamp,vpha = load_convolution.main(grn_file,norm_flag,load_files,regular,lslat,lslon,lsmask,\
-            slat,slon,sname,cnv_out,lsmask_type,loadfile_format,rank,procN,comm,load_density=ldens)
+        eamp,epha,namp,npha,vamp,vpha = load_convolution.main(grn_file,norm_flag,load_files,regular,\
+            lslat,lslon,lsmask,slat,slon,sname,cnv_out,lsmask_type,loadfile_format,rank,procN,comm,load_density=ldens,\
+            delinc1=del1,delinc2=del2,delinc3=del3,delinc4=del4,delinc5=del5,delinc6=del6,izb=z1,z2b=z2,z3b=z3,z4b=z4,z5b=z5,azminc=azm)
+            #izb=1.1,z2b=2.0,z3b=5.0,azminc=0.5)
+            #,izb=0.002,delinc1=0.00005,z2b=0.02,delinc2=0.0001,z3b=0.1,delinc3=0.001)
     # For Worker Ranks, Run the Code But Don't Return Any Variables
     else:
-        load_convolution.main(grn_file,norm_flag,load_files,regular,lslat,lslon,lsmask,\
-            slat,slon,sname,cnv_out,lsmask_type,loadfile_format,rank,procN,comm,load_density=ldens)
+        load_convolution.main(grn_file,norm_flag,load_files,regular,\
+            lslat,lslon,lsmask,slat,slon,sname,cnv_out,lsmask_type,loadfile_format,rank,procN,comm,load_density=ldens,\
+            delinc1=del1,delinc2=del2,delinc3=del3,delinc4=del4,delinc5=del5,delinc6=del6,izb=z1,z2b=z2,z3b=z3,z4b=z4,z5b=z5,azminc=azm)
+            #izb=1.1,z2b=2.0,z3b=5.0,azminc=0.5) 
+            #,izb=0.002,delinc1=0.00005,z2b=0.02,delinc2=0.0001,z3b=0.1,delinc3=0.001)
 
     # Make Sure All Jobs Have Finished Before Continuing
     comm.Barrier()

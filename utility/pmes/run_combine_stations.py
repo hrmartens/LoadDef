@@ -36,9 +36,10 @@ from CONVGF.utility import read_convolution_file
 import numpy as np
 
 #### USER INPUT ####
+
 directory = ("../../output/Convolution/")
-prefix = ("cn_OceanOnly_")
-suffix = ("_cm_convgf_GOT410c_PREM.txt")
+prefix = ("cn_LandAndOceans_")
+suffix = ("ce_convgf_disk_1m_PREM.txt") 
 
 #### BEGIN CODE ####
 
@@ -53,12 +54,14 @@ for myfile in os.listdir(directory):
     if myfile.endswith(suffix):
         if myfile.startswith(prefix):
             station_files.append(myfile)
+
+# Check for files
 if not station_files:
     sys.exit('No station files match the criteria.')
 
-# Loop through files
+# Loop through stations
 for ii in range(0,len(station_files)):
- 
+
     # Current file
     cfile = station_files[ii]
     print('Working on file: %s'%cfile)
@@ -106,17 +109,9 @@ for ii in range(0,len(station_files)):
             clat = lat
             clon = lon
 
-        # Extract harmonic
-        if ('-' in cext):
-            ext_attributes = cext.split('-')
-            charmonic = ext_attributes[-1]
-        else:
-            print(':: Could not differentiate between model and harmonic. Skipping file: %s'%cfile)
-            break
-
         # Prepare output files
-        cnv_file = (output_directory + prefix + charmonic + suffix)
-        cnv_filename = (prefix + charmonic + suffix)
+        cnv_file = (output_directory + prefix + cext + suffix)
+        cnv_filename = (prefix + cext + suffix)
         cnv_head = (output_directory + prefix + str(np.random.randint(500))+ "head.txt")
         cnv_body = (output_directory + prefix + str(np.random.randint(500))+ "body.txt")
  

@@ -82,20 +82,16 @@ comm.Barrier()
 
 # Compute the Love numbers (Load and Potential)
 if (rank == 0):
-
     # Compute Love Numbers
     ln_n,ln_h,ln_nl,ln_nk,ln_h_inf,ln_l_inf,ln_k_inf,ln_h_inf_p,ln_l_inf_p,ln_k_inf_p,\
         ln_hpot,ln_nlpot,ln_nkpot,ln_hstr,ln_nlstr,ln_nkstr,ln_hshr,ln_nlshr,ln_nkshr,\
         ln_planet_radius,ln_planet_mass,ln_sint,ln_Yload,ln_Ypot,ln_Ystr,ln_Yshr,\
         ln_lmda_surface,ln_mu_surface = \
         compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext)
- 
 # For Worker Ranks, Run the Code But Don't Return Any Variables
 else: 
-
     # Workers Compute Love Numbers
     compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext)
- 
     # Workers Will Know Nothing About the Data Used to Compute the GFs
     ln_n = ln_h = ln_nl = ln_nk = ln_h_inf = ln_l_inf = ln_k_inf = ln_h_inf_p = ln_l_inf_p = ln_k_inf_p = None
     ln_planet_radius = ln_planet_mass = ln_Yload = ln_Ypot = ln_Ystr = ln_Yshr = None

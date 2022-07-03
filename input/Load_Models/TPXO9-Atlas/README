@@ -1,0 +1,8 @@
+The TPXO9-Atlas model may be obtained from Oregon State University by contacting the authors directly. 
+https://www.tpxo.net/global/tpxo9-atlas
+http://volkov.oce.orst.edu/tides/tpxo8_atlas.html
+ 
+TPXO Atlas models are no longer available for direct download, but are available by contacting the authors.
+ 
+#Outdated download example, for the M2 harmonic:
+#wget ftp://ftp.oce.orst.edu/dist/tides/TPXO8_atlas_30_v1_nc/hf.m2_tpxo8_atlas_30c_v1.nc

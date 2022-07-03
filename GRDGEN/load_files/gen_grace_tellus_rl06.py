@@ -34,22 +34,22 @@ import numpy as np
 import scipy as sc
 import datetime
 import netCDF4 
-from GRDGEN.utility import read_grace
+from GRDGEN.utility import read_grace_tellus
 
 # --------------- SPECIFY USER INPUTS --------------------- #
 
 # Atmospheric Surface Pressure Files from GRACE - MUST HAVE NETCDF4 FOR PYTHON INSTALLED 
 #  Specify the directory containing the yearly netcdf files here:
-grace_directory = ("../../input/Load_Models/GRACE/data/")
+grace_directory = ("../../input/Load_Models/GRACE-Tellus-RL06/")
 
 # Date Range for Temporal-Mean Computation (yyyy, mm, dd); End Day is Included (Files to be Read in)
-start_year_tm = 2010; start_month_tm = 1; start_day_tm = 1
-end_year_tm = 2017; end_month_tm = 1; end_day_tm = 1
-
+start_year_tm = 2019; start_month_tm = 10; start_day_tm = 1
+end_year_tm = 2021; end_month_tm = 10; end_day_tm = 1
+  
 # Date Range for Output Files (yyyy, mm, dd); End Day is Included (Files to be Written out)
-start_year_out = 2010; start_month_out = 1; start_day_out = 1
-end_year_out = 2017; end_month_out = 1; end_day_out = 1
- 
+start_year_out = 2019; start_month_out = 10; start_day_out = 1
+end_year_out = 2021; end_month_out = 10; end_day_out = 1
+  
 # Remove spatial and temporal averages?
 rm_spatial_mean = False
 rm_temporal_mean = False
@@ -59,30 +59,30 @@ flip = False
 
 # Additional Name Tag
 tmrange = "%4d%02d%02d-%4d%02d%02d" % (start_year_tm, start_month_tm, start_day_tm, end_year_tm, end_month_tm, end_day_tm)
-add_tag = (tmrange + "_GRACE")
+add_tag = (tmrange + "_GRACE_Tellus_RL06")
 
-# Complete Pathname to Current GRACE File
+### Complete Pathname to Current GRACE File
 
-# FOR first solution
-loadfile1 = grace_directory + "GRCTellus.JPL.200204_201701.LND.RL05_1.DSTvSCS1411.nc"
+# First solution
+loadfile1 = grace_directory + "GRCTellus.JPL.200204_202201.GLO.RL06M.MSCNv02CRI.nc"
 tag1 = "JPL"
+ 
+# Second solution
+loadfile2 = None 
+tag2 = ""
 
-# FOR second solution
-loadfile2 = grace_directory + "GRCTellus.CSR.200204_201701.LND.RL05.DSTvSCS1409.nc"
-tag2 = "CSR"
-
-# FOR third solution
-loadfile3 = grace_directory + "GRCTellus.GFZ.200204_201701.LND.RL05.DSTvSCS1409.nc"
-tag3 = "GFZ"
+# Third solution
+loadfile3 = None
+tag3 = ""
 
 # Scaling factors
-scaling = grace_directory + "CLM4.SCALE_FACTOR.DS.G300KM.RL05.DSTvSCS1409.nc"
+scaling = None
 
 # Average solutions
-avgsol = True
+avgsol = False
 
 # Apply GRACE scaling factors
-appscl = True
+appscl = False
 
 # Solution tag
 if (avgsol == True):
@@ -200,8 +200,8 @@ for qq in range(0,numel):
     string_dates.append(mydt.strftime('%Y%m%d%H%M%S'))
 
 # Fill Amplitude Array
-to_mask = np.empty((360*180,len(date_list)))
-grace_amp = np.empty((360*180,len(date_list)))
+to_mask = np.empty((360*720,len(date_list)))
+grace_amp = np.empty((360*720,len(date_list)))
 dates_to_delete = []
 # SHAPE OF ARRAY
 grace_shape = grace_amp.shape
@@ -214,7 +214,7 @@ for ii in range(0,len(date_list)):
     
     # Read the File 
     if (os.path.isfile(loadfile1)):
-        llat,llon,amp,pha,llat1dseq,llon1dseq,amp2darr,pha2darr = read_grace.main(loadfile1,mydt,ldfl2=loadfile2,ldfl3=loadfile3,scl=scaling,avsolns=avgsol,appscaling=appscl)
+        llat,llon,amp,pha,llat1dseq,llon1dseq,amp2darr,pha2darr = read_grace_tellus.main(loadfile1,mydt,ldfl2=loadfile2,ldfl3=loadfile3,scl=scaling,avsolns=avgsol,appscaling=appscl)
         if llat is None:
             print(':: Warning: Date does not exist within file.')
             # Save date_list index, then continue
@@ -222,14 +222,13 @@ for ii in range(0,len(date_list)):
             continue
             #to_mask[:,ii] = np.ones((grace_shape[0],)) # set mask to true
             #grace_amp[:,ii] = np.zeros((grace_shape[0],))
-        
         # Combine Amplitude and Phase 
         else:
-            to_mask[:,ii] = np.zeros((grace_shape[0],)) # file exists : do not apply mask
+            to_mask[:,ii] = np.zeros((grace_shape[0],))
             grace_amp[:,ii] = np.multiply(amp,np.cos(np.radians(pha)))
             lat_array = llat.copy()
             lon_array = llon.copy()
-        
+            print(grace_amp.shape)
     else: # File Does Not Exist
         print(':: Warning: Load File Does Not Exist.')
         #to_mask[:,ii] = np.ones((grace_shape[0],)) # set mask to true
@@ -241,10 +240,10 @@ string_dates = np.delete(string_dates,dates_to_delete)
 grace_amp = np.delete(grace_amp,dates_to_delete,axis=1)
 to_mask = np.delete(to_mask,dates_to_delete,axis=1)
 llat = lat_array.copy(); llon = lon_array.copy()
+print(grace_amp.shape)
 
 # Order of Removing the Temporal and Spatial Means
 if (flip == False): # Temporal then Spatial
- 
     # COMPUTE TEMPORAL MEAN
     if (rm_temporal_mean == True):
         grace_temporal_avg = np.average(grace_amp,axis=1)
@@ -260,9 +259,7 @@ if (flip == False): # Temporal then Spatial
             #print(max(grace_amp[:,jj])) 
         #print(grace_temporal_avg)
         #print(grace_amp)
-        
     grace_temporal_avg_array = grace_temporal_avg = None
-
     # COMPUTE SPATIAL MEAN
     if (rm_spatial_mean == True):
         # Mask the Array when Computing Spatial Averages
@@ -279,9 +276,7 @@ if (flip == False): # Temporal then Spatial
             #grace_amp[:,kk] = np.subtract(grace_amp[:,kk], grace_spatial_avg_array[:,kk])
             grace_amp[:,kk] = np.subtract(grace_amp[:,kk], grace_spatial_avg[kk])
     grace_spatial_avg_array = grace_spatial_avg = None
-
 else: # Spatial then Temporal
-
     # COMPUTE SPATIAL MEAN
     if (rm_spatial_mean == True):
         # Mask the Array when Computing Spatial Averages
@@ -297,7 +292,6 @@ else: # Spatial then Temporal
             #grace_amp[:,kk] = np.subtract(grace_amp[:,kk], grace_spatial_avg_array[:,kk])
             grace_amp[:,kk] = np.subtract(grace_amp[:,kk], grace_spatial_avg[kk])
     grace_spatial_avg_array = grace_spatial_avg = None
-
     # COMPUTE TEMPORAL MEAN
     if (rm_temporal_mean == True):
         grace_temporal_avg = np.average(grace_amp,axis=1)
@@ -311,15 +305,15 @@ else: # Spatial then Temporal
     grace_temporal_avg_array = grace_temporal_avg = None
 
 # Convert to Masked Array (Re-set all masked grid points to zero)
-masked_amp = np.ma.masked_where(to_mask == 1,grace_amp)
-print(':: Masking the amplitude array.')
-for bb in range(0,len(date_list)): # Loop Takes Longer, but Saves on Memory
-    grace_amp[:,bb] = np.ma.filled(masked_amp[:,bb],fill_value=0.)
-    #print(np.max(grace_amp[:,bb]))
-masked_amp = to_mask = None
+#masked_amp = np.ma.masked_where(to_mask == 1,grace_amp)
+#print(':: Masking the amplitude array.')
+#for bb in range(0,len(date_list)): # Loop Takes Longer, but Saves on Memory
+#    grace_amp[:,bb] = np.ma.filled(masked_amp[:,bb],fill_value=0.)
+#    #print(np.max(grace_amp[:,bb]))
+#masked_amp = to_mask = None
 
 # Set Phase to Zero (Amplitudes Contain Phase)
-grace_pha = np.zeros((360*180,len(date_list)))
+grace_pha = np.zeros((360*720,len(date_list)))
 print(llon)
 print(llat)
 print(grace_amp)
@@ -374,10 +368,10 @@ for kk in range(0,len(date_list_out)):
         amplitude = dataset.createDimension('amplitude',num_pts)
         phase = dataset.createDimension('phase',num_pts)
         # Create variables
-        latitudes = dataset.createVariable('latitude',np.float,('latitude',))
-        longitudes = dataset.createVariable('longitude',np.float,('longitude',))
-        amplitudes = dataset.createVariable('amplitude',np.float,('amplitude',))
-        phases = dataset.createVariable('phase',np.float,('phase',))
+        latitudes = dataset.createVariable('latitude',float,('latitude',))
+        longitudes = dataset.createVariable('longitude',float,('longitude',))
+        amplitudes = dataset.createVariable('amplitude',float,('amplitude',))
+        phases = dataset.createVariable('phase',float,('phase',))
         # Add units
         latitudes.units = 'degree_north'
         longitudes.units = 'degree_east'

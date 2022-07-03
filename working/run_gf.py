@@ -74,7 +74,6 @@ if (rank == 0):
         e_tt,e_ll,e_rr,e_tt_norm,e_ll_norm,e_rr_norm,e_tt_cm,e_ll_cm,e_rr_cm,e_tt_cm_norm,e_ll_cm_norm,e_rr_cm_norm,\
         e_tt_cf,e_ll_cf,e_rr_cf,e_tt_cf_norm,e_ll_cf_norm,e_rr_cf_norm,gN,tN = \
             compute_greens_functions.main(lln_file,rank,comm,size,grn_out=file_out)
- 
 # For Worker Ranks, Run the Code But Don't Return Any Variables
 else:
     compute_greens_functions.main(lln_file,rank,comm,size,grn_out=file_out)

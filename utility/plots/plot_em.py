@@ -281,9 +281,9 @@ ax8.invert_yaxis()
 ax8.tick_params(labelsize=5)
 ax8.grid()
 ax8.text(3.55,180,'H',horizontalalignment='left',size='small')
-
 # Save and Plot the Figure
 plt.tight_layout()
 plt.savefig((outdir+figname),orientation='portrait',format='pdf')
 plt.show()
+
 
