@@ -64,7 +64,7 @@ add_tag = (tmrange + "_GRACE_Tellus_RL06")
 ### Complete Pathname to Current GRACE File
 
 # First solution
-loadfile1 = grace_directory + "GRCTellus.JPL.200204_202201.GLO.RL06M.MSCNv02CRI.nc"
+loadfile1 = grace_directory + "GRCTellus.JPL.200204_202205.GLO.RL06M.MSCNv02CRI.nc"
 tag1 = "JPL"
  
 # Second solution
