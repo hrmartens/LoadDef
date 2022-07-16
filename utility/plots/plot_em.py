@@ -70,15 +70,6 @@ ax6 = plt.subplot2grid((3, 6), (2, 0), colspan=2)
 ax7 = plt.subplot2grid((3, 6), (2, 2), colspan=2)
 ax8 = plt.subplot2grid((3, 6), (2, 4), colspan=2)
 
-#ax1 = plt.subplot(321)
-#ax2 = plt.subplot(322)
-#ax3 = plt.subplot(334)
-#ax4 = plt.subplot(335)
-#ax5 = plt.subplot(336)
-#ax6 = plt.subplot(337)
-#ax7 = plt.subplot(338)
-#ax8 = plt.subplot(339)
-
 # Initialize Arrays
 all_ir = []
 all_ivp = []
@@ -211,8 +202,6 @@ for ii in range(0,len(earthmods)):
     ax5.tick_params(labelsize=5)
     ax5.grid(True)
     ax5.text(3.66,180,'E',horizontalalignment='left',size='small')
-    #plt.hold(True)
-
 # Convert Lists to Numpy Arrays
 all_ir = np.asarray(all_ir)
 all_ivp = np.asarray(all_ivp)
@@ -221,7 +210,6 @@ all_irho = np.asarray(all_irho)
 all_imu = np.asarray(all_imu)
 all_iK = np.asarray(all_iK)
 all_ilmda = np.asarray(all_ilmda)
-
 # Now Determine the Maximum % Difference Between All Models at Each Depth Level
 min_all_ivp = np.amin(all_ivp,axis=0)
 max_all_ivp = np.amax(all_ivp,axis=0)
@@ -254,7 +242,6 @@ mean_all_ilmda = np.mean(all_ilmda,axis=0)
 ilmda_nonzero = np.where(min_all_ilmda > 0.00000001)
 perc_diff_ilmda = np.zeros((len(mean_all_ilmda),))
 perc_diff_ilmda[ilmda_nonzero] = ((max_all_ilmda[ilmda_nonzero] - min_all_ilmda[ilmda_nonzero])/min_all_ilmda[ilmda_nonzero])*100.
-
 # Plot Remaining Axes
 ax6.plot(perc_diff_imu,depth,'k',linewidth=2)
 ax6.set_title(r'Max $\Delta$ log$_{10}\,\mu$ [%]', fontsize='xx-small')
