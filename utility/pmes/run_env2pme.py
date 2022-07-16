@@ -37,8 +37,9 @@ from CONVGF.utility import read_convolution_file
 import numpy as np
 
 #### USER INPUT ####
-filename=("./output/cn_OceanOnly_M2_cm_convgf_GOT410c_PREM.txt")
-pme_file=("./output/pme_OceanOnly_M2_cm_convgf_GOT410c_PREM.txt")
+harmonic="M2"
+filename=("./output/cn_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_PREM.txt")
+pme_file=("./output/pme_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_PREM.txt")
 
 #### BEGIN CODE ####
 sta,lat,lon,eamp,epha,namp,npha,vamp,vpha = read_convolution_file.main(filename)
