@@ -69,7 +69,6 @@ ax5 = plt.subplot2grid((3, 6), (1, 4), colspan=2)
 ax6 = plt.subplot2grid((3, 6), (2, 0), colspan=2)
 ax7 = plt.subplot2grid((3, 6), (2, 2), colspan=2)
 ax8 = plt.subplot2grid((3, 6), (2, 4), colspan=2)
-
 # Initialize Arrays
 all_ir = []
 all_ivp = []
@@ -78,7 +77,6 @@ all_imu = []
 all_iK = []
 all_irho = []
 all_ilmda = []
-
 # Loop Through All Earth Models
 for ii in range(0,len(earthmods)):
 
