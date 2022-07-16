@@ -68,6 +68,7 @@ if (asym == 1):
 plt.legend(loc='best',fontsize='large',ncol=2)
 plt.title('Load Love Numbers',fontsize = 'xx-large')
 plt.xlabel(r'$\mathrm{log}_{10}\mathrm{(n)}$',fontsize='xx-large')
+plt.ylabel('Love Number (dimensionless)',fontsize='xx-large')
 plt.tight_layout()
 plt.savefig((outdir+figname),orientation='portrait',format='pdf')
 plt.show()
