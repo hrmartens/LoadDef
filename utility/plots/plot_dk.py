@@ -40,7 +40,7 @@ ymaxu = 2.0
 colat = True
 # Figure names
 plot_title = ("Disks | PREM | 1 m Fresh Water")
-plot_name_NU = ("./output/all_disks_NU_1m_PREM_" + str(int(90-xmax)) + "_" + str(int(90-xmin)) + ".pdf")
+plot_name_NU = ("./output/all_disks_NU_1m_PREM_" + str(90-xmax) + "_" + str(90-xmin) + ".pdf")
 
  
 #### BEGIN CODE
