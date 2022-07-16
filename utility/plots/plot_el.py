@@ -97,7 +97,7 @@ fig.plot(data=refel, style="e", color="white", pen="1p,black")
 fig.text(text="8 mm x 2 mm", x=reflon, y=32, font="16p,Helvetica,black") 
  
 # Save figure
-fig.savefig("OTLmap.pdf")
+fig.savefig("./output/OTLmap.pdf")
  
 # Show Figure
 fig.show()
