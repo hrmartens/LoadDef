@@ -105,6 +105,8 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     rel_tol=1E-13,abs_tol=1E-13,backend='dop853',nstps=3000,G=6.672E-11,file_out='.txt',kx=1,num_soln=100,interp_emod=False,nmaxfull=None):
 
     # :: MPI ::
+    startn = int(startn)
+    stopn = int(stopn)
     # Determine the Chunk Sizes for LLN
     total_lln = stopn+1 - startn
     nominal_load = total_lln // size # Floor Divide
