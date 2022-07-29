@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # *********************************************************************
-# PROGRAM TO PERTURB THE PARAMETERS OF AN EARTH MODEL
+# PROGRAM TO PERTURB THE PARAMETERS OF A PLANETARY MODEL
 # POTENTIAL APPLICATION: DEVELOP SENSITIVITY KERNELS FOR LOAD GREEN'S FUNCTIONS
 # LITERATURE: Martens et al. (2016, JGR-Solid Earth)
 # 

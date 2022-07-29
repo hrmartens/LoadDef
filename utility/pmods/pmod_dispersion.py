@@ -37,7 +37,7 @@ rper = 12.42*(60.*60.)
 # Input Planet Model
 #  :: Input Planet Model Must be of the Format: 
 #  :: Radius[km], vp[km/s], vs[km/s], density[g/cc], Qk, Qmu
-earth_model = ("../../input/Planet_Models/PREM.txt")
+planet_model = ("../../input/Planet_Models/PREM.txt")
 
 # Output Filename
 outfile = ("PREM_M2TidalPeriod.txt")
@@ -49,7 +49,7 @@ if not (os.path.isdir("../../output/Planet_Models/")):
     os.makedirs("../../output/Planet_Models/")
  
 # Read Reference Planet Model
-radial_dist,vp,vs,rho,Qk,Qmu = np.loadtxt(earth_model,usecols=(0,1,2,3,4,5),unpack=True)
+radial_dist,vp,vs,rho,Qk,Qmu = np.loadtxt(planet_model,usecols=(0,1,2,3,4,5),unpack=True)
 mu = np.multiply(np.square(vs*1000),rho*1000)
 ka = np.multiply(np.square(vp*1000),rho*1000) - (4./3.)*mu
 # Convert to Vp,Vs
