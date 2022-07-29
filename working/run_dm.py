@@ -238,7 +238,7 @@ for jj in range(0,numel):
     # Perform the Convolution for Each Station
     #### NOTE: Mesh defaults are adjusted to ensure we get a good number of points within each grid cell to adequately represent the shape of each cell
     if (rank == 0):
-        print(":: General Warning: Use caution when selecting mesh parameters. For small cells and distant stations, there is a possibility that no mesh points will lie within the distant cell. Please adapt settings to your application. [run_jc.py]")
+        print(":: General Warning: Use caution when selecting mesh parameters. For small cells and distant stations, there is a possibility that no mesh points will lie within the distant cell. Please adapt settings to your application. [run_dm.py]")
         eamp,epha,namp,npha,vamp,vpha = load_convolution.main(grn_file,norm_flag,load_files,regular,lslat,lslon,lsmask,\
             slat,slon,sname,cnv_out,lsmask_type,loadfile_format,rank,procN,comm,load_density=ldens,azminc=0.5,delinc3=0.005,delinc4=0.02,delinc5=0.05)
     # For Worker Ranks, Run the Code But Don't Return Any Variables
