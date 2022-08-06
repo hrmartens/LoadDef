@@ -115,8 +115,8 @@ load_files.append(loadgrid)
 if (rank == 0):
     if not (os.path.isdir("../output/Convolution/")):
         os.makedirs("../output/Convolution/")
-    if not (os.path.isdir("../output/DesignMatrix/")):
-        os.makedirs("../output/DesignMatrix/")
+    if not (os.path.isdir("../output/DesignMatrixLoad/")):
+        os.makedirs("../output/DesignMatrixLoad/")
     if not (os.path.isdir("../output/Figures/")):
         os.makedirs("../output/Figures/")
 
@@ -277,7 +277,7 @@ for jj in range(0,numel):
 if (rank == 0):
     print(":: Writing netCDF-formatted file.")
     f_out = ("designmatrix_" + rfm + "_" + outstr + ".nc")
-    f_file = ("../output/DesignMatrix/" + f_out)
+    f_file = ("../output/DesignMatrixLoad/" + f_out)
     # Open new NetCDF file in "write" mode
     dataset = netCDF4.Dataset(f_file,'w',format='NETCDF4_CLASSIC')
     # Define dimensions for variables
