@@ -96,13 +96,19 @@ nmaxfull : Maximum spherical harmonic degree for which integration will be perfo
            Beyond nmaxfull, integration will begin in the mantle
     Default is None (estimated from inf_tol within integrate_odes.py)
 
+eval_radius : Radius at which to compute the Love numbers (meters)
+    :: Important: For smoothest results, increase the "num_soln" parameter (see information above)
+    ::             such that different spherical-harmonic degrees evaluate the Love numbers as closely as possible at the same radius.
+    ::             (In the mantle, the integration starts at different radii, so the solutions will be exported at different radii.)
+    Default is the surface of the planet (maximum radius in the model provided)
+
 file_out : Extension for the output files.
     Default is ".txt"
 """
 
 # Main Function
 def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.42,r_min=1000.,inf_tol=1E-5,\
-    rel_tol=1E-13,abs_tol=1E-13,backend='dop853',nstps=3000,G=6.672E-11,file_out='.txt',kx=1,num_soln=100,interp_emod=False,nmaxfull=None):
+    rel_tol=1E-13,abs_tol=1E-13,backend='dop853',nstps=3000,G=6.672E-11,file_out='.txt',kx=1,num_soln=100,interp_emod=False,nmaxfull=None,eval_radius=None):
 
     # :: MPI ::
     startn = int(startn)
@@ -145,6 +151,11 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         lmda_surface = lmda[surface_idx]
         mu_surface = mu[surface_idx]
         g_surface = g[surface_idx]
+
+        # Normalize the Evaluation Radius (and select the surface as default if no radius is provided)
+        if eval_radius is None: 
+            eval_radius = max(r)
+        evalrad = np.divide(np.float(eval_radius),max(r))
 
         # Optional: Plot Interpolated Values to Verify Interpolation
 #        myrnd = interpolate.splev(s,tck_rnd,der=0)
@@ -208,7 +219,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         myn = myn_mix = hprime = nlprime = nkprime = hpot = nlpot = nkpot = hstr = nlstr = nkstr = hshr = nlshr = nkshr = None
         s_min = tck_lnd = tck_mnd = tck_rnd = tck_gnd = wnd = ond = kx = None
         piG = sic = soc = small = backend = abs_tol = rel_tol = nstps = None
-        order = gnd = adim = gsdim = L_sc = T_sc = inf_tol = s = None
+        order = gnd = adim = gsdim = L_sc = T_sc = inf_tol = s = evalrad = None
         sint_mt = Yload = Ypot = Ystr = Yshr = None
         lln_out = pln_out = str_out = shr_out = None
 
@@ -258,6 +269,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     T_sc = comm.bcast(T_sc, root=0)
     inf_tol = comm.bcast(inf_tol, root=0)
     s = comm.bcast(s, root=0)
+    evalrad = comm.bcast(evalrad, root=0)
     lln_out = comm.bcast(lln_out, root=0)
     pln_out = comm.bcast(pln_out, root=0)
     str_out = comm.bcast(str_out, root=0)
@@ -288,7 +300,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         hprime_sub[ii],nlprime_sub[ii],nkprime_sub[ii],hpot_sub[ii],nlpot_sub[ii],nkpot_sub[ii],hstr_sub[ii],nlstr_sub[ii],nkstr_sub[ii],\
             hshr_sub[ii],nlshr_sub[ii],nkshr_sub[ii],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
             integrate_odes.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
-                rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx)
+                rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radius=evalrad)
 
     # Gather Results 
     comm.Gatherv(hprime_sub, [hprime, (sendcounts, None), MPI.DOUBLE], root=0)
