@@ -6,7 +6,7 @@
 # PURPOSE: CONVERT EAST and NORTH AMPLITUDES TO HORIZONTAL PMEs
 # LITERATURE: Martens et al. (2016, GJI), Martens (2016, Caltech)
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -37,11 +37,18 @@ from CONVGF.utility import read_convolution_file
 import numpy as np
 
 #### USER INPUT ####
+
 harmonic="M2"
-filename=("./output/cn_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_PREM.txt")
-pme_file=("./output/pme_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_PREM.txt")
+output_directory = ("./output/")
+filename=(output_directory + "cn_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_PREM.txt")
+pme_file=(output_directory + "pme_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_PREM.txt")
 
 #### BEGIN CODE ####
+
+# Create output directory, if it does not yet exist
+if not (os.path.isdir(output_directory)):
+    os.makedirs(output_directory)
+
 sta,lat,lon,eamp,epha,namp,npha,vamp,vpha = read_convolution_file.main(filename)
 
 # Perform the Conversion

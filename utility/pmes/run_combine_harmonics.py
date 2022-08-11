@@ -6,7 +6,7 @@
 # PURPOSE: CONVERT EAST and NORTH AMPLITUDES TO HORIZONTAL PMEs
 # LITERATURE: Martens et al. (2016, GJI), Martens (2016, Caltech)
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #

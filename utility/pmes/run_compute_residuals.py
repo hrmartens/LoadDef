@@ -4,7 +4,7 @@
 # PROGRAM TO COMPUTE RESIDUALS BETWEEN PARTICLE MOTION ELLIPSES (PMEs)
 # LITERATURE: Martens et al. (2016, GJI)
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -34,11 +34,6 @@ from utility.pmes import compute_residuals
 
 #### USER INPUTS ####
 
-# Set-up Directory
-if not (os.path.isdir("./output/Residuals/")):
-    os.makedirs("./output/Residuals/")
-outdir = "./output/Residuals/"
-
 # Optional Stations to Exclude When Computing the Common-Mode
 stations_to_exclude = []
 
@@ -53,6 +48,11 @@ filename2 = (input_directory + "pme_OceanOnly_"+harmonic+"_"+rfm+"_convgf_"+mode
 outfile = ("Residuals_"+harmonic+"_"+rfm+"_"+model1+"-"+model2+".txt")
 
 #### BEGIN CODE
+
+# Set-up Directory
+if not (os.path.isdir("./output/Residuals/")):
+    os.makedirs("./output/Residuals/")
+outdir = "./output/Residuals/"
 
 # Output File
 myoutfile = (outdir + outfile)
