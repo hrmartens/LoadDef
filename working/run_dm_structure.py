@@ -439,303 +439,312 @@ for dd in range(0,len(gffiles)):
 
 # -------------- BEGIN COMBINE STATIONS -------------------- #
 
-# List of all combined filenames
-combined_filenames = []
+# Only execute on main processor
+if (rank == 0):
  
-# Loop through model files
-for ff in range(0,len(cnsuffixes)):
+    # List of all combined filenames
+    combined_filenames = []
+ 
+    # Loop through model files
+    for ff in range(0,len(cnsuffixes)):
 
-    # Current convolution suffix
-    ccnsuffix = cnsuffixes[ff]
+        # Current convolution suffix
+        ccnsuffix = cnsuffixes[ff]
 
-    # Combine the stations into a single file
-    outdir_csta = ("../output/CombineStations/")
-    c_combined_filenames = combine_stations.main(cndirectory,cnprefix,ccnsuffix,output_directory=outdir_csta)
+        # Combine the stations into a single file
+        outdir_csta = ("../output/CombineStations/")
+        c_combined_filenames = combine_stations.main(cndirectory,cnprefix,ccnsuffix,output_directory=outdir_csta)
 
-    # Append to list
-    combined_filenames.append(c_combined_filenames)
-  
+        # Append to list
+        combined_filenames.append(c_combined_filenames)
+
+# Make sure all jobs have finished before continuing
+comm.Barrier()  
+
 # -------------- END COMBINE STATIONS ---------------------- #
 
 # ------------- BEGIN FINITE DIFFERENCE -------------------- #
 
-# Take the difference between each perturbed displacement and the displacements predicted by the primary model (m0)
-#  :: d(Gm)/dm
-#  :: Separately for east, north, up at each station
-#  :: [Gm' - Gm0] / [m' - m0]
-
-# How many design matrices are we producing? (There will be one for each load model)
-main_files = combined_filenames[-1]
-main_files_out = []
-
-# Loop through main files
-for gg in range(0,len(main_files)):
-
-    # Current main file
-    mfile = main_files[gg]
-    
-    # Extract text of filename
-    mfilevals = mfile.split('/')
-    mfilename = mfilevals[-1]
-    mfilename = mfilename[0:-4]
-
-    # Read the main file
-    sta,lat,lon,eamp,epha,namp,npha,vamp,vpha = read_convolution_file.main(mfile)
+# Only execute on main processor
+if (rank == 0):
  
-    # Convert from amplitude and phase to displacement
-    if (inc_imag == False): 
-        edisp = np.multiply(eamp,np.cos(np.multiply(epha,(np.pi/180.))))
-        ndisp = np.multiply(namp,np.cos(np.multiply(npha,(np.pi/180.))))
-        udisp = np.multiply(vamp,np.cos(np.multiply(vpha,(np.pi/180.))))
-    # Convert Amp+Phase to Real+Imag
-    elif (inc_imag == True): 
-        ere = np.multiply(eamp,np.cos(np.multiply(epha,(np.pi/180.))))
-        nre = np.multiply(namp,np.cos(np.multiply(npha,(np.pi/180.))))
-        ure = np.multiply(vamp,np.cos(np.multiply(vpha,(np.pi/180.))))
-        eim = np.multiply(eamp,np.sin(np.multiply(epha,(np.pi/180.))))
-        nim = np.multiply(namp,np.sin(np.multiply(npha,(np.pi/180.))))
-        uim = np.multiply(vamp,np.sin(np.multiply(vpha,(np.pi/180.))))
-    else: 
-        sys.exit(':: Error: Incorrect selection for whether to include imaginary components. Must be True or False.')
+    # Take the difference between each perturbed displacement and the displacements predicted by the primary model (m0)
+    #  :: d(Gm)/dm
+    #  :: Separately for east, north, up at each station
+    #  :: [Gm' - Gm0] / [m' - m0]
 
-    # Export a simple text file of the original model
-    f_out_main = ("startingmodel_" + mfilename + ".txt")
-    f_file_main = ("../output/DesignMatrixStructure/" + f_out_main)
-    main_files_out.append(f_file_main)
-    temp_head = ("./temp_head_" + str(np.random.randint(500)) + ".txt")
-    temp_body = ("./temp_body_" + str(np.random.randint(500)) + ".txt")
-    # Prepare Data for Output (as Structured Array)
-    if (inc_imag == False): 
-        all_data = np.array(list(zip(sta,lat,lon,edisp,ndisp,udisp)), dtype=[('sta','U8'), \
-            ('lat',float),('lon',float),('edisp',float),('ndisp',float),('udisp',float)])
-        # Write Header Info to File
-        hf = open(temp_head,'w')
-        temp_str = 'Station  Lat(+N,deg)  Lon(+E,deg)  E-Disp(mm)  N-Disp(mm)  U-Disp(mm)  \n'
-        hf.write(temp_str)
-        hf.close()
-        # Write Model Results to File
-        np.savetxt(temp_body,all_data,fmt=["%s"]+["%.7f",]*5,delimiter="        ")
-    else:
-        all_data = np.array(list(zip(sta,lat,lon,ere,nre,ure,eim,nim,uim)), dtype=[('sta','U8'), \
-            ('lat',float),('lon',float),('ere',float),('nre',float),('ure',float),('eim',float),('nim',float),('uim',float)])
-        # Write Header Info to File
-        hf = open(temp_head,'w')
-        temp_str = 'Station  Lat(+N,deg)  Lon(+E,deg)  E-Disp-Re(mm)  N-Disp-Re(mm)  U-Disp-Re(mm)  E-Disp-Im(mm)  N-Disp-Im(mm)  U-Disp-Im(mm)   \n'
-        hf.write(temp_str)
-        hf.close()
-        # Write Model Results to File
-        np.savetxt(temp_body,all_data,fmt=["%s"]+["%.7f",]*8,delimiter="        ")
-    # Combine Header and Body Files
-    filenames_main = [temp_head, temp_body]
-    with open(f_file_main,'w') as outfile:
-        for fname in filenames_main:
-            with open(fname) as infile:
-                outfile.write(infile.read())
-    # Remove Header and Body Files
-    os.remove(temp_head)
-    os.remove(temp_body) 
+    # How many design matrices are we producing? (There will be one for each load model)
+    main_files = combined_filenames[-1]
+    main_files_out = []
+ 
+    # Loop through main files
+    for gg in range(0,len(main_files)):
+ 
+        # Current main file
+        mfile = main_files[gg]
+    
+        # Extract text of filename
+        mfilevals = mfile.split('/')
+        mfilename = mfilevals[-1]
+        mfilename = mfilename[0:-4]
 
-    # Set up current design matrix
-    if (inc_imag == False):
-        rowdim = len(sta)*3 # Multiply by three for the three spatial components (e,n,u)
-    else:
-        rowdim = len(sta)*6 # Multiply by six for the three spatial components (e,n,u), and real & imaginary components for each
-    coldim = len(combined_filenames)-1 # -1 so as not to include the main file (only the perturbations to structure; no. of depth ranges * 3 for mu,kappa,rho)
-    desmat = np.zeros((rowdim,coldim)) 
-    dmrows = np.empty((rowdim,),dtype='U10') # Assumes that station names are no more than 9 characters in length (with E, N, or U also appended)
-    sclat = np.zeros((rowdim,))
-    sclon = np.zeros((rowdim,))
-    bottom_radius = np.zeros((coldim,))
-    top_radius = np.zeros((coldim,))
-    mat_param = np.empty((coldim,),dtype='U10')
-
-    # Loop through other files that correspond to this main file (perturbations to structure)
-    for hh in range(0,len(combined_filenames)-1): # -1 so as not to include the main file
-
-        # Current file with material perturbation
-        cpfiles = combined_filenames[hh]
-        cpfile = cpfiles[gg]
-
-        # Current depth bottom, depth top, and material parameter
-        clngfext = lngfext[hh] # information on current model parameter
-        clngfext_rmtxt = clngfext[0:-4] # remove the ".txt" extension
-        perturbvars = clngfext_rmtxt.split('_')
-        bottom_radius[hh] = perturbvars[3]
-        top_radius[hh] = perturbvars[4]
-        mat_param[hh] = perturbvars[1]
-
-        # Read the current perturbed file
-        sta1,lat1,lon1,eamp1,epha1,namp1,npha1,vamp1,vpha1 = read_convolution_file.main(cpfile)
-
+        # Read the main file
+        sta,lat,lon,eamp,epha,namp,npha,vamp,vpha = read_convolution_file.main(mfile)
+ 
         # Convert from amplitude and phase to displacement
-        if (inc_imag == False):
-            edisp1 = np.multiply(eamp1,np.cos(np.multiply(epha1,(np.pi/180.))))
-            ndisp1 = np.multiply(namp1,np.cos(np.multiply(npha1,(np.pi/180.))))
-            udisp1 = np.multiply(vamp1,np.cos(np.multiply(vpha1,(np.pi/180.))))
+        if (inc_imag == False): 
+            edisp = np.multiply(eamp,np.cos(np.multiply(epha,(np.pi/180.))))
+            ndisp = np.multiply(namp,np.cos(np.multiply(npha,(np.pi/180.))))
+            udisp = np.multiply(vamp,np.cos(np.multiply(vpha,(np.pi/180.))))
         # Convert Amp+Phase to Real+Imag
-        else:
-            ere1 = np.multiply(eamp1,np.cos(np.multiply(epha1,(np.pi/180.))))
-            nre1 = np.multiply(namp1,np.cos(np.multiply(npha1,(np.pi/180.))))
-            ure1 = np.multiply(vamp1,np.cos(np.multiply(vpha1,(np.pi/180.))))
-            eim1 = np.multiply(eamp1,np.sin(np.multiply(epha1,(np.pi/180.))))
-            nim1 = np.multiply(namp1,np.sin(np.multiply(npha1,(np.pi/180.))))
-            uim1 = np.multiply(vamp1,np.sin(np.multiply(vpha1,(np.pi/180.))))
+        elif (inc_imag == True): 
+            ere = np.multiply(eamp,np.cos(np.multiply(epha,(np.pi/180.))))
+            nre = np.multiply(namp,np.cos(np.multiply(npha,(np.pi/180.))))
+            ure = np.multiply(vamp,np.cos(np.multiply(vpha,(np.pi/180.))))
+            eim = np.multiply(eamp,np.sin(np.multiply(epha,(np.pi/180.))))
+            nim = np.multiply(namp,np.sin(np.multiply(npha,(np.pi/180.))))
+            uim = np.multiply(vamp,np.sin(np.multiply(vpha,(np.pi/180.))))
+        else: 
+            sys.exit(':: Error: Incorrect selection for whether to include imaginary components. Must be True or False.')
 
-        # Subtract displacements from those displacements in the main file
+        # Export a simple text file of the original model
+        f_out_main = ("startingmodel_" + mfilename + ".txt")
+        f_file_main = ("../output/DesignMatrixStructure/" + f_out_main)
+        main_files_out.append(f_file_main)
+        temp_head = ("./temp_head_" + str(np.random.randint(500)) + ".txt")
+        temp_body = ("./temp_body_" + str(np.random.randint(500)) + ".txt")
+        # Prepare Data for Output (as Structured Array)
+        if (inc_imag == False): 
+            all_data = np.array(list(zip(sta,lat,lon,edisp,ndisp,udisp)), dtype=[('sta','U8'), \
+                ('lat',float),('lon',float),('edisp',float),('ndisp',float),('udisp',float)])
+            # Write Header Info to File
+            hf = open(temp_head,'w')
+            temp_str = 'Station  Lat(+N,deg)  Lon(+E,deg)  E-Disp(mm)  N-Disp(mm)  U-Disp(mm)  \n'
+            hf.write(temp_str)
+            hf.close()
+            # Write Model Results to File
+            np.savetxt(temp_body,all_data,fmt=["%s"]+["%.7f",]*5,delimiter="        ")
+        else:
+            all_data = np.array(list(zip(sta,lat,lon,ere,nre,ure,eim,nim,uim)), dtype=[('sta','U8'), \
+                ('lat',float),('lon',float),('ere',float),('nre',float),('ure',float),('eim',float),('nim',float),('uim',float)])
+            # Write Header Info to File
+            hf = open(temp_head,'w')
+            temp_str = 'Station  Lat(+N,deg)  Lon(+E,deg)  E-Disp-Re(mm)  N-Disp-Re(mm)  U-Disp-Re(mm)  E-Disp-Im(mm)  N-Disp-Im(mm)  U-Disp-Im(mm)   \n'
+            hf.write(temp_str)
+            hf.close()
+            # Write Model Results to File
+            np.savetxt(temp_body,all_data,fmt=["%s"]+["%.7f",]*8,delimiter="        ")
+        # Combine Header and Body Files
+        filenames_main = [temp_head, temp_body]
+        with open(f_file_main,'w') as outfile:
+            for fname in filenames_main:
+                with open(fname) as infile:
+                    outfile.write(infile.read())
+        # Remove Header and Body Files
+        os.remove(temp_head)
+        os.remove(temp_body) 
+
+        # Set up current design matrix
         if (inc_imag == False):
-            edisp_diff = np.subtract(edisp1,edisp)
-            ndisp_diff = np.subtract(ndisp1,ndisp)
-            udisp_diff = np.subtract(udisp1,udisp)
+            rowdim = len(sta)*3 # Multiply by three for the three spatial components (e,n,u)
         else:
-            ere_diff = np.subtract(ere1,ere)
-            nre_diff = np.subtract(nre1,nre)
-            ure_diff = np.subtract(ure1,ure)
-            eim_diff = np.subtract(eim1,eim)
-            nim_diff = np.subtract(nim1,nim)
-            uim_diff = np.subtract(uim1,uim)
+            rowdim = len(sta)*6 # Multiply by six for the three spatial components (e,n,u), and real & imaginary components for each
+        coldim = len(combined_filenames)-1 # -1 so as not to include the main file (only the perturbations to structure; no. of depth ranges * 3 for mu,kappa,rho)
+        desmat = np.zeros((rowdim,coldim)) 
+        dmrows = np.empty((rowdim,),dtype='U10') # Assumes that station names are no more than 9 characters in length (with E, N, or U also appended)
+        sclat = np.zeros((rowdim,))
+        sclon = np.zeros((rowdim,))
+        bottom_radius = np.zeros((coldim,))
+        top_radius = np.zeros((coldim,))
+        mat_param = np.empty((coldim,),dtype='U10')
 
-        # Loop through stations
-        for jj in range(0,len(sta1)): 
- 
-            # Fill in Design Matrix
-            if (inc_imag == False): 
-                idxe = (jj*3)+0
-                idxn = (jj*3)+1
-                idxu = (jj*3)+2
-                desmat[idxe,:] = edisp_diff[jj]
-                desmat[idxn,:] = ndisp_diff[jj]
-                desmat[idxu,:] = udisp_diff[jj]
-                dmrows[idxe] = (sta1[jj] + 'E')
-                dmrows[idxn] = (sta1[jj] + 'N')
-                dmrows[idxu] = (sta1[jj] + 'U')
-                sclat[idxe] = lat1[jj]
-                sclat[idxn] = lat1[jj]
-                sclat[idxu] = lat1[jj]
-                sclon[idxe] = lon1[jj]
-                sclon[idxn] = lon1[jj]
-                sclon[idxu] = lon1[jj]
+        # Loop through other files that correspond to this main file (perturbations to structure)
+        for hh in range(0,len(combined_filenames)-1): # -1 so as not to include the main file
+
+            # Current file with material perturbation
+            cpfiles = combined_filenames[hh]
+            cpfile = cpfiles[gg]
+
+            # Current depth bottom, depth top, and material parameter
+            clngfext = lngfext[hh] # information on current model parameter
+            clngfext_rmtxt = clngfext[0:-4] # remove the ".txt" extension
+            perturbvars = clngfext_rmtxt.split('_')
+            bottom_radius[hh] = perturbvars[3]
+            top_radius[hh] = perturbvars[4]
+            mat_param[hh] = perturbvars[1]
+
+            # Read the current perturbed file
+            sta1,lat1,lon1,eamp1,epha1,namp1,npha1,vamp1,vpha1 = read_convolution_file.main(cpfile)
+
+            # Convert from amplitude and phase to displacement
+            if (inc_imag == False):
+                edisp1 = np.multiply(eamp1,np.cos(np.multiply(epha1,(np.pi/180.))))
+                ndisp1 = np.multiply(namp1,np.cos(np.multiply(npha1,(np.pi/180.))))
+                udisp1 = np.multiply(vamp1,np.cos(np.multiply(vpha1,(np.pi/180.))))
+            # Convert Amp+Phase to Real+Imag
             else:
-                idxere = (jj*6)+0
-                idxnre = (jj*6)+1
-                idxure = (jj*6)+2
-                idxeim = (jj*6)+3
-                idxnim = (jj*6)+4
-                idxuim = (jj*6)+5
-                desmat[idxere,:] = ere_diff[jj]
-                desmat[idxnre,:] = nre_diff[jj]
-                desmat[idxure,:] = ure_diff[jj]
-                desmat[idxeim,:] = eim_diff[jj]
-                desmat[idxnim,:] = nim_diff[jj]
-                desmat[idxuim,:] = uim_diff[jj]
-                dmrows[idxere] = (sta1[jj] + 'Ere')
-                dmrows[idxnre] = (sta1[jj] + 'Nre')
-                dmrows[idxure] = (sta1[jj] + 'Ure')
-                dmrows[idxeim] = (sta1[jj] + 'Eim')
-                dmrows[idxnim] = (sta1[jj] + 'Nim')
-                dmrows[idxuim] = (sta1[jj] + 'Uim')
-                sclat[idxere] = lat1[jj]
-                sclat[idxnre] = lat1[jj]
-                sclat[idxure] = lat1[jj]
-                sclon[idxere] = lon1[jj]
-                sclon[idxnre] = lon1[jj]
-                sclon[idxure] = lon1[jj]
-                sclat[idxeim] = lat1[jj]
-                sclat[idxnim] = lat1[jj]
-                sclat[idxuim] = lat1[jj]
-                sclon[idxeim] = lon1[jj]
-                sclon[idxnim] = lon1[jj]
-                sclon[idxuim] = lon1[jj]
+                ere1 = np.multiply(eamp1,np.cos(np.multiply(epha1,(np.pi/180.))))
+                nre1 = np.multiply(namp1,np.cos(np.multiply(npha1,(np.pi/180.))))
+                ure1 = np.multiply(vamp1,np.cos(np.multiply(vpha1,(np.pi/180.))))
+                eim1 = np.multiply(eamp1,np.sin(np.multiply(epha1,(np.pi/180.))))
+                nim1 = np.multiply(namp1,np.sin(np.multiply(npha1,(np.pi/180.))))
+                uim1 = np.multiply(vamp1,np.sin(np.multiply(vpha1,(np.pi/180.))))
 
-    # Write Design Matrix to File
-    print(":: ")
-    print(":: ")
-    print(":: Writing netCDF-formatted file.")
-    f_out = ("designmatrix_" + mfilename + ".nc")
-    f_file = ("../output/DesignMatrixStructure/" + f_out)
-    # Check if file already exists; if so, delete existing file
-    if (os.path.isfile(f_file)):
-        os.remove(f_file)
-    # Open new NetCDF file in "write" mode
-    dataset = netCDF4.Dataset(f_file,'w',format='NETCDF4_CLASSIC')
-    # Define dimensions for variables
-    desmat_shape = desmat.shape
-    num_rows = desmat_shape[0]
-    num_cols = desmat_shape[1]
-    nstacomp = dataset.createDimension('nstacomp',num_rows)
-    nstructure = dataset.createDimension('nstructure',num_cols)
-    nchars = dataset.createDimension('nchars',10)
-    # Create variables
-    sta_comp_id = dataset.createVariable('sta_comp_id','S1',('nstacomp','nchars'))
-    design_matrix = dataset.createVariable('design_matrix',float,('nstacomp','nstructure'))
-    sta_comp_lat = dataset.createVariable('sta_comp_lat',float,('nstacomp',))
-    sta_comp_lon = dataset.createVariable('sta_comp_lon',float,('nstacomp',))
-    perturb_radius_bottom = dataset.createVariable('perturb_radius_bottom',float,('nstructure',))
-    perturb_radius_top = dataset.createVariable('perturb_radius_top',float,('nstructure',))
-    perturb_param = dataset.createVariable('perturb_param','S1',('nstructure','nchars'))
-    # Add units
-    sta_comp_id.units = 'string'
-    if (inc_imag == False): 
-        sta_comp_id.long_name = 'station_component_id'
-    else: 
-        sta_comp_id.long_name = 'station_component_RealImaginary_id'
-    design_matrix.units = 'mm'
-    design_matrix.long_name = 'displacement_mm'
-    sta_comp_lat.units = 'degrees_north'
-    sta_comp_lat.long_name = 'station_latitude'
-    sta_comp_lon.units = 'degrees_east'
-    sta_comp_lon.long_name = 'station_longitude'
-    perturb_radius_bottom.units = 'km'
-    perturb_radius_bottom.long_name = 'bottom_of_perturbed_layer'
-    perturb_radius_top.units = 'km'
-    perturb_radius_top.long_name = 'top_of_perturbed_layer'
-    perturb_param.units = 'string'
-    perturb_param.long_name = 'material_parameter_perturbed'
-    # Assign data
-    #  https://unidata.github.io/netcdf4-python/ (see "Dealing with Strings")
-    #  sta_comp_id[:] = netCDF4.stringtochar(np.array(dmrows,dtype='S10'))
-    sta_comp_id._Encoding = 'ascii'
-    sta_comp_id[:] = np.array(dmrows,dtype='S10')
-    design_matrix[:,:] = desmat
-    sta_comp_lat[:] = sclat
-    sta_comp_lon[:] = sclon
-    perturb_radius_bottom[:] = bottom_radius
-    perturb_radius_top[:] = top_radius
-    perturb_param._Encoding = 'ascii'
-    perturb_param[:] = np.array(mat_param,dtype='S10')
+            # Subtract displacements from those displacements in the main file
+            if (inc_imag == False):
+                edisp_diff = np.subtract(edisp1,edisp)
+                ndisp_diff = np.subtract(ndisp1,ndisp)
+                udisp_diff = np.subtract(udisp1,udisp)
+            else:
+                ere_diff = np.subtract(ere1,ere)
+                nre_diff = np.subtract(nre1,nre)
+                ure_diff = np.subtract(ure1,ure)
+                eim_diff = np.subtract(eim1,eim)
+                nim_diff = np.subtract(nim1,nim)
+                uim_diff = np.subtract(uim1,uim)
+
+            # Loop through stations
+            for jj in range(0,len(sta1)): 
+ 
+                # Fill in Design Matrix
+                if (inc_imag == False): 
+                    idxe = (jj*3)+0
+                    idxn = (jj*3)+1
+                    idxu = (jj*3)+2
+                    desmat[idxe,:] = edisp_diff[jj]
+                    desmat[idxn,:] = ndisp_diff[jj]
+                    desmat[idxu,:] = udisp_diff[jj]
+                    dmrows[idxe] = (sta1[jj] + 'E')
+                    dmrows[idxn] = (sta1[jj] + 'N')
+                    dmrows[idxu] = (sta1[jj] + 'U')
+                    sclat[idxe] = lat1[jj]
+                    sclat[idxn] = lat1[jj]
+                    sclat[idxu] = lat1[jj]
+                    sclon[idxe] = lon1[jj]
+                    sclon[idxn] = lon1[jj]
+                    sclon[idxu] = lon1[jj]
+                else:
+                    idxere = (jj*6)+0
+                    idxnre = (jj*6)+1
+                    idxure = (jj*6)+2
+                    idxeim = (jj*6)+3
+                    idxnim = (jj*6)+4
+                    idxuim = (jj*6)+5
+                    desmat[idxere,:] = ere_diff[jj]
+                    desmat[idxnre,:] = nre_diff[jj]
+                    desmat[idxure,:] = ure_diff[jj]
+                    desmat[idxeim,:] = eim_diff[jj]
+                    desmat[idxnim,:] = nim_diff[jj]
+                    desmat[idxuim,:] = uim_diff[jj]
+                    dmrows[idxere] = (sta1[jj] + 'Ere')
+                    dmrows[idxnre] = (sta1[jj] + 'Nre')
+                    dmrows[idxure] = (sta1[jj] + 'Ure')
+                    dmrows[idxeim] = (sta1[jj] + 'Eim')
+                    dmrows[idxnim] = (sta1[jj] + 'Nim')
+                    dmrows[idxuim] = (sta1[jj] + 'Uim')
+                    sclat[idxere] = lat1[jj]
+                    sclat[idxnre] = lat1[jj]
+                    sclat[idxure] = lat1[jj]
+                    sclon[idxere] = lon1[jj]
+                    sclon[idxnre] = lon1[jj]
+                    sclon[idxure] = lon1[jj]
+                    sclat[idxeim] = lat1[jj]
+                    sclat[idxnim] = lat1[jj]
+                    sclat[idxuim] = lat1[jj]
+                    sclon[idxeim] = lon1[jj]
+                    sclon[idxnim] = lon1[jj]
+                    sclon[idxuim] = lon1[jj]
+
+        # Write Design Matrix to File
+        print(":: ")
+        print(":: ")
+        print(":: Writing netCDF-formatted file.")
+        f_out = ("designmatrix_" + mfilename + ".nc")
+        f_file = ("../output/DesignMatrixStructure/" + f_out)
+        # Check if file already exists; if so, delete existing file
+        if (os.path.isfile(f_file)):
+            os.remove(f_file)
+        # Open new NetCDF file in "write" mode
+        dataset = netCDF4.Dataset(f_file,'w',format='NETCDF4_CLASSIC')
+        # Define dimensions for variables
+        desmat_shape = desmat.shape
+        num_rows = desmat_shape[0]
+        num_cols = desmat_shape[1]
+        nstacomp = dataset.createDimension('nstacomp',num_rows)
+        nstructure = dataset.createDimension('nstructure',num_cols)
+        nchars = dataset.createDimension('nchars',10)
+        # Create variables
+        sta_comp_id = dataset.createVariable('sta_comp_id','S1',('nstacomp','nchars'))
+        design_matrix = dataset.createVariable('design_matrix',float,('nstacomp','nstructure'))
+        sta_comp_lat = dataset.createVariable('sta_comp_lat',float,('nstacomp',))
+        sta_comp_lon = dataset.createVariable('sta_comp_lon',float,('nstacomp',))
+        perturb_radius_bottom = dataset.createVariable('perturb_radius_bottom',float,('nstructure',))
+        perturb_radius_top = dataset.createVariable('perturb_radius_top',float,('nstructure',))
+        perturb_param = dataset.createVariable('perturb_param','S1',('nstructure','nchars'))
+        # Add units
+        sta_comp_id.units = 'string'
+        if (inc_imag == False): 
+            sta_comp_id.long_name = 'station_component_id'
+        else: 
+            sta_comp_id.long_name = 'station_component_RealImaginary_id'
+        design_matrix.units = 'mm'
+        design_matrix.long_name = 'displacement_mm'
+        sta_comp_lat.units = 'degrees_north'
+        sta_comp_lat.long_name = 'station_latitude'
+        sta_comp_lon.units = 'degrees_east'
+        sta_comp_lon.long_name = 'station_longitude'
+        perturb_radius_bottom.units = 'km'
+        perturb_radius_bottom.long_name = 'bottom_of_perturbed_layer'
+        perturb_radius_top.units = 'km'
+        perturb_radius_top.long_name = 'top_of_perturbed_layer'
+        perturb_param.units = 'string'
+        perturb_param.long_name = 'material_parameter_perturbed'
+        # Assign data
+        #  https://unidata.github.io/netcdf4-python/ (see "Dealing with Strings")
+        #  sta_comp_id[:] = netCDF4.stringtochar(np.array(dmrows,dtype='S10'))
+        sta_comp_id._Encoding = 'ascii'
+        sta_comp_id[:] = np.array(dmrows,dtype='S10')
+        design_matrix[:,:] = desmat
+        sta_comp_lat[:] = sclat
+        sta_comp_lon[:] = sclon
+        perturb_radius_bottom[:] = bottom_radius
+        perturb_radius_top[:] = top_radius
+        perturb_param._Encoding = 'ascii'
+        perturb_param[:] = np.array(mat_param,dtype='S10')
     
-    # Write Data to File
-    dataset.close()
+        # Write Data to File
+        dataset.close()
 
-    # Print the output filename
-    print(f_file)
+        # Print the output filename
+        print(f_file)
 
-    # Read the netCDF file as a test
-    f = netCDF4.Dataset(f_file)
-    #print(f.variables)
-    sta_comp_ids = f.variables['sta_comp_id'][:]
-    design_matrix = f.variables['design_matrix'][:]
-    sta_comp_lat = f.variables['sta_comp_lat'][:]
-    sta_comp_lon = f.variables['sta_comp_lon'][:]
-    perturb_radius_bottom = f.variables['perturb_radius_bottom'][:]
-    perturb_radius_top = f.variables['perturb_radius_top'][:]
-    perturb_param = f.variables['perturb_param'][:]
-    f.close()
+        # Read the netCDF file as a test
+        f = netCDF4.Dataset(f_file)
+        #print(f.variables)
+        sta_comp_ids = f.variables['sta_comp_id'][:]
+        design_matrix = f.variables['design_matrix'][:]
+        sta_comp_lat = f.variables['sta_comp_lat'][:]
+        sta_comp_lon = f.variables['sta_comp_lon'][:]
+        perturb_radius_bottom = f.variables['perturb_radius_bottom'][:]
+        perturb_radius_top = f.variables['perturb_radius_top'][:]
+        perturb_param = f.variables['perturb_param'][:]
+        f.close()
 
-# Remind users that they will also need the original forward models when they run the inversion:
-print(':: ')
-print(':: ')
-print(':: Reminder: You will also need the original forward model when running the inversion. [d-(Gm0)] = [d(Gm)/dm]*[dm]')
-print('::   (Gm0) represents the original forward model. [d-(Gm0)] represents the residual vector between GPS data and the original forward model')
-print('::   [d(Gm)/dm] represents the perturbations to the surface displacements with a perturbation to each model parameter.')
-print('::      It is the design matrix computed here. The default perturbation is 1%.')
-print('::   [dm] represents the model vector to be solved for in the inversion.')
-print('::      It is the perturbation to each model parameter required to best fit the residual data.')
-print(':: The original forward model(s) are: ')
-print(main_files)
-print(':: And the original forward model(s) recast into real and imaginary components are: ')
-print(main_files_out)
-print(':: ')
-print(':: ')
+    # Remind users that they will also need the original forward models when they run the inversion:
+    print(':: ')
+    print(':: ')
+    print(':: Reminder: You will also need the original forward model when running the inversion. [d-(Gm0)] = [d(Gm)/dm]*[dm]')
+    print('::   (Gm0) represents the original forward model. [d-(Gm0)] represents the residual vector between GPS data and the original forward model')
+    print('::   [d(Gm)/dm] represents the perturbations to the surface displacements with a perturbation to each model parameter.')
+    print('::      It is the design matrix computed here. The default perturbation is 1%.')
+    print('::   [dm] represents the model vector to be solved for in the inversion.')
+    print('::      It is the perturbation to each model parameter required to best fit the residual data.')
+    print(':: The original forward model(s) are: ')
+    print(main_files)
+    print(':: And the original forward model(s) recast into real and imaginary components are: ')
+    print(main_files_out)
+    print(':: ')
+    print(':: ')
 
 # -------------- END FINITE DIFFERENCE --------------------- #
 
