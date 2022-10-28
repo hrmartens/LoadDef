@@ -142,7 +142,14 @@ def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_typ
         myn = n[vv]
         # Degree-0
         if (myn == 0): 
-            usum[vcount] = (lln_h[vv] - h_inf) * P[vv]
+            #usum[vcount] = (lln_h[vv] - h_inf) * P[vv]
+            if (mytheta <= max_theta):
+                usum[vcount] = (lln_h[vv] - h_inf) * P[vv]
+            else:
+                usum[vcount] = lln_h[vv]*P[vv] * cfs[vv]
+            if disk_factor:
+                if (mytheta >= angdist):
+                    usum[vcount] *= dfac[vv]
         # All Other Degrees
         else:
             if (mytheta <= max_theta):
