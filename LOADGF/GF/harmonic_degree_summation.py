@@ -279,7 +279,13 @@ def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_typ
         myn = n[vv]
         # Degree-0
         if (myn == 0):
+            # Without kummer's: (-g/M)*(k'*P); see Guo et al. 2004; see LoadDef ESS paper supplement Eq. (6)
+            # nk' at n=0 = 0. k' at n=0 is undefined. 
+            # With kummer's: (-g/M) * (k'-k_inf)*P
             gsum[vcount] = (lln_nk[vv] - k_inf) * P[vv] 
+            if disk_factor:
+                if (mytheta >= angdist):
+                    gsum[vcount] *= dfac[vv]
         # All Other Degrees
         else:
             if (mytheta <= max_theta):
