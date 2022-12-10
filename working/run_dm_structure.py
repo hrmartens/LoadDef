@@ -591,17 +591,22 @@ if (rank == 0):
                 uim1 = np.multiply(vamp1,np.sin(np.multiply(vpha1,(np.pi/180.))))
 
             # Subtract displacements from those displacements in the main file
+            # And then divide by the perturbation. We want: dG(m)/dm, where dm=m'-m0
+            # In log space, m' = log10(m'_linear) and m0 = log10(m0_linear).
+            # To perturb the model parameters, we have: m' = m0 + "perturbation".
+            # Thus, perturbation = m' - m0, and we want to compute: dG(m)/perturbation.
+            # Hence, here, we compute the difference in displacement and divide by the perturbation.
             if (inc_imag == False):
-                edisp_diff = np.subtract(edisp1,edisp)
-                ndisp_diff = np.subtract(ndisp1,ndisp)
-                udisp_diff = np.subtract(udisp1,udisp)
+                edisp_diff = np.divide(np.subtract(edisp1,edisp),perturbation)
+                ndisp_diff = np.divide(np.subtract(ndisp1,ndisp),perturbation)
+                udisp_diff = np.divide(np.subtract(udisp1,udisp),perturbation)
             else:
-                ere_diff = np.subtract(ere1,ere)
-                nre_diff = np.subtract(nre1,nre)
-                ure_diff = np.subtract(ure1,ure)
-                eim_diff = np.subtract(eim1,eim)
-                nim_diff = np.subtract(nim1,nim)
-                uim_diff = np.subtract(uim1,uim)
+                ere_diff = np.divide(np.subtract(ere1,ere),perturbation)
+                nre_diff = np.divide(np.subtract(nre1,nre),perturbation)
+                ure_diff = np.divide(np.subtract(ure1,ure),perturbation)
+                eim_diff = np.divide(np.subtract(eim1,eim),perturbation)
+                nim_diff = np.divide(np.subtract(nim1,nim),perturbation)
+                uim_diff = np.divide(np.subtract(uim1,uim),perturbation)
 
             # Loop through stations
             for jj in range(0,len(sta1)): 
