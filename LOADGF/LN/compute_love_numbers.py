@@ -201,6 +201,11 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         Ypot    = np.empty((len(myn),num_soln*6))
         Ystr    = np.empty((len(myn),num_soln*6))
         Yshr    = np.empty((len(myn),num_soln*6)) 
+        if (nongrav == True): 
+            Yload   = np.empty((len(myn),num_soln*4))
+            Ypot    = np.empty((len(myn),num_soln*4))
+            Ystr    = np.empty((len(myn),num_soln*4))
+            Yshr    = np.empty((len(myn),num_soln*4))
  
         # Load Love Number Output Filename
         lln_out      = ("lln_"+file_out)
@@ -231,6 +236,8 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
 
     # Create a Data Type for the Solutions (Ys)
     sol_vec_size = num_soln*6
+    if (nongrav == True): 
+        sol_vec_size = num_soln*4
     ytype = MPI.DOUBLE.Create_contiguous(sol_vec_size)
     ytype.Commit()
 
@@ -290,6 +297,11 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     Ypot_sub  = np.empty((len(n_sub),num_soln*6))
     Ystr_sub  = np.empty((len(n_sub),num_soln*6))
     Yshr_sub  = np.empty((len(n_sub),num_soln*6))
+    if (nongrav == True): 
+        Yload_sub = np.empty((len(n_sub),num_soln*4))
+        Ypot_sub  = np.empty((len(n_sub),num_soln*4))
+        Ystr_sub  = np.empty((len(n_sub),num_soln*4))
+        Yshr_sub  = np.empty((len(n_sub),num_soln*4))
     for ii in range(0,len(n_sub)):
         current_n = n_sub[ii]
         print('Working on Harmonic Degree: %7s | Number: %6d of %6d | Rank: %6d' %(str(int(current_n)), (ii+1), len(n_sub), rank))
@@ -452,11 +464,17 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         os.remove(shr_body)
 
         # Re-Shape the Y Solution Arrays
-        Yload = Yload.reshape(len(myn),int(len(Yload[0,:])/6),6)
-        Ypot  = Ypot.reshape(len(myn), int(len( Ypot[0,:])/6),6)
-        Ystr  = Ystr.reshape(len(myn), int(len( Ystr[0,:])/6),6)
-        Yshr  = Yshr.reshape(len(myn), int(len( Yshr[0,:])/6),6)
-
+        if (nongrav == True):
+            Yload = Yload.reshape(len(myn),int(len(Yload[0,:])/4),4)
+            Ypot  = Ypot.reshape(len(myn), int(len( Ypot[0,:])/4),4)
+            Ystr  = Ystr.reshape(len(myn), int(len( Ystr[0,:])/4),4)
+            Yshr  = Yshr.reshape(len(myn), int(len( Yshr[0,:])/4),4)
+        else:
+            Yload = Yload.reshape(len(myn),int(len(Yload[0,:])/6),6)
+            Ypot  = Ypot.reshape(len(myn), int(len( Ypot[0,:])/6),6)
+            Ystr  = Ystr.reshape(len(myn), int(len( Ystr[0,:])/6),6)
+            Yshr  = Yshr.reshape(len(myn), int(len( Yshr[0,:])/6),6)
+ 
         # Return Variables
         return myn,hprime,nlprime,nkprime,h_inf,l_inf,k_inf,h_inf_prime,l_inf_prime,k_inf_prime,hpot,nlpot,nkpot,\
             hstr,nlstr,nkstr,hshr,nlshr,nkshr,planet_radius,planet_mass,sint_mt,Yload,Ypot,Ystr,Yshr,lmda_surface,mu_surface
