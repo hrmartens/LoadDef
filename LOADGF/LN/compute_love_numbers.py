@@ -368,6 +368,12 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         pln_body = ("../output/Love_Numbers/PLN/" + str(np.random.randint(500)) + "body.txt")
         str_body = ("../output/Love_Numbers/STR/" + str(np.random.randint(500)) + "body.txt")
         shr_body = ("../output/Love_Numbers/SHR/" + str(np.random.randint(500)) + "body.txt")
+ 
+        # For case of no gravity and surface loading, set n=1 Love numbers to zero (degree 1 is not constrained without self gravity)
+        if (nongrav == True): 
+            findn1 = np.where(myn == 1); findn1 = findn1[0]
+            hprime[findn1] = 0.
+            nlprime[findn1] = 0.
 
         # Prepare Data For Output
         all_lln_data = np.column_stack((myn,hprime,nlprime,nkprime,hprime_asym,nlprime_asym,nkprime_asym))
