@@ -1,0 +1,35 @@
+# No Gravity Case:
+
+** 23 June 2017:
+- Modified fluid-solid and solid-fluid boundaries based 
+on Takeuchi & Saito (1972) pgs. 253-255
+- Removed all terms involving "g" (gravity), "ond" (since
+its not really used yet anyway), and "y5" and "y6" based 
+on Takeuchi & Saito (1972) eq. 91
+- Modified the homogeneous-sphere starting solutions 
+based on Takeuchi & Saito (1972) eqs. 104 and 105; note
+that the equation for k (eq. 99) reduces to (omega/alpha)
+or (omega/beta), depending on +/- sign, when gamma is set
+to zero. The built-in python function for spherical bessel 
+functions proved to be less stable than the series (Eq. 103)
+from Takeuchi & Saito (1972).
+- I have started modifying boundary conditions by removing
+Y5 and Y6, and the external gravitational BC, which has to
+do with Poisson's equation.
+- I am not sure how to handle the n=1 case; results seem to 
+be very far off from reasonable, probably because we are 
+missing some constraint on the motion/position of the center
+of mass of the system.
+
+# !! Not appropriate/possible to integrate through liquid outer core in case of no self-gravity !!
+# The transition from fluid core to solid mantle yields solution vectors with zeros in multiple
+# fields and it is not possible to continue integrating to the surface.
+# As per conversation with Martin van Driel (July 2018) and reference to paper(s) by David Al Attar,
+# it is not appropriate to include the core regions when excluding gravity from the problem.
+# Hence, I will start integration from the CMB.
+# Typically, I think, this testing will only be used for homogeneous spheres anyway. 
+ 
+# NOTE: NOT SURE IF I NEED TO ADJUST THE ASYMPTOTIC SOLUTIONS FOR H and L
+# PROBABLY... BUT THE SOLUTIONS SEEM TO MATCH LLNs COMPUTED DIRECTLY AT HIGH N
+# SHOULD INVESTIGATE THIS FURTHER...
+

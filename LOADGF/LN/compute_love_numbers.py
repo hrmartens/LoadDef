@@ -34,7 +34,9 @@ from scipy import interpolate
 # Import Modules from LoadDef
 from LOADGF.LN import prepare_planet_model
 from LOADGF.LN import compute_asymptotic_LLN
+from LOADGF.LN import compute_asymptotic_LLN_noGrav
 from LOADGF.LN import integrate_odes
+from LOADGF.LN import integrate_odes_noGrav
 
 """
 Compute load-deformation coefficients (also known as load Love numbers) based on an input 
@@ -98,11 +100,14 @@ nmaxfull : Maximum spherical harmonic degree for which integration will be perfo
 
 file_out : Extension for the output files.
     Default is ".txt"
+
+nongrav : Option to toggle off self gravity. When set to False, self gravity is included. When set to True, gravity is not considered. 
+    Default is False
 """
 
 # Main Function
 def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.42,r_min=1000.,inf_tol=1E-5,\
-    rel_tol=1E-13,abs_tol=1E-13,backend='dop853',nstps=3000,G=6.672E-11,file_out='.txt',kx=1,num_soln=100,interp_emod=False,nmaxfull=None):
+    rel_tol=1E-13,abs_tol=1E-13,backend='dop853',nstps=3000,G=6.672E-11,file_out='.txt',kx=1,num_soln=100,interp_emod=False,nmaxfull=None,nongrav=False):
 
     # :: MPI ::
     startn = int(startn)
@@ -167,8 +172,12 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
 
         # Compute Asymptotic Load Love Numbers
         myn = np.linspace(startn,stopn,num=((stopn-startn)+1),endpoint=True)
-        hprime_asym,nkprime_asym,nlprime_asym,h_inf,h_inf_prime,l_inf,l_inf_prime, \
-            k_inf,k_inf_prime = compute_asymptotic_LLN.main(myn,piG,lnd,mnd,gnd,rnd,adim,L_sc)
+        if (nongrav == True):
+            hprime_asym,nkprime_asym,nlprime_asym,h_inf,h_inf_prime,l_inf,l_inf_prime, \
+                k_inf,k_inf_prime = compute_asymptotic_LLN_noGrav.main(myn,piG,lnd,mnd,gnd,rnd,adim,L_sc)
+        else: 
+            hprime_asym,nkprime_asym,nlprime_asym,h_inf,h_inf_prime,l_inf,l_inf_prime, \
+                k_inf,k_inf_prime = compute_asymptotic_LLN.main(myn,piG,lnd,mnd,gnd,rnd,adim,L_sc)
 
         # Shuffle the Degrees, Since Lower Degrees Take Longer to Compute
         myn_mix = myn.copy()
@@ -285,11 +294,17 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         current_n = n_sub[ii]
         print('Working on Harmonic Degree: %7s | Number: %6d of %6d | Rank: %6d' %(str(int(current_n)), (ii+1), len(n_sub), rank))
         # Compute Integration Results for the Current Spherical Harmonic Degree, n
-        hprime_sub[ii],nlprime_sub[ii],nkprime_sub[ii],hpot_sub[ii],nlpot_sub[ii],nkpot_sub[ii],hstr_sub[ii],nlstr_sub[ii],nkstr_sub[ii],\
-            hshr_sub[ii],nlshr_sub[ii],nkshr_sub[ii],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
-            integrate_odes.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
-                rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx)
-
+        if (nongrav == False):
+            hprime_sub[ii],nlprime_sub[ii],nkprime_sub[ii],hpot_sub[ii],nlpot_sub[ii],nkpot_sub[ii],hstr_sub[ii],nlstr_sub[ii],nkstr_sub[ii],\
+                hshr_sub[ii],nlshr_sub[ii],nkshr_sub[ii],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
+                integrate_odes.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
+                    rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx)
+        else: # no gravity case
+            hprime_sub[ii],nlprime_sub[ii],nkprime_sub[ii],hpot_sub[ii],nlpot_sub[ii],nkpot_sub[ii],hstr_sub[ii],nlstr_sub[ii],nkstr_sub[ii],\
+                hshr_sub[ii],nlshr_sub[ii],nkshr_sub[ii],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
+                integrate_odes_noGrav.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
+                    rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx)
+ 
     # Gather Results 
     comm.Gatherv(hprime_sub, [hprime, (sendcounts, None), MPI.DOUBLE], root=0)
     comm.Gatherv(nlprime_sub, [nlprime, (sendcounts, None), MPI.DOUBLE], root=0)
