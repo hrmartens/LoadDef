@@ -45,11 +45,12 @@ from LOADGF.LN import compute_love_numbers
 planet_model = ("../input/Planet_Models/PREM.txt")
 
 # Radius at which to evaluate the Love numbers (meters)
-radius_for_evaluation = 6356000
-num_soln = 10000 # helps to hone in on the correct radius
+#radii_for_evaluation = []
+radii_for_evaluation = [6356000,6331000,6167000,6371000]
+num_soln = 500 # helps to hone in on the correct radius
  
 # Extension for the output filename (Default is '.txt')
-file_ext      = ("PREM_" + str(radius_for_evaluation) + ".txt")
+file_ext      = ("PREM.txt")
 
 # ------------------ END USER INPUTS ----------------------- #
 
@@ -91,11 +92,11 @@ if (rank == 0):
         ln_hpot,ln_nlpot,ln_nkpot,ln_hstr,ln_nlstr,ln_nkstr,ln_hshr,ln_nlshr,ln_nkshr,\
         ln_planet_radius,ln_planet_mass,ln_sint,ln_Yload,ln_Ypot,ln_Ystr,ln_Yshr,\
         ln_lmda_surface,ln_mu_surface = \
-        compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,eval_radius=radius_for_evaluation,num_soln=num_soln)#,interp_emod=True)
+        compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,eval_radii=radii_for_evaluation,num_soln=num_soln)#,interp_emod=True)
 # For Worker Ranks, Run the Code But Don't Return Any Variables
 else: 
     # Workers Compute Love Numbers
-    compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,eval_radius=radius_for_evaluation,num_soln=num_soln)#,interp_emod=True)
+    compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,eval_radii=radii_for_evaluation,num_soln=num_soln)#,interp_emod=True)
     # Workers Will Know Nothing About the Data Used to Compute the GFs
     ln_n = ln_h = ln_nl = ln_nk = ln_h_inf = ln_l_inf = ln_k_inf = ln_h_inf_p = ln_l_inf_p = ln_k_inf_p = None
     ln_planet_radius = ln_planet_mass = ln_Yload = ln_Ypot = ln_Ystr = ln_Yshr = None
