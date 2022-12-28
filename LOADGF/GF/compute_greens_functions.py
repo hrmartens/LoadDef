@@ -89,11 +89,16 @@ apply_taper : Option to apply a taper to the series summation in the computation
               The taper mimics the recursive averaging desribed in Guo et al. 2004 [Eqs. 23 and 24]
     Default is True
 
+loadmass : Option to provide the mass of a disk load. 
+           Used when computing the analytical solution for a disk load. 
+           Currently implemented only for displacement LGFs (vertical and horizontal displacement). 
+    Default is None
+
 grn_out : Extension for the output Green's function files 
     Default is 'grn.txt'
 """
 
-def main(lln_file,rank,comm,size,grn_out='grn.txt',theta=None,a=6371000.,me=5.976E24,lmda_surface=3.422E10,mu_surface=2.662E10,g_surface=9.81,disk_factor=True,angdist=10.,disk_size=0.1,apply_taper=True):
+def main(lln_file,rank,comm,size,grn_out='grn.txt',theta=None,a=6371000.,me=5.976E24,lmda_surface=3.422E10,mu_surface=2.662E10,g_surface=9.81,disk_factor=True,angdist=10.,disk_size=0.1,apply_taper=True,loadmass=None,max_theta=200.):
 
     # Generate Array of Angular Distances, if None Provided
     if theta is None:
@@ -267,17 +272,17 @@ def main(lln_file,rank,comm,size,grn_out='grn.txt',theta=None,a=6371000.,me=5.97
         print('Working on Angular Distance: %9s | Reference Frame: CE | Number: %6d of %6d | Rank: %6d' %(str(current_t), (jj+1), len(t_sub), rank))
         u_sub[jj],v_sub[jj],unorm_sub[jj],vnorm_sub[jj],gE_sub[jj],gE_norm_sub[jj],tE_sub[jj],tE_norm_sub[jj],\
             ett_sub[jj],ell_sub[jj],err_sub[jj],ett_norm_sub[jj],ell_norm_sub[jj],err_norm_sub[jj],g_N_sub[jj],t_N_sub[jj] = \
-            harmonic_degree_summation.main(n,a,me,current_t,h,hp,hpp,nl,lp,lpp,nk,kp,kpp,'CE',lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper)
+            harmonic_degree_summation.main(n,a,me,current_t,h,hp,hpp,nl,lp,lpp,nk,kp,kpp,'CE',lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper,max_theta=max_theta)
         # CM Frame
         print('Working on Angular Distance: %9s | Reference Frame: CM | Number: %6d of %6d | Rank: %6d' %(str(current_t), (jj+1), len(t_sub), rank))
         u_cm_sub[jj],v_cm_sub[jj],unorm_cm_sub[jj],vnorm_cm_sub[jj],gE_cm_sub[jj],gE_cm_norm_sub[jj],tE_cm_sub[jj],tE_cm_norm_sub[jj],\
             ett_cm_sub[jj],ell_cm_sub[jj],err_cm_sub[jj],ett_cm_norm_sub[jj],ell_cm_norm_sub[jj],err_cm_norm_sub[jj],g_N_sub[jj],t_N_sub[jj] = \
-            harmonic_degree_summation.main(n,a,me,current_t,h,hp,hpp,nl,lp,lpp,nk,kp,kpp,'CM',lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper)
+            harmonic_degree_summation.main(n,a,me,current_t,h,hp,hpp,nl,lp,lpp,nk,kp,kpp,'CM',lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper,max_theta=max_theta)
         # CF Frame
         print('Working on Angular Distance: %9s | Reference Frame: CF | Number: %6d of %6d | Rank: %6d' %(str(current_t), (jj+1), len(t_sub), rank))
         u_cf_sub[jj],v_cf_sub[jj],unorm_cf_sub[jj],vnorm_cf_sub[jj],gE_cf_sub[jj],gE_cf_norm_sub[jj],tE_cf_sub[jj],tE_cf_norm_sub[jj],\
             ett_cf_sub[jj],ell_cf_sub[jj],err_cf_sub[jj],ett_cf_norm_sub[jj],ell_cf_norm_sub[jj],err_cf_norm_sub[jj],g_N_sub[jj],t_N_sub[jj] = \
-            harmonic_degree_summation.main(n,a,me,current_t,h,hp,hpp,nl,lp,lpp,nk,kp,kpp,'CF',lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper)
+            harmonic_degree_summation.main(n,a,me,current_t,h,hp,hpp,nl,lp,lpp,nk,kp,kpp,'CF',lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper,max_theta=max_theta)
 
     # Gather Results
     comm.Gatherv(u_sub, [u, (sendcounts, None), MPI.DOUBLE], root=0)
@@ -365,6 +370,15 @@ def main(lln_file,rank,comm,size,grn_out='grn.txt',theta=None,a=6371000.,me=5.97
         grn_body_cm = ("../output/Greens_Functions/"+str(np.random.randint(500))+"cm_body.txt")
         grn_body_cf = ("../output/Greens_Functions/"+str(np.random.randint(500))+"cf_body.txt")
 
+        # For analytical disk, multiply by the mass of the load (for now, only for displacement)
+        if loadmass is not None: 
+            u *= loadmass
+            v *= loadmass
+            u_cm *= loadmass
+            v_cm *= loadmass
+            u_cf *= loadmass
+            v_cf *= loadmass
+
         # Prepare Data for Output
         all_ce_data = np.column_stack((theta,u,v,u_norm,v_norm,gE_norm,tE_norm,e_rr_norm,e_tt_norm,e_ll_norm,g_N,t_N))
         all_cm_data = np.column_stack((theta,u_cm,v_cm,u_norm_cm,v_norm_cm,gE_cm_norm,tE_cm_norm,e_rr_cm_norm,e_tt_cm_norm,e_ll_cm_norm,g_N,t_N))
@@ -378,6 +392,8 @@ def main(lln_file,rank,comm,size,grn_out='grn.txt',theta=None,a=6371000.,me=5.97
         uh4 = ('------------------------------------------------------ \n')
         hf.write(uh1); hf.write(uh2); hf.write(uh3); hf.write(uh4)
         grn_str_ce = 'theta | radial displacement (m/kg) | horizontal disp (m/kg) | r-disp*(a*th*10^12) | h-disp*(a*th*10^12) | gE*(10^18*(a*th)) | tE*(10^12*(a*th)^2) | e_rr*(10^18*(a*th)) | e_tt*(10^12*(a*th)^2) | e_ll*(10^12*(a*th)^2) | gN*(10^18*(a*th)) | tN*(10^12*(a*th)^2) \n'
+        if loadmass is not None: 
+            grn_str_ce = 'theta | radial displacement (m) | horizontal disp (m) | r-disp*(a*th*10^12) | h-disp*(a*th*10^12) | gE*(10^18*(a*th)) | tE*(10^12*(a*th)^2) | e_rr*(10^18*(a*th)) | e_tt*(10^12*(a*th)^2) | e_ll*(10^12*(a*th)^2) | gN*(10^18*(a*th)) | tN*(10^12*(a*th)^2) \n'
         hf.write(grn_str_ce)
         hf.close()
         hf = open(grn_head_cm,'w')
@@ -387,6 +403,8 @@ def main(lln_file,rank,comm,size,grn_out='grn.txt',theta=None,a=6371000.,me=5.97
         uh4 = ('------------------------------------------------------ \n')
         hf.write(uh1); hf.write(uh2); hf.write(uh3); hf.write(uh4)
         grn_str_cm = 'theta | radial displacement (m/kg) | horizontal disp (m/kg) | r-disp*(a*th*10^12) | h-disp*(a*th*10^12) | gE*(10^18*(a*th)) | tE*(10^12*(a*th)^2) | e_rr*(10^18*(a*th)) | e_tt*(10^12*(a*th)^2) | e_ll*(10^12*(a*th)^2) | gN*(10^18*(a*th)) | tN*(10^12*(a*th)^2) \n'
+        if loadmass is not None:
+            grn_str_cm = 'theta | radial displacement (m) | horizontal disp (m) | r-disp*(a*th*10^12) | h-disp*(a*th*10^12) | gE*(10^18*(a*th)) | tE*(10^12*(a*th)^2) | e_rr*(10^18*(a*th)) | e_tt*(10^12*(a*th)^2) | e_ll*(10^12*(a*th)^2) | gN*(10^18*(a*th)) | tN*(10^12*(a*th)^2) \n'
         hf.write(grn_str_cm)
         hf.close()
         hf = open(grn_head_cf,'w')
@@ -396,6 +414,8 @@ def main(lln_file,rank,comm,size,grn_out='grn.txt',theta=None,a=6371000.,me=5.97
         uh4 = ('------------------------------------------------------ \n')
         hf.write(uh1); hf.write(uh2); hf.write(uh3); hf.write(uh4)
         grn_str_cf = 'theta | radial displacement (m/kg) | horizontal disp (m/kg) | r-disp*(a*th*10^12) | h-disp*(a*th*10^12) | gE*(10^18*(a*th)) | tE*(10^12*(a*th)^2) | e_rr*(10^18*(a*th)) | e_tt*(10^12*(a*th)^2) | e_ll*(10^12*(a*th)^2) | gN*(10^18*(a*th)) | tN*(10^12*(a*th)^2) \n' 
+        if loadmass is not None:
+            grn_str_cf = 'theta | radial displacement (m) | horizontal disp (m) | r-disp*(a*th*10^12) | h-disp*(a*th*10^12) | gE*(10^18*(a*th)) | tE*(10^12*(a*th)^2) | e_rr*(10^18*(a*th)) | e_tt*(10^12*(a*th)^2) | e_ll*(10^12*(a*th)^2) | gN*(10^18*(a*th)) | tN*(10^12*(a*th)^2) \n'
         hf.write(grn_str_cf)
         hf.close()
 
