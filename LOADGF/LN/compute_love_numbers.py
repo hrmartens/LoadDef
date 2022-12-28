@@ -233,7 +233,8 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     ntype.Commit()
 
     # Create a Data Type for the Love Numbers
-    ln_vec_size = numrad
+    numrad = comm.bcast(numrad, root=0) # All Processors Get Certain Arrays and Parameters; Broadcast Them
+    ln_vec_size = int(numrad)
     lntype = MPI.DOUBLE.Create_contiguous(ln_vec_size)
     lntype.Commit()
 
