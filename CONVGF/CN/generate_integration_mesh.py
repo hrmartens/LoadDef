@@ -24,7 +24,50 @@ import numpy as np
 import scipy as sc
 from math import pi
 
-def main(delinc1,delinc2,delinc3,delinc4,delinc5,delinc6,izb,z2b,z3b,z4b,z5b,azinc):
+"""
+
+# -- Default Mesh Paramters --
+delinc1 : angular distance (degrees) increment for inner zone
+    Default is 0.0002
+
+delinc2 : angular distance (degrees) increment for zone 2
+    Default is 0.001
+
+delinc3 : angluar distance (degrees) increment for zone 3
+    Default is 0.01
+
+delinc4 : angluar distance (degrees) increment for zone 4
+    Default is 0.1
+
+delinc5 : angluar distance (degrees) increment for zone 5
+    Default is 0.5
+
+delinc6 : angular distance (degrees) increment for outer zone
+    Default is 1.0
+
+izb     : inner zone boundary (degrees; 0<izb<z2b)
+    Default is 0.02
+
+z2b     : zone 2 boundary (degrees; izb<z2b<z3b)
+    Default is 0.1
+
+z3b     : zone 3 boundary (degrees; z2b<z3b<z4b)
+    Default is 1.0
+
+z4b     : zone 4 boundary (degrees; z3b<z4b<z5b)
+    Default is 10.0
+
+z5b     : zone 5 boundary (degrees; z4b<z5b<180)
+    Default is 90.0
+
+azinc  : azimuthal increment # NOTE: Maybe should match azminc with delinc5 (i.e., keep azminc consistent with theta increment at 90 degrees from station,
+                              #       where azimuth and theta increments are consistent in horizontal distance along planet's surface)
+                              #       :: azminc*sin(theta) ~ delinc
+    Default is 0.5 
+
+"""
+
+def main(delinc1=0.0002,delinc2=0.001,delinc3=0.01,delinc4=0.1,delinc5=0.5,delinc6=1.0,izb=0.02,z2b=0.1,z3b=1.0,z4b=10.0,z5b=90.0,azinc=0.5):
 
     # -- DEFINITIONS -- 
     # delinc1 = angular distance increment for inner zone (most refined)
