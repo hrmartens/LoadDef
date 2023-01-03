@@ -35,7 +35,7 @@ from math import pi
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-def main(loadfile,ilat,ilon,iarea,load_density,ur,ue,un,lsmk,mask,mydt,regular,mass_cons,lf_format,stname):
+def main(loadfile,ilat,ilon,iarea,load_density,ur,ue,un,lsmk,mask,mydt,regular,mass_cons,lf_format,stname="Station"):
 
     # Check load file format 
     if (lf_format == "bbox"): # list of cells, rather than traditional load files
@@ -94,7 +94,6 @@ def main(loadfile,ilat,ilon,iarea,load_density,ur,ue,un,lsmk,mask,mydt,regular,m
 
     # Enforce Mass Conservation
     if (mass_cons == True):
-        print('here mass')
         if (mask == 1): # For Oceans
             print(':: Warning: Enforcing Mass Conservation Over Oceans.')
             ic1_mc,ic2_mc = mass_conservation.main(ic1[lsmk==0],ic2[lsmk==0],iarea[lsmk==0])
