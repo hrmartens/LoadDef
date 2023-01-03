@@ -40,10 +40,10 @@ from CONVGF.CN import interpolate_lsmask
 # --------------- SPECIFY USER INPUTS --------------------- #
  
 # 1. Specify the region of interest
-slat = 44.0
-nlat = 46.0
-wlon = -113.0
-elon = -111.0  
+slat = 28.
+nlat = 50.
+wlon = 233. 
+elon = 258. 
 
 # 2. Specify the cell size (in degrees)
 cell_size = 0.25 
