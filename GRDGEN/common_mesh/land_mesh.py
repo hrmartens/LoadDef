@@ -101,7 +101,7 @@ lat_mdpts = gllat[0:-1] + grid_spacing_y/2.         # midpoints between latitudi
 # For a unit sphere, r=1.
 unit_area = []
 gllat_rad = np.multiply(gllat,(pi/180.))
-lon_inc_rad = np.multiply(grid_spacing_y,(pi/180.))
+lon_inc_rad = np.multiply(grid_spacing_x,(pi/180.))
 for ii in range(1,len(gllat_rad)):
     unit_area.append(np.multiply(lon_inc_rad,\
         np.sin(gllat_rad[ii])-np.sin(gllat_rad[ii-1])))
