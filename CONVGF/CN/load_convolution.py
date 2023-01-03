@@ -58,53 +58,19 @@ load_density : Density of the surface mass load (kg/m^3)
 rad : Mean Earth radius (m) 
     Default is 6371000.
 
-# -- Mesh Paramters --
-delinc1 : angular distance (degrees) increment for inner zone
-    Default is 0.0002
-
-delinc2 : angular distance (degrees) increment for zone 2
-    Default is 0.001
-
-delinc3 : angluar distance (degrees) increment for zone 3
-    Default is 0.01
-
-delinc4 : angluar distance (degrees) increment for zone 4
-    Default is 0.1
-
-delinc5 : angluar distance (degrees) increment for zone 5
-    Default is 0.5
-
-delinc6 : angular distance (degrees) increment for outer zone
-    Default is 1.0
-
-izb     : inner zone boundary (degrees; 0<izb<z2b)
-    Default is 0.02
-
-z2b     : zone 2 boundary (degrees; izb<z2b<z3b)
-    Default is 0.1
-
-z3b     : zone 3 boundary (degrees; z2b<z3b<z4b)
-    Default is 1.0
-
-z4b     : zone 4 boundary (degrees; z3b<z4b<z5b)
-    Default is 10.0
-
-z5b     : zone 5 boundary (degrees; z4b<z5b<180)
-    Default is 90.0
-
-azminc  : azimuthal increment # NOTE: Maybe should match azminc with delinc5 (i.e., keep azminc consistent with theta increment at 90 degrees from station,
-                              #       where azimuth and theta increments are consistent in horizontal distance along planet's surface)
-                              #       :: azminc*sin(theta) ~ delinc
-    Default is 0.5 
-
 mass_cons  :  option to enforce mass conservation by removing the spatial mean from the load grid
+              Note: If setting mass conservation to True, then the land-sea mask type should also be specified. See perform_convolution.py
     Default is False
+
+lsmask_type : option to specify the type of land-sea mask applied; used when enforcing mass conservation (if applicable)
+    Default is 0 (no mask)
+
+# -- For Default Mesh Paramters, See generate_integration_mesh.py --
 
 """
 
-def main(grn_file,norm_flag,load_files,regular,lslat,lslon,lsmask,rlat,rlon,stname,cnv_out,lsmask_type,loadfile_format,rank,procN,comm,\
-    load_density=1030.0,rad=6371000.,delinc1=0.0002,delinc2=0.001,delinc3=0.01,delinc4=0.1,delinc5=0.5,delinc6=1.0,\
-    izb=0.02,z2b=0.1,z3b=1.0,z4b=10.0,z5b=90.0,azminc=0.5,mass_cons=False):
+def main(ilat,ilon,iarea,ur,ue,un,regular,load_files,loadfile_format,lsmk,rlat,rlon,stname,cnv_out,\
+            rank,procN,comm,load_density=1030.0,rad=6371000.,mass_cons=False,lsmask_type=0):
  
     # Determine Number of Load Files
     if isinstance(load_files,float) == True:
@@ -174,52 +140,14 @@ def main(grn_file,norm_flag,load_files,regular,lslat,lslon,lsmask,rlat,rlon,stna
         vamp = np.empty((len(file_ids),))
         vpha = np.empty((len(file_ids),))
  
-        # Read Greens Function File
-        if norm_flag == True:
-            theta,u,v,unormFarrell,vnormFarrell = read_greens_fcn_file_norm.main(grn_file,rad)
-        else:
-            theta,u,v,unormFarrell,vnormFarrell = read_greens_fcn_file.main(grn_file)
-
-        # Normalize Greens Functions (Agnew Convention)
-        unorm,vnorm = normalize_greens_fcns.main(theta,u,v,rad)
-
-        # Interpolate Greens Functions
-        tck_gfu = interpolate.splrep(theta,unorm,k=3)
-        tck_gfv = interpolate.splrep(theta,vnorm,k=3)
-        xr = np.linspace(0.0001,3.,1000)
-
-        # Generate Integration Mesh
-        print(':: Generating the Integration Mesh. Please Wait...')
-        gldel,glazm,ldel,lazm,unit_area = generate_integration_mesh.main(delinc1,delinc2, \
-            delinc3,delinc4,delinc5,delinc6,izb,z2b,z3b,z4b,z5b,azminc)
-
-        # Integrate Greens Functions
-        uint,vint = integrate_greens_fcns.main(gldel,glazm,ldel,lazm,tck_gfu,tck_gfv)
-
-        # Compute Geographic Coordinates of Integration Mesh Cell Midpoints
-        ilat,ilon,iarea = intmesh2geogcoords.main(rlat,rlon,ldel,lazm,unit_area)
-
         # Ensure that Station Location is in Range 0-360
         if (rlon < 0.):
             rlon += 360.
-
-        # Determine the Land-Sea Mask: Interpolate onto Mesh
-        print(':: Interpolating the Land-Sea Mask. Please Wait...')
-        print(':: Number of Grid Points: %s | Size of LSMask: %s' %(str(len(ilat)), str(lsmask.shape)))
-        lsmk = interpolate_lsmask.main(ilat,ilon,lslat,lslon,lsmask)
-        print(':: Finished LSMask Interpolation.')
-
-        # Compute Angular Distance and Azimuth at Receiver Due to Load
-        delta,haz = compute_angularDist_azimuth.main(rlat,rlon,ilat,ilon)
-
-        # Compute Greens Functions Specific to Receiver and Grid (Geographic Coordinates)
-        ur,ue,un = compute_specific_greens_fcns.main(haz,uint,vint)
 
     # If I'm a Worker, I Know Nothing About the Data
     else:
  
         file_idx = file_ids = eamp = epha = namp = npha = vamp = vpha = None
-        ldel = lazm = uint = vint = ilat = ilon = iarea = delta = haz = ur = ue = un = lsmk = None
         slat = nlat = wlon = elon = None
 
     # Create a Data Type for the Convolution Results
