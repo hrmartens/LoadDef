@@ -58,7 +58,7 @@ land_sea = ("../../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 write_nc = True
 
 # 5. Write Load Information to a Text File? (Alternative for convolution)
-write_txt = True
+write_txt = False
 
 # ------------------ END USER INPUTS ----------------------- #
 
@@ -133,7 +133,7 @@ print(':: Total Number of Locations: %6d' %(len(landlat)))
 # Output Load Cells to File for Use with LoadDef
 if (write_nc == True):
     print(":: Writing netCDF-formatted file.")
-    outname = ("commonMesh_" + str(slat) + "_" + str(nlat) + "_" + str(wlon) + "_" + str(elon) + "_" + str(grid_spacing_y) + "_" + str(grid_spacing_x) + ".nc")
+    outname = ("commonMesh_regional_" + str(slat) + "_" + str(nlat) + "_" + str(wlon) + "_" + str(elon) + "_" + str(grid_spacing_y) + "_" + str(grid_spacing_x) + ".nc")
     outfile = ("../../output/Grid_Files/nc/commonMesh/" + outname)
     # Open new NetCDF file in "write" mode
     dataset = netCDF4.Dataset(outfile,'w',format='NETCDF4_CLASSIC')
@@ -166,7 +166,7 @@ if (write_nc == True):
     dataset.close()
 if (write_txt == True):
     print(":: Writing plain-text file.")
-    outname = ("commonMesh_" + str(slat) + "_" + str(nlat) + "_" + str(wlon) + "_" + str(elon) + "_" + str(grid_spacing_y) + "_" + str(grid_spacing_x) + ".txt")
+    outname = ("commonMesh_regional_" + str(slat) + "_" + str(nlat) + "_" + str(wlon) + "_" + str(elon) + "_" + str(grid_spacing_y) + "_" + str(grid_spacing_x) + ".txt")
     outfile = ("../../output/Grid_Files/text/commonMesh/" + outname)
     # Prepare Data
     all_data = np.array(list(zip(landlat,landlon,unit_area)), dtype=[('landlat',float),('landlon',float),('unit_area',float)])
