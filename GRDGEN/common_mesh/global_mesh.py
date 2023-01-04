@@ -280,17 +280,21 @@ if (lsmask_type == 1 or lsmask_type == 2):
         llon = llon[lsmk == 0]
         unit_area = unit_area[lsmk == 0]
         print(':: Total Number of Ocean Elements: %6d' %(len(llat)))
+        xtr_str = "_landmask"
     elif (lsmask_type == 2): # mask out ocean and retain land
         llat = llat[lsmk == 1]
         llon = llon[lsmk == 1]
         unit_area = unit_area[lsmk == 1]
         print(':: Total Number of Land Elements: %6d' %(len(llat)))
+        xtr_str = "_oceanmask"
+else:
+    xtr_str = ""
 
 # Output Load Cells to File for Use with LoadDef
 if (write_nc == True):
     print(":: Writing netCDF-formatted file.")
     outname = ("commonMesh_global_" + str(gspace_lat) + "_" + str(gspace_lon) + "_" + str(slat_inn) + "_" + str(nlat_inn) + "_" + \
-        str(wlon_inn) + "_" + str(elon_inn) + "_" + str(enhanced_lat_inn) + "_" + str(enhanced_lon_inn) + ".nc")
+        str(wlon_inn) + "_" + str(elon_inn) + "_" + str(enhanced_lat_inn) + "_" + str(enhanced_lon_inn) + xtr_str + ".nc")
     outfile = ("../../output/Grid_Files/nc/commonMesh/" + outname)
     # Open new NetCDF file in "write" mode
     dataset = netCDF4.Dataset(outfile,'w',format='NETCDF4_CLASSIC')
