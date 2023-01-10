@@ -75,11 +75,12 @@ cellfname = ("cells_28.0_50.0_233.0_258.0_0.25")
 loadgrid  = ("../output/Grid_Files/nc/cells/" + cellfname + ".nc") 
 
 # OPTIONAL: Provide a common geographic mesh? 
-# If true, must provide the full path to a mesh file. If false, a station-centered grid will be created. 
+# If True, must provide the full path to a mesh file (see: GRDGEN/common_mesh). 
+# If False, a station-centered grid will be created within the functions called here. 
 common_mesh = False
 # Full Path to Grid File Containing Surface Mesh (for sampling the load Green's functions)
 #  :: Format: latitude midpoints [float,degrees N], longitude midpoints [float,degrees E], unit area of each patch [float,dimensionless (need to multiply by r^2)]
-meshfname = ("commonMesh_28.0_50.0_233.0_258.0_0.01_0.01")
+meshfname = ("commonMesh_regional_28.0_50.0_233.0_258.0_0.01_0.01")
 convmesh = ("../output/Grid_Files/nc/commonMesh/" + meshfname + ".nc")
 
 # Planet Radius (in meters; used for Greens function normalization)
@@ -129,7 +130,7 @@ regular = True
 
 # Check for existence of load grid
 if not os.path.isfile(loadgrid):
-    sys.exit('Error: The load grid does not exist. You may need to create it.')
+    sys.exit('Error: The load grid does not exist. You may need to create it. See GRDGEN/design_matrix/ .')
 
 # Put loadgrid file into a list (for consistency with how traditional load files are treated)
 load_files = []
@@ -144,7 +145,7 @@ if (rank == 0):
     if not (os.path.isdir("../output/Figures/")):
         os.makedirs("../output/Figures/")
 
-    # Read Station & Date Range File
+    # Read Station File
     lat,lon,sta = read_station_file.main(sta_file)
 
     # Determine Number of Stations Read In
@@ -152,6 +153,18 @@ if (rank == 0):
         numel = 1
     else:
         numel = len(lat)
+
+# MPI: Determine the Chunk Sizes for the Convolution
+total_stations = len(slat)
+nominal_load = total_stations // size # Floor Divide
+# Final Chunk Might Be Different in Size Than the Nominal Load
+if rank == size - 1:
+    procN = total_stations - rank * nominal_load
+else:
+    procN = nominal_load
+
+# Make some preparations that are common to all stations
+if (rank == 0): 
 
     # Read in the Land-Sea Mask
     if (lsmask_type > 0):
@@ -290,6 +303,22 @@ else:
     load_cells = lclat = lclon = lslat = lslon = lsmask = sta = lat = lon = numel = None 
     ilat = ilon = iarea = lsmk = colvals = None
 
+# Gather the Processor Workloads for All Processors
+sendcounts = comm.gather(procN, root=0)
+ 
+# Create a Data Type for the Convolution Results
+cntype = MPI.DOUBLE.Create_contiguous(1)
+cntype.Commit()
+
+# Create a Data Type for Solution Radii
+num_lfiles = len(load_files)
+ltype = MPI.DOUBLE.Create_contiguous(num_lfiles)
+ltype.Commit()
+ 
+# Scatter the File Locations (By Index)
+d_sub = np.empty((procN,))
+comm.Scatterv([sta, (sendcounts, None), cntype], d_sub, root=0)
+
 # All Processors Get Certain Arrays and Parameters; Broadcast Them
 load_cells  = comm.bcast(load_cells, root=0)
 lclat       = comm.bcast(lclat, root=0)
@@ -306,14 +335,13 @@ ilon        = comm.bcast(ilon, root=0)
 iarea       = comm.bcast(iarea, root=0)
 lsmk        = comm.bcast(lsmk, root=0)
 
-# Determine the Chunk Sizes for the Convolution
-total_cells = len(load_cells)
-nominal_load = total_cells // size # Floor Divide
-# Final Chunk Might Be Different in Size Than the Nominal Load
-if rank == size - 1:
-    procN = total_cells - rank * nominal_load
-else:
-    procN = nominal_load
+# Set up the arrays
+eamp_sub = np.empty((len(d_sub),num_lfiles))
+epha_sub = np.empty((len(d_sub),num_lfiles))
+namp_sub = np.empty((len(d_sub),num_lfiles))
+npha_sub = np.empty((len(d_sub),num_lfiles))
+vamp_sub = np.empty((len(d_sub),num_lfiles))
+vpha_sub = np.empty((len(d_sub),num_lfiles))
 
 # Set up Design matrix (rows = stations[e,n,u]; columns = load cells)
 if (rank == 0):
@@ -323,133 +351,97 @@ if (rank == 0):
     sclon = np.zeros((numel*3,))
 
 # Loop Through Each Station
-for jj in range(0,numel):
+for jj in range(0,len(d_sub)):
+
+    # Current station
+    current_sta = int(d_sub[jj]) # Index
 
     # Remove Index If Only 1 Station
     if (numel == 1): # only 1 station read in
-        my_sta = sta
-        my_lat = lat
-        my_lon = lon
+        csta = sta
+        clat = slat
+        clon = slon
     else:
-        my_sta = sta[jj]
-        my_lat = lat[jj]
-        my_lon = lon[jj]
+        csta = sta[current_sta]
+        clat = slat[current_sta]
+        clon = slon[current_sta]
 
-    # If Rank is Master, Output Station Name
-    try: 
-        my_sta = my_sta.decode()
-    except: 
-        if (rank == 0):
-            print(':: No need to decode station.')
-    if (rank == 0):
-        print(' ')
-        print(':: Starting on Station: ' + my_sta)
+    # If Rank is Main, Output Station Name
+    try:
+        csta = csta.decode()
+    except:
+        print(':: No need to decode station.')
 
     # Output File Name
-    cnv_out = (my_sta + "_" + rfm + "_" + outstr + ".txt")
+    cnv_out = csta + "_" + rfm + "_" + loadfile_prefix + outstr + ".txt"
 
-    # Set Lat/Lon/Name for Current Station
-    slat = my_lat
-    slon = my_lon
-    sname = my_sta
+    # Status update
+    print(':: Working on station: %s | Number: %6d of %6d | Rank: %6d' %(csta, (ii+1), len(d_sub), rank))
 
-    # Adjust longitude, if necessary
-    if (slon < 0.):
-        slon += 360.
-
-    # If not using a common mesh, then set up a station-centered grid
-    if (common_mesh == False): 
-        # Generate Integration Mesh
-        print(':: Generating the Station-Centered Integration Mesh. Please Wait...')
-        gldel,glazm,ldel,lazm,unit_area = generate_integration_mesh.main(azinc=0.5,delinc3=0.005,delinc4=0.02,delinc5=0.05)
-
-    # Read in the Green's Functions
-    if norm_flag == True:
-        theta,u,v,unormFarrell,vnormFarrell = read_greens_fcn_file_norm.main(grn_file,rad)
-    else:
-        theta,u,v,unormFarrell,vnormFarrell = read_greens_fcn_file.main(grn_file)
-
-    # Integrate the Green's Functions
+    # If using a common mesh, then integrate the Green's Functions and sum up all the cells
     if (common_mesh == True):
-        if (rank == 0):
-            print(':: Common Mesh True. Computing specific Greens functions for common mesh.')
-            # Normalize Green's According to Farrell Convention
-            unorm = np.multiply(u,theta)*1E12*planet_radius
-            vnorm = np.multiply(v,theta)*1E12*planet_radius
-            # Interpolate Green's Functions
-            tck_gfu = interpolate.splrep(theta,unorm,k=3)
-            tck_gfv = interpolate.splrep(theta,vnorm,k=3)
-            # Find Great-Circle Distances between Station and Grid Points in the Common Mesh
-            delta,haz = compute_angularDist_azimuth.main(slat,slon,ilat,ilon)
-            # Compute Integrated Greens Functions
-            gfu = interpolate.splev(delta,tck_gfu,der=0)
-            gfv = interpolate.splev(delta,tck_gfv,der=0)
-            uint = iarea * gfu
-            vint = iarea * gfv
-            # Compute Greens Functions Specific to Receiver and Grid (Geographic Coordinates)
-            ur,ue,un = compute_specific_greens_fcns.main(haz,uint,vint)
-    else:  
-        print(':: Common Mesh False. Computing specific Greens functions for station-centered mesh.')
-        # Normalize Greens Functions (Agnew Convention)
-        unorm,vnorm = normalize_greens_fcns.main(theta,u,v,planet_radius)
+
+        print(':: Common Mesh True. Computing specific Greens functions for common mesh.')
+        # Read in the Green's Functions
+        if norm_flag == True:
+            theta,u,v,unormFarrell,vnormFarrell = read_greens_fcn_file_norm.main(grn_file,rad)
+        else:
+            theta,u,v,unormFarrell,vnormFarrell = read_greens_fcn_file.main(grn_file)
+        # Normalize Green's According to Farrell Convention
+        nfactor = 1E12*planet_radius
+        unorm = np.multiply(u,theta) * nfactor
+        vnorm = np.multiply(v,theta) * nfactor
         # Interpolate Green's Functions
         tck_gfu = interpolate.splrep(theta,unorm,k=3)
         tck_gfv = interpolate.splrep(theta,vnorm,k=3)
-        # Integrate Green's Functions for Station-Centered Grid
-        uint,vint = integrate_greens_fcns.main(gldel,glazm,ldel,lazm,tck_gfu,tck_gfv)
-        # Compute Geographic Coordinates of Integration Mesh Cell Midpoints
-        ilat,ilon,iarea = intmesh2geogcoords.main(slat,slon,ldel,lazm,unit_area)
-        # Compute Angular Distance and Azimuth at Receiver Due to Load
+        # Find Great-Circle Distances between Station and Grid Points in the Common Mesh
         delta,haz = compute_angularDist_azimuth.main(slat,slon,ilat,ilon)
+        # Compute Integrated Greens Functions
+        gfu = interpolate.splev(delta,tck_gfu,der=0)
+        gfv = interpolate.splev(delta,tck_gfv,der=0)
+        uint = iarea * gfu
+        vint = iarea * gfv
+        # Un-normalize
+        uint = np.divide(uint,delta) / nfactor
+        vint = np.divide(vint,delta) / nfactor
         # Compute Greens Functions Specific to Receiver and Grid (Geographic Coordinates)
         ur,ue,un = compute_specific_greens_fcns.main(haz,uint,vint)
-        # Determine the Land-Sea Mask: Interpolate onto Mesh
-        print(':: Common Mesh False. Applying Land-Sea Mask.')
-        print(':: Number of Grid Points: %s | Size of LSMask: %s' %(str(len(ilat)), str(lsmask.shape)))
-        lsmk = interpolate_lsmask.main(ilat,ilon,lslat,lslon,lsmask)
-        print(':: Finished LSMask Interpolation.')
 
-    # Perform the Convolution for Each Station
-    if (common_mesh == True):
-        if (rank == 0): 
-            print(':: Common Mesh True. Summing up integrated and specific LGFs within each cell directly.')
-            numvals = len(colvals)
-            eamp = np.zeros((numvals,)) # initialize an array of zeros for amplitude
-            namp = np.zeros((numvals,)) # initialize an array of zeros for amplitude
-            vamp = np.zeros((numvals,)) # initialize an array of zeros for amplitude
-            epha = np.zeros((numvals,)) # phase is zero for non-periodic hydro loads
-            npha = np.zeros((numvals,)) # phase is zero for non-periodic hydro loads
-            vpha = np.zeros((numvals,)) # phase is zero for non-periodic hydro loads
-            ec2 = 0 # imaginary component is zero for non-periodic load
-            nc2 = 0 # imaginary component is zero for non-periodic load
-            vc2 = 0 # imaginary component is zero for non-periodic load
-            for dd in range(0,numvals): # loop through load cells
-                myvals = colvals[dd] # Find indices of Greens-function mesh points within the current load cell
-                if (len(myvals) == 0): # Nothing in this cell; skip it
-                    continue
-                else: # Sum up the contributions from each surface patch within the current load cell
-                    ec1 = np.sum(ue[myvals])*ldens # Sum up all the relevant integrated and specific Greens functions (east); and then multiply by load density
-                    nc1 = np.sum(un[myvals])*ldens # Sum up all the relevant integrated and specific Greens functions (north); and then multiply by load density
-                    vc1 = np.sum(ur[myvals])*ldens # Sum up all the relevant integrated and specific Greens functions (up); and then multiply by load density
-                    # Convert Coefficients to Amplitude and Phase 
-                    # Note: Conversion from meters to mm also happens here!
-                    ceamp,cepha,cnamp,cnpha,cvamp,cvpha = coef2amppha.main(ec1,ec2,nc1,nc2,vc1,vc2)
-                    # Assign values to appropriate amplitude arrays
-                    eamp[dd] = ceamp
-                    namp[dd] = cnamp 
-                    vamp[dd] = cvamp
+        print(':: Common Mesh True. Summing up integrated and specific LGFs within each cell directly.')
+        numvals = len(colvals)
+        eamp = np.zeros((numvals,)) # initialize an array of zeros for amplitude
+        namp = np.zeros((numvals,)) # initialize an array of zeros for amplitude
+        vamp = np.zeros((numvals,)) # initialize an array of zeros for amplitude
+        epha = np.zeros((numvals,)) # phase is zero for non-periodic hydro loads
+        npha = np.zeros((numvals,)) # phase is zero for non-periodic hydro loads
+        vpha = np.zeros((numvals,)) # phase is zero for non-periodic hydro loads
+        ec2 = 0 # imaginary component is zero for non-periodic load
+        nc2 = 0 # imaginary component is zero for non-periodic load
+        vc2 = 0 # imaginary component is zero for non-periodic load
+        for dd in range(0,numvals): # loop through load cells
+            myvals = colvals[dd] # Find indices of Greens-function mesh points within the current load cell
+            if (len(myvals) == 0): # Nothing in this cell; skip it
+                continue
+            else: # Sum up the contributions from each surface patch within the current load cell
+                ec1 = np.sum(ue[myvals])*ldens # Sum up all the relevant integrated and specific Greens functions (east); and then multiply by load density
+                nc1 = np.sum(un[myvals])*ldens # Sum up all the relevant integrated and specific Greens functions (north); and then multiply by load density
+                vc1 = np.sum(ur[myvals])*ldens # Sum up all the relevant integrated and specific Greens functions (up); and then multiply by load density
+                # Convert Coefficients to Amplitude and Phase
+                # Note: Conversion from meters to mm also happens here!
+                ceamp,cepha,cnamp,cnpha,cvamp,cvpha = coef2amppha.main(ec1,ec2,nc1,nc2,vc1,vc2)
+                # Assign values to appropriate amplitude arrays
+                eamp[dd] = ceamp
+                namp[dd] = cnamp
+                vamp[dd] = cvamp           
+
+    # If not using a common mesh, then set up a station-centered grid and run the convolution as normal
     else:
-        if (rank == 0): 
-            print(':: Common Mesh False. Performing the standard convolution.')
         # For a station-centered grid, we cannot pre-determine the grid points within each cell, so we will send information to another function. 
         #### NOTE: Mesh defaults are adjusted to ensure we get a good number of points within each grid cell to adequately represent the shape of each cell.
-        if (rank == 0):
-            eamp,epha,namp,npha,vamp,vpha = load_convolution.main(ilat,ilon,iarea,ur,ue,un,regular,load_files,loadfile_format,lsmk,slat,slon,sname,cnv_out,\
-                rank,procN,comm,load_density=ldens)
-        # For Worker Ranks, Run the Code But Don't Return Any Variables
-        else: 
-            load_convolution.main(ilat,ilon,iarea,ur,ue,un,regular,load_files,loadfile_format,lsmk,slat,slon,sname,cnv_out,\
-                rank,procN,comm,load_density=ldens)
+        print(':: Common Mesh False. Performing the standard convolution.')
+        # Compute Convolution for Current File
+        eamp_sub[jj,:],epha_sub[jj,:],namp_sub[jj,:],npha_sub[jj,:],vamp_sub[jj,:],vpha_sub[jj,:] = load_convolution.main(grn_file,norm_flag,load_files,loadfile_format,regular,\
+            lslat,lslon,lsmask,lsmask_type,slat,slon,sname,cnv_out,load_density=ldens,azminc=0.5,delinc3=0.005,delinc4=0.02,delinc5=0.05)
 
     # Make Sure All Jobs Have Finished Before Continuing
     comm.Barrier()
