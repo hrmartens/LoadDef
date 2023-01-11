@@ -108,7 +108,7 @@ def main(delinc1=0.0002,delinc2=0.001,delinc3=0.01,delinc4=0.1,delinc5=0.5,delin
     azinc_rad = np.multiply(azinc,(pi/180.))
     for ii in range(1,len(all_del_rad)):
         unit_area.append(np.multiply(azinc_rad,\
-            np.cos(all_del_rad[ii])-np.cos(all_del_rad[ii-1])))
+            np.cos(all_del_rad[ii-1])-np.cos(all_del_rad[ii])))
     unit_area = np.asarray(unit_area)
 
     # Determine Cell Midpoints

@@ -25,6 +25,9 @@ import numpy as np
 def main(ic1,ic2,iarea):
 
     # See Agnew (1983), Geophys. J. R. astr. Soc. 
+    # Note that it does not matter if "iarea" is the unit area of the 
+    #  spherical patch or if it's been multiplied by R^2. 
+    #  "R^2" appears in every term and therefore cancels out. 
     ic1 = ic1 - np.divide(np.sum(np.multiply(ic1,iarea)),\
         (np.sum(iarea)))
     ic2 = ic2 - np.divide(np.sum(np.multiply(ic2,iarea)),\

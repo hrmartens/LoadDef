@@ -43,10 +43,19 @@ def main(gldel,glazm,ldel,lazm,tck_gfu,tck_gfv):
 
     # Integrate the Greens Functions -- Delta Component
     # See Section 4.1 of Agnew (2012), SPOTL Manual
+    # Basically computing the area of a spherical patch (area element on a sphere).
+    # The normalization factor for the LGF, which mitigates the singularity at 
+    # theta=0 and therefore helps with LGF interpolation, is also included in the
+    # integration over each patch. 
     intu = 4. * gfu * np.cos(ldel_rad/2.) * np.sin(del_incs_rad/4.)
     intv = 4. * gfv * np.cos(ldel_rad/2.) * np.sin(del_incs_rad/4.)
 
     # Integrate the Greens Functions -- Azimuthal Component
+    # See, for example, 4.220-4.222 in H.R. Martens (2016, Caltech thesis).
+    # Note that (2.*np.sin(azm_incs_rad[0]/2.)) reduces to azm_incs_rad[0] when 
+    # the increment is small per the small-angle approximation.
+    # Multiplication by the T(alpha) term (to convert to east and north components)
+    # happens in a separate function: computing the specific Green's functions.
     intu = intu * azm_incs_rad[0]
     intv = intv * (2.*np.sin(azm_incs_rad[0]/2.))
 
