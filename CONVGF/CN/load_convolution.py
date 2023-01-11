@@ -106,7 +106,7 @@ mass_cons  :  option to enforce mass conservation by removing the spatial mean f
 def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmask,lsmask_type,slat,slon,stname,cnv_out,\
     load_density=1030.0,rad=6371000.,delinc1=0.0002,delinc2=0.001,delinc3=0.01,delinc4=0.1,delinc5=0.5,delinc6=1.0,\
     izb=0.02,z2b=0.1,z3b=1.0,z4b=10.0,z5b=90.0,azminc=0.5,mass_cons=False):
- 
+
     # Determine Number of Load Files
     if isinstance(load_files,float) == True:
         numel = 1
@@ -131,27 +131,29 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
         lcext = loadgrid[-2::]
         if (lcext == 'xt'):
             file_ids = np.loadtxt(loadgrid,usecols=(4,),unpack=True,dtype='U')
-            slat,nlat,wlon,elon = np.loadtxt(loadgrid,usecols=(0,1,2,3),unpack=True)
+            southlat,northlat,westlon,eastlon = np.loadtxt(loadgrid,usecols=(0,1,2,3),unpack=True)
         elif (lcext == 'nc'):
             f = netCDF4.Dataset(loadgrid)
             file_ids = f.variables['cell_ids'][:]
-            slat = f.variables['slatitude'][:]
-            nlat = f.variables['nlatitude'][:]
-            wlon = f.variables['wlongitude'][:]
-            elon = f.variables['elongitude'][:]
+            southlat = f.variables['slatitude'][:]
+            northlat = f.variables['nlatitude'][:]
+            westlon = f.variables['wlongitude'][:]
+            eastlon = f.variables['elongitude'][:]
             f.close()
         # Ensure that Bounding Box Longitudes are in Range 0-360
-        for yy in range(0,len(wlon)):
-            if (wlon[yy] < 0.):
-                wlon[yy] += 360.
-            if (elon[yy] < 0.):
-                elon[yy] += 360.
+        for yy in range(0,len(westlon)):
+            if (westlon[yy] < 0.):
+                westlon[yy] += 360.
+            if (eastlon[yy] < 0.):
+                eastlon[yy] += 360.
     elif (loadfile_format == "common"): # common mesh format
         # Create Array of Filename Extensions
         file_ids = []
         for qq in range(0,numel):
             mfile = load_files[qq]
-            file_ids.append(mfile)
+            str_components = mfile.split('_')
+            cext = str_components[-1]
+            file_ids.append(cext[0:-3])
     else:
         # Create Array of Filename Extensions
         file_ids = []
@@ -180,7 +182,7 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
         # Read in the common mesh with the load and land-sea mask already applied
         # Unfortunately, need to read one file in outside the file loop; can revisit and optimize this later...
         # One option would be to pass ilat, ilon, and iarea into "load_convolution" via other variables that are not used for the common mesh (e.g., ls mask parameters)
-        ilat, ilon, ic1, ic2, iarea = read_cMesh.main(file_ids[0]) 
+        ilat, ilon, ic1, ic2, iarea = read_cMesh.main(load_files[0]) 
 
         # Read in the Green's Functions
         if norm_flag == True:
@@ -260,11 +262,11 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
     # Loop through load models
     for ii in range(0,len(file_ids)):
         if (loadfile_format == "bbox"):
-            cslat = slat[ii]
-            cnlat = nlat[ii]
-            cwlon = wlon[ii]
-            celon = elon[ii]
-            mfile = [cslat,cnlat,cwlon,celon]
+            csouthlat = southlat[ii]
+            cnorthlat = northlat[ii]
+            cwestlon = westlon[ii]
+            ceastlon = eastlon[ii]
+            mfile = [csouthlat,cnorthlat,cwestlon,ceastlon]
             file_id = file_ids[ii] # File Extension
             print(':: Working on Cell: %s | Station: %s | Number: %6d of %6d' %(file_id, stname, (ii+1), len(file_ids)))
         else: 
@@ -298,9 +300,9 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
     slat_arr = np.ones((len(eamp),)) * slat
     slon_arr = np.ones((len(eamp),)) * slon
     if (loadfile_format == "bbox"):
-        all_cnv_data = np.array(list(zip(file_ids,slat_arr,slon_arr,eamp,epha,namp,npha,vamp,vpha,slat,nlat,wlon,elon)), dtype=[('file_ids','U25'), \
+        all_cnv_data = np.array(list(zip(file_ids,slat_arr,slon_arr,eamp,epha,namp,npha,vamp,vpha,southlat,northlat,westlon,eastlon)), dtype=[('file_ids','U25'), \
             ('slat_arr',float),('slon_arr',float),('eamp',float),('epha',float),('namp',float),('npha',float), \
-            ('vamp',float),('vpha',float),('slat',float),('nlat',float),('wlon',float),('elon',float)])
+            ('vamp',float),('vpha',float),('southlat',float),('northlat',float),('westlon',float),('eastlon',float)])
     else:
         all_cnv_data = np.array(list(zip(file_ids,slat_arr,slon_arr,eamp,epha,namp,npha,vamp,vpha)), dtype=[('file_ids','U25'), \
             ('slat_arr',float),('slon_arr',float),('eamp',float),('epha',float),('namp',float),('npha',float), \
@@ -309,7 +311,7 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
     # Write Header Info to File
     hf = open(cnv_head,'w')
     if (loadfile_format == "bbox"):
-        cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  V-Amp(mm)  V-Pha(deg)  S-Lat(deg)  N-Lat(deg)  W-Lon(deg)  E-Lon(deg) \n'
+        cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  V-Amp(mm)  V-Pha(deg)  South-Lat(deg)  North-Lat(deg)  West-Lon(deg)  East-Lon(deg) \n'
     else:
         cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  V-Amp(mm)  V-Pha(deg) \n'
     hf.write(cnv_str)
