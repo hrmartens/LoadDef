@@ -40,7 +40,6 @@ import scipy as sc
 import datetime
 import netCDF4
 from math import pi
-from CONVGF.CN import load_convolution
 from CONVGF.utility import read_station_file
 from CONVGF.utility import read_lsmask
 from CONVGF.utility import read_greens_fcn_file
@@ -104,7 +103,7 @@ ldens = 1030.0
 # OPTIONAL: Provide a common geographic mesh?
 # If True, must provide the full path to a mesh file (see: GRDGEN/common_mesh). 
 # If False, a station-centered grid will be created within the functions called here. 
-common_mesh = False
+common_mesh = True
 # Full Path to Grid File Containing Surface Mesh (for sampling the load Green's functions)
 #  :: Format: latitude midpoints [float,degrees N], longitude midpoints [float,degrees E], unit area of each patch [float,dimensionless (need to multiply by r^2)]
 meshfname = ("commonMesh_global_1.0_1.0_28.0_50.0_233.0_258.0_0.01_0.01_landmask")
@@ -154,12 +153,12 @@ size = comm.Get_size()
 if (rank == 0):
     if not (os.path.isdir("../output/Convolution/")):
         os.makedirs("../output/Convolution/")
+    outdir = "../output/Convolution/"
     if not (os.path.isdir("../output/Convolution/temp/")):
         os.makedirs("../output/Convolution/temp/")
-    outdir = "../output/Convolution/"
     tempdir = "../output/Convolution/temp/"
 
-    # Read Station & Date Range File
+    # Read Station File
     slat,slon,sta = read_station_file.main(sta_file)
  
     # Ensure that Station Locations are in Range 0-360
@@ -212,7 +211,6 @@ if (rank == 0):
         lslat = olat.flatten()
         lslon = olon.flatten()
         lsmask = np.ones((len(lslat),)) * -1.
-    print(':: Finished Reading in LSMask.')
 
     # Ensure that Land-Sea Mask Longitudes are in Range 0-360
     neglon_idx = np.where(lslon<0.)
@@ -318,6 +316,18 @@ if (rank == 0):
 
             ## Current load file
             cldfile = load_files[hh]
+
+            ## Filename identifier
+            str_components = cldfile.split('_')
+            cext = str_components[-1]
+            if (loadfile_format == "txt"):
+                file_id = cext[0:-4]
+            elif (loadfile_format == "nc"):
+                file_id = cext[0:-3]
+            else:
+                print(':: Error. Invalid file format for load models. [load_convolution.py]')
+                sys.exit()
+
             ## Read the File
             llat,llon,amp,pha,llat1dseq,llon1dseq,amp2darr,pha2darr = read_AmpPha.main(cldfile,loadfile_format,regular_grid=regular)
             ## Find Where Amplitude is NaN (if anywhere) and Set to Zero
@@ -357,7 +367,7 @@ if (rank == 0):
 
             ## Write results to temporary netCDF files
             print(":: Writing netCDF-formatted temporary file for: ", cldfile)
-            custom_file = (tempdir + loadfile_prefix + outstr + "_" + str(hh) + ".nc")
+            custom_file = (tempdir + "temp" + outstr + "_" + file_id + ".nc")
             full_files.append(custom_file)
             # Open new NetCDF file in "write" mode
             dataset = netCDF4.Dataset(custom_file,'w',format='NETCDF4_CLASSIC')
@@ -418,12 +428,12 @@ sendcounts = comm.gather(procN, root=0)
 cntype = MPI.DOUBLE.Create_contiguous(1)
 cntype.Commit()
 
-# Create a Data Type for Solution Radii
+# Create a Data Type for Convolution Results for each Station and Load File
 num_lfiles = len(load_files)
 ltype = MPI.DOUBLE.Create_contiguous(num_lfiles)
 ltype.Commit()
  
-# Scatter the File Locations (By Index)
+# Scatter the Station Locations (By Index)
 d_sub = np.empty((procN,))
 comm.Scatterv([sta_idx, (sendcounts, None), cntype], d_sub, root=0)
 
@@ -491,8 +501,10 @@ if (rank == 0):
     except: 
         eamp = eamp[nidx]; namp = namp[nidx]; vamp = vamp[nidx]
         epha = epha[nidx]; npha = npha[nidx]; vpha = vpha[nidx]
-    print('Up amplitude (rows = stations; cols = load models): ', vamp)
-    print('Up phase (rows = stations; cols = load models): ', vpha)
+    print('Up amplitude (rows = stations; cols = load models):')
+    print(vamp)
+    print('Up phase (rows = stations; cols = load models):')
+    print(vpha)
 
 # Remove load files that are no longer needed
 if (rank == 0):

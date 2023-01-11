@@ -40,6 +40,7 @@ import numpy as np
 import scipy as sc
 import datetime
 import netCDF4 
+from math import pi
 from scipy import interpolate
 from CONVGF.utility import read_station_file
 from CONVGF.utility import read_lsmask
@@ -77,7 +78,7 @@ loadgrid  = ("../output/Grid_Files/nc/cells/" + cellfname + ".nc")
 # OPTIONAL: Provide a common geographic mesh? 
 # If True, must provide the full path to a mesh file (see: GRDGEN/common_mesh). 
 # If False, a station-centered grid will be created within the functions called here. 
-common_mesh = False
+common_mesh = True
 # Full Path to Grid File Containing Surface Mesh (for sampling the load Green's functions)
 #  :: Format: latitude midpoints [float,degrees N], longitude midpoints [float,degrees E], unit area of each patch [float,dimensionless (need to multiply by r^2)]
 meshfname = ("commonMesh_regional_28.0_50.0_233.0_258.0_0.01_0.01")
@@ -105,7 +106,11 @@ sta_file_name = ("NOTA_Select")
 sta_file = ("../input/Station_Locations/" + sta_file_name + ".txt")
 
 # Optional: Additional string to include in output filenames (e.g. "_2019")
-outstr = (pmod + "_" + cellfname + "_" + meshfname + "_" + sta_file_name)
+if (common_mesh == True):
+    mtag = "commonMesh"
+else:
+    mtag = "stationMesh"
+outstr = (pmod + "_" + mtag + "_" + cellfname + "_" + meshfname + "_" + sta_file_name)
 
 # ------------------ END USER INPUTS ----------------------- #
 
@@ -146,13 +151,34 @@ if (rank == 0):
         os.makedirs("../output/Figures/")
 
     # Read Station File
-    lat,lon,sta = read_station_file.main(sta_file)
+    slat,slon,sta = read_station_file.main(sta_file)
+
+    # Ensure that Station Locations are in Range 0-360
+    neglon_idx = np.where(slon<0.)
+    slon[neglon_idx] += 360.
 
     # Determine Number of Stations Read In
-    if isinstance(lat,float) == True: # only 1 station
+    if isinstance(slat,float) == True: # only 1 station
         numel = 1
     else:
-        numel = len(lat)
+        numel = len(slat)
+
+    # Generate an Array of File Indices
+    sta_idx = np.linspace(0,numel,num=numel,endpoint=False)
+    np.random.shuffle(sta_idx)
+
+else: # If I'm a worker, I know nothing yet about the data
+    slat = slon = sta = numel = sta_idx = None
+
+# Make Sure Everyone Has Reported Back Before Moving On
+comm.Barrier()
+
+# All Processors Get Certain Arrays and Parameters; Broadcast Them
+sta          = comm.bcast(sta, root=0)
+slat         = comm.bcast(slat, root=0)
+slon         = comm.bcast(slon, root=0)
+numel        = comm.bcast(numel, root=0)
+sta_idx      = comm.bcast(sta_idx, root=0)
 
 # MPI: Determine the Chunk Sizes for the Convolution
 total_stations = len(slat)
@@ -180,10 +206,10 @@ if (rank == 0):
 
     # Ensure that Land-Sea Mask Longitudes are in Range 0-360
     neglon_idx = np.where(lslon<0.)
-    lslon[neglon_idx] = lslon[neglon_idx] + 360.
+    lslon[neglon_idx] += 360.
  
     # Read in the loadgrid
-    #  Here, used for determining how to delegate MPI tasks - and - to determine and write out the center of each load cell
+    #  Here, used for determining and writing out the center of each load cell
     lcext = loadgrid[-2::]
     if (lcext == 'xt'):
         load_cells = np.loadtxt(loadgrid,usecols=(4,),unpack=True,dtype='U')
@@ -204,6 +230,7 @@ if (rank == 0):
             lcelon[yy] += 360.
     # Compute center of each load cell
     print(':: Warning: Computing center of load cells. Special consideration should be made for cells spanning the prime meridian, if applicable.')
+    # For prime meridian, should shift longitude range to [-180,180]. Still need to do this...
     lclat = (lcslat + lcnlat)/2.
     lclon = (lcwlon + lcelon)/2.
 
@@ -298,26 +325,23 @@ if (rank == 0):
     else:
         colvals = None
 
+    # Initialize Arrays
+    numcells = len(lclat)
+    eamp = np.empty((numel,numcells))
+    epha = np.empty((numel,numcells))
+    namp = np.empty((numel,numcells))
+    npha = np.empty((numel,numcells))
+    vamp = np.empty((numel,numcells))
+    vpha = np.empty((numel,numcells))
+
 # If I'm a Worker, I Know Nothing About the Data
 else:
-    load_cells = lclat = lclon = lslat = lslon = lsmask = sta = lat = lon = numel = None 
-    ilat = ilon = iarea = lsmk = colvals = None
+    load_cells = lclat = lclon = lslat = lslon = lsmask = None 
+    ilat = ilon = iarea = lsmk = colvals = numcells = None
+    eamp = epha = namp = npha = vamp = vpha = None
 
-# Gather the Processor Workloads for All Processors
-sendcounts = comm.gather(procN, root=0)
- 
-# Create a Data Type for the Convolution Results
-cntype = MPI.DOUBLE.Create_contiguous(1)
-cntype.Commit()
-
-# Create a Data Type for Solution Radii
-num_lfiles = len(load_files)
-ltype = MPI.DOUBLE.Create_contiguous(num_lfiles)
-ltype.Commit()
- 
-# Scatter the File Locations (By Index)
-d_sub = np.empty((procN,))
-comm.Scatterv([sta, (sendcounts, None), cntype], d_sub, root=0)
+# Make Sure Everyone Has Reported Back Before Moving On
+comm.Barrier()
 
 # All Processors Get Certain Arrays and Parameters; Broadcast Them
 load_cells  = comm.bcast(load_cells, root=0)
@@ -326,35 +350,54 @@ lclon       = comm.bcast(lclon, root=0)
 lslat       = comm.bcast(lslat, root=0)
 lslon       = comm.bcast(lslon, root=0)
 lsmask      = comm.bcast(lsmask, root=0)
-sta         = comm.bcast(sta, root=0)
-lat         = comm.bcast(lat, root=0)
-lon         = comm.bcast(lon, root=0)
-numel       = comm.bcast(numel, root=0)
 ilat        = comm.bcast(ilat, root=0)
 ilon        = comm.bcast(ilon, root=0)
 iarea       = comm.bcast(iarea, root=0)
 lsmk        = comm.bcast(lsmk, root=0)
+colvals     = comm.bcast(colvals, root=0)
+numcells    = comm.bcast(numcells, root=0)
+eamp         = comm.bcast(eamp, root=0)
+epha         = comm.bcast(epha, root=0)
+namp         = comm.bcast(namp, root=0)
+npha         = comm.bcast(npha, root=0)
+vamp         = comm.bcast(vamp, root=0)
+vpha         = comm.bcast(vpha, root=0)
+
+# Gather the Processor Workloads for All Processors
+sendcounts = comm.gather(procN, root=0)
+
+# Create a Data Type for the Convolution Results
+cntype = MPI.DOUBLE.Create_contiguous(1)
+cntype.Commit()
+
+# Create a Data Type for Convolution Results for each Station and Load File
+ltype = MPI.DOUBLE.Create_contiguous(numcells)
+ltype.Commit()
+
+# Scatter the Station Locations (By Index)
+d_sub = np.empty((procN,))
+comm.Scatterv([sta_idx, (sendcounts, None), cntype], d_sub, root=0)
 
 # Set up the arrays
-eamp_sub = np.empty((len(d_sub),num_lfiles))
-epha_sub = np.empty((len(d_sub),num_lfiles))
-namp_sub = np.empty((len(d_sub),num_lfiles))
-npha_sub = np.empty((len(d_sub),num_lfiles))
-vamp_sub = np.empty((len(d_sub),num_lfiles))
-vpha_sub = np.empty((len(d_sub),num_lfiles))
+eamp_sub = np.empty((len(d_sub),numcells))
+epha_sub = np.empty((len(d_sub),numcells))
+namp_sub = np.empty((len(d_sub),numcells))
+npha_sub = np.empty((len(d_sub),numcells))
+vamp_sub = np.empty((len(d_sub),numcells))
+vpha_sub = np.empty((len(d_sub),numcells))
 
 # Set up Design matrix (rows = stations[e,n,u]; columns = load cells)
 if (rank == 0):
-    desmat = np.zeros((numel*3, total_cells)) # Multiplication by 3 for 3 spatial dimensions (e,n,u)
+    desmat = np.zeros((numel*3, numcells)) # Multiplication by 3 for 3 spatial dimensions (e,n,u)
     dmrows = np.empty((numel*3,),dtype='U10') # Assumes that station names are no more than 9 characters in length (with E, N, or U also appended)
     sclat = np.zeros((numel*3,))
     sclon = np.zeros((numel*3,))
 
 # Loop Through Each Station
-for jj in range(0,len(d_sub)):
-
+for ii in range(0,len(d_sub)):
+ 
     # Current station
-    current_sta = int(d_sub[jj]) # Index
+    current_sta = int(d_sub[ii]) # Index
 
     # Remove Index If Only 1 Station
     if (numel == 1): # only 1 station read in
@@ -370,10 +413,10 @@ for jj in range(0,len(d_sub)):
     try:
         csta = csta.decode()
     except:
-        print(':: No need to decode station.')
+        pass
 
     # Output File Name
-    cnv_out = csta + "_" + rfm + "_" + loadfile_prefix + outstr + ".txt"
+    cnv_out = csta + "_" + rfm + "_" + outstr + ".txt"
 
     # Status update
     print(':: Working on station: %s | Number: %6d of %6d | Rank: %6d' %(csta, (ii+1), len(d_sub), rank))
@@ -395,7 +438,7 @@ for jj in range(0,len(d_sub)):
         tck_gfu = interpolate.splrep(theta,unorm,k=3)
         tck_gfv = interpolate.splrep(theta,vnorm,k=3)
         # Find Great-Circle Distances between Station and Grid Points in the Common Mesh
-        delta,haz = compute_angularDist_azimuth.main(slat,slon,ilat,ilon)
+        delta,haz = compute_angularDist_azimuth.main(clat,clon,ilat,ilon)
         # Compute Integrated Greens Functions
         gfu = interpolate.splev(delta,tck_gfu,der=0)
         gfv = interpolate.splev(delta,tck_gfv,der=0)
@@ -405,34 +448,43 @@ for jj in range(0,len(d_sub)):
         uint = np.divide(uint,delta) / nfactor
         vint = np.divide(vint,delta) / nfactor
         # Compute Greens Functions Specific to Receiver and Grid (Geographic Coordinates)
+        # Per the small-angle approximation, when the width of the cell is small, then the integrals over the horizontal displacement response
+        #  reduce to [-beta*cos(alpha)] for the north component and [-beta*sin(alpha)] for the east component. 
+        #  See equations 4.221 and 4.222 in H.R. Martens (2016, Caltech thesis). Here, the T(alpha) function is included in the integration. 
+        #  When we use a common mesh, the convolution mesh is no longer symmetric about the station; therefore, it does not make sense to 
+        #  include T(alpha) in the integration. However, we can see that the T(alpha) function can be moved outside the integral when the 
+        #  value of beta is small (and we can invoke the small-angle approximation): 2*sin(beta/2) reduces to 2*(beta/2) = beta.
+        #  In this way, we treat the horizontal-component integration in the same way as the vertical component:
+        #  Integrate over the area of each patch (area element on a sphere): int_theta int_phi r^2 sin(theta) d(theta) d(phi)
+        #   where theta is co-latitude and phi is azimuth in a geographic coordinate system.
+        #  Next, we can multiply the horizontal solutions by [-cos(alpha)] and [-sin(alpha)] to convert to north and east components, respectively,
+        #   where alpha is the azimuthal angle between the north pole and the load point, as subtended by the station, and as measured clockwise from north. 
         ur,ue,un = compute_specific_greens_fcns.main(haz,uint,vint)
 
         print(':: Common Mesh True. Summing up integrated and specific LGFs within each cell directly.')
-        numvals = len(colvals)
-        eamp = np.zeros((numvals,)) # initialize an array of zeros for amplitude
-        namp = np.zeros((numvals,)) # initialize an array of zeros for amplitude
-        vamp = np.zeros((numvals,)) # initialize an array of zeros for amplitude
-        epha = np.zeros((numvals,)) # phase is zero for non-periodic hydro loads
-        npha = np.zeros((numvals,)) # phase is zero for non-periodic hydro loads
-        vpha = np.zeros((numvals,)) # phase is zero for non-periodic hydro loads
         ec2 = 0 # imaginary component is zero for non-periodic load
         nc2 = 0 # imaginary component is zero for non-periodic load
         vc2 = 0 # imaginary component is zero for non-periodic load
-        for dd in range(0,numvals): # loop through load cells
-            myvals = colvals[dd] # Find indices of Greens-function mesh points within the current load cell
-            if (len(myvals) == 0): # Nothing in this cell; skip it
+        # For each station, must sum up the specific LGFs and load values for every inversion cell
+        for dd in range(0,numcells): # loop through load cells used in the inversion grid
+            print(':: Current load cell index: ', load_cells[dd])
+            mycols = colvals[dd] # Find indices of Greens-function mesh points within the current load cell
+            if (len(mycols) == 0): # Nothing in this cell; skip it
                 continue
             else: # Sum up the contributions from each surface patch within the current load cell
-                ec1 = np.sum(ue[myvals])*ldens # Sum up all the relevant integrated and specific Greens functions (east); and then multiply by load density
-                nc1 = np.sum(un[myvals])*ldens # Sum up all the relevant integrated and specific Greens functions (north); and then multiply by load density
-                vc1 = np.sum(ur[myvals])*ldens # Sum up all the relevant integrated and specific Greens functions (up); and then multiply by load density
+                ec1 = np.sum(ue[mycols])*ldens # Sum up all the relevant integrated and specific Greens functions (east); and then multiply by load density
+                nc1 = np.sum(un[mycols])*ldens # Sum up all the relevant integrated and specific Greens functions (north); and then multiply by load density
+                vc1 = np.sum(ur[mycols])*ldens # Sum up all the relevant integrated and specific Greens functions (up); and then multiply by load density
                 # Convert Coefficients to Amplitude and Phase
                 # Note: Conversion from meters to mm also happens here!
                 ceamp,cepha,cnamp,cnpha,cvamp,cvpha = coef2amppha.main(ec1,ec2,nc1,nc2,vc1,vc2)
                 # Assign values to appropriate amplitude arrays
-                eamp[dd] = ceamp
-                namp[dd] = cnamp
-                vamp[dd] = cvamp           
+                eamp_sub[ii,dd] = ceamp
+                epha_sub[ii,dd] = cepha
+                namp_sub[ii,dd] = cnamp
+                npha_sub[ii,dd] = cnpha
+                vamp_sub[ii,dd] = cvamp
+                vpha_sub[ii,dd] = cvpha
 
     # If not using a common mesh, then set up a station-centered grid and run the convolution as normal
     else:
@@ -440,18 +492,71 @@ for jj in range(0,len(d_sub)):
         #### NOTE: Mesh defaults are adjusted to ensure we get a good number of points within each grid cell to adequately represent the shape of each cell.
         print(':: Common Mesh False. Performing the standard convolution.')
         # Compute Convolution for Current File
-        eamp_sub[jj,:],epha_sub[jj,:],namp_sub[jj,:],npha_sub[jj,:],vamp_sub[jj,:],vpha_sub[jj,:] = load_convolution.main(grn_file,norm_flag,load_files,loadfile_format,regular,\
-            lslat,lslon,lsmask,lsmask_type,slat,slon,sname,cnv_out,load_density=ldens,azminc=0.5,delinc3=0.005,delinc4=0.02,delinc5=0.05)
+        eamp_sub[ii,:],epha_sub[ii,:],namp_sub[ii,:],npha_sub[ii,:],vamp_sub[ii,:],vpha_sub[ii,:] = load_convolution.main(\
+            grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmask,lsmask_type,\
+            clat,clon,csta,cnv_out,load_density=ldens,azminc=0.5,delinc3=0.005,delinc4=0.02,delinc5=0.05)
 
-    # Make Sure All Jobs Have Finished Before Continuing
-    comm.Barrier()
- 
+# Make Sure All Jobs Have Finished Before Continuing
+comm.Barrier()
+
+# Gather Results
+comm.Gatherv(eamp_sub, [eamp, (sendcounts, None), ltype], root=0)
+comm.Gatherv(epha_sub, [epha, (sendcounts, None), ltype], root=0)
+comm.Gatherv(namp_sub, [namp, (sendcounts, None), ltype], root=0)
+comm.Gatherv(npha_sub, [npha, (sendcounts, None), ltype], root=0)
+comm.Gatherv(vamp_sub, [vamp, (sendcounts, None), ltype], root=0)
+comm.Gatherv(vpha_sub, [vpha, (sendcounts, None), ltype], root=0)
+
+# Make Sure Everyone Has Reported Back Before Moving On
+comm.Barrier()
+
+# Free Data Type
+cntype.Free()
+ltype.Free()
+
+# Re-organize Solutions
+if (rank == 0):
+    narr,nidx = np.unique(sta_idx,return_index=True)
+    try:
+        eamp = eamp[nidx,:]; namp = namp[nidx,:]; vamp = vamp[nidx,:]
+        epha = epha[nidx,:]; npha = npha[nidx,:]; vpha = vpha[nidx,:]
+        sta = sta[nidx]; slat = slat[nidx]; slon = slon[nidx]
+    except:
+        eamp = eamp[nidx]; namp = namp[nidx]; vamp = vamp[nidx]
+        epha = epha[nidx]; npha = npha[nidx]; vpha = vpha[nidx]
+        sta = sta[nidx]; slat = slat[nidx]; slon = slon[nidx]
+    print('Stations:')
+    print(sta)
+    print(slat)
+    print(slon)
+    print('Load Cells:')
+    print(load_cells)
+    print('Up amplitude (rows = stations; cols = load cells):')
+    print(vamp.shape)
+    print(vamp)
+    print('Up phase (rows = stations; cols = load cells):')
+    print(vpha.shape)
+    print(vpha)
+
+# Loop Through Each Station & Populate the Design Matrix
+for jj in range(0,len(slat)):
+
     if (rank == 0):
 
+        # Remove Index If Only 1 Station
+        if (numel == 1): # only 1 station read in
+            csta = sta
+            clat = slat
+            clon = slon
+        else:
+            csta = sta[jj]
+            clat = slat[jj]
+            clon = slon[jj]
+
         # Convert Amp/Pha to Displacement
-        edisp = np.multiply(eamp,np.cos(np.multiply(epha,(np.pi/180.))))
-        ndisp = np.multiply(namp,np.cos(np.multiply(npha,(np.pi/180.))))
-        udisp = np.multiply(vamp,np.cos(np.multiply(vpha,(np.pi/180.))))
+        edisp = np.multiply(eamp[jj,:],np.cos(np.multiply(epha[jj,:],(np.pi/180.))))
+        ndisp = np.multiply(namp[jj,:],np.cos(np.multiply(npha[jj,:],(np.pi/180.))))
+        udisp = np.multiply(vamp[jj,:],np.cos(np.multiply(vpha[jj,:],(np.pi/180.))))
 
         # Fill in Design Matrix
         idxe = (jj*3)+0
@@ -460,15 +565,15 @@ for jj in range(0,len(d_sub)):
         desmat[idxe,:] = edisp
         desmat[idxn,:] = ndisp
         desmat[idxu,:] = udisp
-        dmrows[idxe] = (sname + 'E')
-        dmrows[idxn] = (sname + 'N')
-        dmrows[idxu] = (sname + 'U')
-        sclat[idxe] = slat
-        sclat[idxn] = slat
-        sclat[idxu] = slat
-        sclon[idxe] = slon
-        sclon[idxn] = slon
-        sclon[idxu] = slon
+        dmrows[idxe] = (csta + 'E')
+        dmrows[idxn] = (csta + 'N')
+        dmrows[idxu] = (csta + 'U')
+        sclat[idxe] = clat
+        sclat[idxn] = clat
+        sclat[idxu] = clat
+        sclon[idxe] = clon
+        sclon[idxn] = clon
+        sclon[idxu] = clon
 
 # Write Design Matrix to File
 if (rank == 0):
@@ -533,6 +638,9 @@ if (rank == 0):
     sta_comp_lon = f.variables['sta_comp_lon'][:]
     load_cell_lat = f.variables['load_cell_lat'][:]
     load_cell_lon = f.variables['load_cell_lon'][:]
+    print(load_cell_ids)
+    print(sta_comp_ids)
+    print(design_matrix)
     f.close()
 
 # --------------------- END CODE --------------------------- #
