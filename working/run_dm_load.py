@@ -78,7 +78,7 @@ loadgrid  = ("../output/Grid_Files/nc/cells/" + cellfname + ".nc")
 # OPTIONAL: Provide a common geographic mesh? 
 # If True, must provide the full path to a mesh file (see: GRDGEN/common_mesh). 
 # If False, a station-centered grid will be created within the functions called here. 
-common_mesh = True
+common_mesh = False
 # Full Path to Grid File Containing Surface Mesh (for sampling the load Green's functions)
 #  :: Format: latitude midpoints [float,degrees N], longitude midpoints [float,degrees E], unit area of each patch [float,dimensionless (need to multiply by r^2)]
 meshfname = ("commonMesh_regional_28.0_50.0_233.0_258.0_0.01_0.01")
@@ -95,7 +95,7 @@ ldens = 1000.0
 #  :: 0 = do not mask ocean or land (retain full model); 1 = mask out land (retain ocean); 2 = mask out oceans (retain land)
 #  :: Recommended: 1 for oceanic; 2 for atmospheric and continental water
 #  :: When pre-generating a common mesh, a land-sea mask can already be applied. Thus, it is recommended to set lsmask_type = 0 here. 
-lsmask_type = 0
+lsmask_type = 2
 
 # Full Path to Land-Sea Mask File (May be Irregular and Sparse)
 #  :: Format: Lat, Lon, Mask [0=ocean; 1=land]
@@ -467,10 +467,15 @@ for ii in range(0,len(d_sub)):
         vc2 = 0 # imaginary component is zero for non-periodic load
         # For each station, must sum up the specific LGFs and load values for every inversion cell
         for dd in range(0,numcells): # loop through load cells used in the inversion grid
-            print(':: Current load cell index: ', load_cells[dd])
             mycols = colvals[dd] # Find indices of Greens-function mesh points within the current load cell
-            if (len(mycols) == 0): # Nothing in this cell; skip it
-                continue
+            if (len(mycols) == 0): # Nothing in this cell; assign everything to zero.
+                # Assign values to appropriate amplitude arrays
+                eamp_sub[ii,dd] = 0.
+                epha_sub[ii,dd] = 0.
+                namp_sub[ii,dd] = 0.
+                npha_sub[ii,dd] = 0.
+                vamp_sub[ii,dd] = 0.
+                vpha_sub[ii,dd] = 0.
             else: # Sum up the contributions from each surface patch within the current load cell
                 ec1 = np.sum(ue[mycols])*ldens # Sum up all the relevant integrated and specific Greens functions (east); and then multiply by load density
                 nc1 = np.sum(un[mycols])*ldens # Sum up all the relevant integrated and specific Greens functions (north); and then multiply by load density
@@ -520,17 +525,9 @@ if (rank == 0):
     try:
         eamp = eamp[nidx,:]; namp = namp[nidx,:]; vamp = vamp[nidx,:]
         epha = epha[nidx,:]; npha = npha[nidx,:]; vpha = vpha[nidx,:]
-        sta = sta[nidx]; slat = slat[nidx]; slon = slon[nidx]
     except:
         eamp = eamp[nidx]; namp = namp[nidx]; vamp = vamp[nidx]
         epha = epha[nidx]; npha = npha[nidx]; vpha = vpha[nidx]
-        sta = sta[nidx]; slat = slat[nidx]; slon = slon[nidx]
-    print('Stations:')
-    print(sta)
-    print(slat)
-    print(slon)
-    print('Load Cells:')
-    print(load_cells)
     print('Up amplitude (rows = stations; cols = load cells):')
     print(vamp.shape)
     print(vamp)
@@ -638,10 +635,9 @@ if (rank == 0):
     sta_comp_lon = f.variables['sta_comp_lon'][:]
     load_cell_lat = f.variables['load_cell_lat'][:]
     load_cell_lon = f.variables['load_cell_lon'][:]
-    print(load_cell_ids)
+    f.close()
     print(sta_comp_ids)
     print(design_matrix)
-    f.close()
 
 # --------------------- END CODE --------------------------- #
 
