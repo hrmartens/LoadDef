@@ -215,8 +215,8 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
         # Compute Greens Functions Specific to Receiver and Grid (Geographic Coordinates)
         ur,ue,un = compute_specific_greens_fcns.main(haz,uint,vint)
 
-        # Set Other Parameters to Zero, which are not needed for the common mesh
-        lsmk = lsmask_type = regular = mass_cons = None 
+        # Set Other Parameters to None, which are not needed for the common mesh
+        lsmk = None 
  
     else: # standard station-centered grid
 

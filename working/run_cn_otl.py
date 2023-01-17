@@ -117,12 +117,12 @@ planet_radius = 6371000.
 #  :: Recommended: 1 for oceanic; 2 for atmospheric
 lsmask_type = 1
 
-# Enforce mass conservation by removing a spatial mean from the load grid?
-mass_cons = False
-
 # Full Path to Land-Sea Mask File (May be Irregular and Sparse)
 #  :: Format: Lat, Lon, Mask [0=ocean; 1=land]
 lsmask_file = ("../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
+
+# Enforce mass conservation by removing a spatial mean from the load grid?
+mass_cons = False
 
 # Station/Grid-Point Location File (Lat, Lon, StationName)
 sta_file = ("../input/Station_Locations/NOTA_Select.txt")

@@ -38,12 +38,28 @@ import numpy as np
 import scipy as sc
 import datetime
 import netCDF4 
+from math import pi
+from scipy import interpolate
 from LOADGF.utility import perturb_pmod
 from LOADGF.LN import compute_love_numbers
 from LOADGF.GF import compute_greens_functions
 from CONVGF.CN import load_convolution
 from CONVGF.utility import read_station_file
 from CONVGF.utility import read_lsmask
+from CONVGF.utility import read_greens_fcn_file
+from CONVGF.utility import read_greens_fcn_file_norm
+from CONVGF.utility import normalize_greens_fcns
+from CONVGF.utility import read_AmpPha
+from CONVGF.CN import load_convolution
+from CONVGF.CN import interpolate_load
+from CONVGF.CN import compute_specific_greens_fcns
+from CONVGF.CN import generate_integration_mesh
+from CONVGF.CN import intmesh2geogcoords
+from CONVGF.CN import integrate_greens_fcns
+from CONVGF.CN import compute_angularDist_azimuth
+from CONVGF.CN import interpolate_lsmask
+from CONVGF.CN import coef2amppha
+from CONVGF.CN import mass_conservation
 from utility.pmes import combine_stations
 from CONVGF.utility import read_convolution_file
 
@@ -99,6 +115,18 @@ regular = True
 # Load Density
 #  Recommended: 1025-1035 kg/m^3 for oceanic loads (e.g., FES2014, ECCO2); 1 kg/m^3 for atmospheric loads (e.g. ECMWF); 1000 kg/m^3 for fresh water
 ldens = 1030.0
+
+# OPTIONAL: Provide a common geographic mesh?
+# If True, must provide the full path to a mesh file (see: GRDGEN/common_mesh). 
+# If False, a station-centered grid will be created within the functions called here. 
+common_mesh = True
+# Full Path to Grid File Containing Surface Mesh (for sampling the load Green's functions)
+#  :: Format: latitude midpoints [float,degrees N], longitude midpoints [float,degrees E], unit area of each patch [float,dimensionless (need to multiply by r^2)]
+meshfname = ("commonMesh_global_1.0_1.0_28.0_50.0_233.0_258.0_0.01_0.01_landmask")
+convmesh = ("../output/Grid_Files/nc/commonMesh/" + meshfname + ".nc")
+
+# Planet Radius (in meters; used for Greens function normalization)
+planet_radius = 6371000.
   
 # Ocean/Land Mask 
 #  :: 0 = do not mask ocean or land (retain full model); 1 = mask out land (retain ocean); 2 = mask out oceans (retain land)
@@ -109,6 +137,9 @@ lsmask_type = 1
 #  :: Format: Lat, Lon, Mask [0=ocean; 1=land]
 lsmask_file = ("../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 
+# Enforce mass conservation by removing a spatial mean from the load grid?
+mass_cons = False
+
 # Station/Grid-Point Location File (Lat, Lon, StationName)
 sta_file = ("../input/Station_Locations/NOTA.txt")
 
@@ -116,7 +147,11 @@ sta_file = ("../input/Station_Locations/NOTA.txt")
 outstr = ("")
 
 # Optional: Additional string to include in output filenames for the convolution (e.g. "_2022")
-outstr_conv = ("_dens" + str(int(ldens)) + "_2022")
+if (common_mesh == True):
+    mtag = "commonMesh"
+else:
+    mtag = "stationMesh"
+outstr_conv = ("_dens" + str(int(ldens)) + "_" + mtag + "_2022")
  
 # ------------------ END USER INPUTS ----------------------- #
 
@@ -155,6 +190,9 @@ if (rank == 0):
         os.makedirs("../output/Greens_Functions/")
     if not (os.path.isdir("../output/Planet_Models/")):
         os.makedirs("../output/Planet_Models/")
+    if not (os.path.isdir("../output/Convolution/temp/")):
+        os.makedirs("../output/Convolution/temp/")
+tempdir = "../output/Convolution/temp/"
 
 # Check format of load files
 if not (loadfile_format == "nc"):
@@ -273,7 +311,7 @@ for cc in range(0,len(lnfiles)):
     file_out = lngfext[cc]
 
     # Check if file already exists
-    if (os.path.isfile(gffiles[bb])):
+    if (os.path.isfile(gffiles[cc])):
         continue
     else: 
   
@@ -292,22 +330,38 @@ for cc in range(0,len(lnfiles)):
 
 # ---------------- BEGIN CONVOLUTIONS ---------------------- #
 
-# Read Station File
-slat,slon,sta = read_station_file.main(sta_file)
+# Ensure that the Output Directories Exist & Read in the Stations
+if (rank == 0):
 
-# Ensure that Station Locations are in Range 0-360
-neglon_idx = np.where(slon<0.)
-slon[neglon_idx] += 360.
+    # Read Station File
+    slat,slon,sta = read_station_file.main(sta_file)
 
-# Determine Number of Stations Read In
-if isinstance(slat,float) == True: # only 1 station
-    numel = 1
-else:
-    numel = len(slat)
- 
-# Generate an Array of File Indices
-sta_idx = np.linspace(0,numel,num=numel,endpoint=False)
-np.random.shuffle(sta_idx)
+    # Ensure that Station Locations are in Range 0-360
+    neglon_idx = np.where(slon<0.)
+    slon[neglon_idx] += 360.
+
+    # Determine Number of Stations Read In
+    if isinstance(slat,float) == True: # only 1 station
+        numel = 1
+    else:
+        numel = len(slat)
+
+    # Generate an Array of File Indices
+    sta_idx = np.linspace(0,numel,num=numel,endpoint=False)
+    np.random.shuffle(sta_idx)
+
+else: # If I'm a worker, I know nothing yet about the data
+    slat = slon = sta = numel = sta_idx = None
+
+# Make Sure Everyone Has Reported Back Before Moving On
+comm.Barrier()
+
+# All Processors Get Certain Arrays and Parameters; Broadcast Them
+sta          = comm.bcast(sta, root=0)
+slat         = comm.bcast(slat, root=0)
+slon         = comm.bcast(slon, root=0)
+numel        = comm.bcast(numel, root=0)
+sta_idx      = comm.bcast(sta_idx, root=0)
 
 # MPI: Determine the Chunk Sizes for the Convolution
 total_stations = len(slat)
@@ -327,196 +381,221 @@ elif (lsmask_type == 1):
 else:
     cnprefix = ("cn_LandAndOceans_")
 
-# Read in the Land-Sea Mask
-if (lsmask_type > 0):
-    lslat,lslon,lsmask = read_lsmask.main(lsmask_file)
-else:
-    # Doesn't really matter so long as there are some values filled in with something other than 1 or 2
-    lat1d = np.arange(-90.,90.,2.)
-    lon1d = np.arange(0.,360.,2.)
-    olon,olat = np.meshgrid(lon1d,lat1d)
-    lslat = olat.flatten()
-    lslon = olon.flatten()
-    lsmask = np.ones((len(lslat),)) * -1.
-print(':: Finished Reading in LSMask.')
+# Make some preparations that are common to all stations
+if (rank == 0):
 
-# Ensure that Land-Sea Mask Longitudes are in Range 0-360
-neglon_idx = np.where(lslon<0.)
-lslon[neglon_idx] += 360.
+    # Read in the Land-Sea Mask
+    if (lsmask_type > 0):
+        lslat,lslon,lsmask = read_lsmask.main(lsmask_file)
+    else:
+        # Doesn't really matter so long as there are some values filled in with something other than 1 or 2
+        lat1d = np.arange(-90.,90.,2.)
+        lon1d = np.arange(0.,360.,2.)
+        olon,olat = np.meshgrid(lon1d,lat1d)
+        lslat = olat.flatten()
+        lslon = olon.flatten()
+        lsmask = np.ones((len(lslat),)) * -1.
 
-# Convert Start and End Dates to Datetimes
-if (time_series == True):
-    frstdt = datetime.datetime(frst_date[0],frst_date[1],frst_date[2],frst_date[3],frst_date[4],frst_date[5])
-    lastdt = datetime.datetime(last_date[0],last_date[1],last_date[2],last_date[3],last_date[4],last_date[5])
+    # Ensure that Land-Sea Mask Longitudes are in Range 0-360
+    neglon_idx = np.where(lslon<0.)
+    lslon[neglon_idx] += 360.
 
-# Check format of load files
-if not (loadfile_format == "nc"):
-    if not (loadfile_format == "txt"):
-        print(":: Error: Invalid format for load files. See scripts in the /GRDGEN/load_files/ folder. \
-            Acceptable formats: netCDF, txt.")
+    # Convert Start and End Dates to Datetimes
+    if (time_series == True):
+        frstdt = datetime.datetime(frst_date[0],frst_date[1],frst_date[2],frst_date[3],frst_date[4],frst_date[5])
+        lastdt = datetime.datetime(last_date[0],last_date[1],last_date[2],last_date[3],last_date[4],last_date[5])
 
-# Determine Number of Matching Load Files
-load_files = []
-if os.path.isdir(loadfile_directory):
-    for mfile in os.listdir(loadfile_directory): # Filter by Load Directory
-        if mfile.startswith(loadfile_prefix): # Filter by File Prefix
-            if (time_series == True):
-                if (loadfile_format == "txt"):
-                    mydt = datetime.datetime.strptime(mfile[-18:-4],'%Y%m%d%H%M%S') # Convert Filename String to Datetime
-                elif (loadfile_format == "nc"):
-                    mydt = datetime.datetime.strptime(mfile[-17:-3],'%Y%m%d%H%M%S') # Convert Filename String to Datetime
+    # Check format of load files
+    if not (loadfile_format == "nc"):
+        if not (loadfile_format == "txt"):
+            print(":: Error: Invalid format for load files. See scripts in the /GRDGEN/load_files/ folder. \
+                Acceptable formats: netCDF, txt.")
+
+    # Determine Number of Matching Load Files
+    load_files = []
+    if os.path.isdir(loadfile_directory):
+        for mfile in os.listdir(loadfile_directory): # Filter by Load Directory
+            if mfile.startswith(loadfile_prefix): # Filter by File Prefix
+                if (time_series == True):
+                    if (loadfile_format == "txt"):
+                        mydt = datetime.datetime.strptime(mfile[-18:-4],'%Y%m%d%H%M%S') # Convert Filename String to Datetime
+                    elif (loadfile_format == "nc"):
+                        mydt = datetime.datetime.strptime(mfile[-17:-3],'%Y%m%d%H%M%S') # Convert Filename String to Datetime
+                    else:
+                        print(":: Error: Invalid format for load files. See scripts in the /GRDGEN/load_files/ folder. \
+                            Acceptable formats: netCDF, txt.")
+                    if ((mydt >= frstdt) & (mydt <= lastdt)): # Filter by Date Range
+                        load_files.append(loadfile_directory + mfile) # Append File to List
                 else:
-                    print(":: Error: Invalid format for load files. See scripts in the /GRDGEN/load_files/ folder. \
-                        Acceptable formats: netCDF, txt.")
-                if ((mydt >= frstdt) & (mydt <= lastdt)): # Filter by Date Range
                     load_files.append(loadfile_directory + mfile) # Append File to List
-            else:
-                load_files.append(loadfile_directory + mfile) # Append File to List
+    else:
+        sys.exit('Error: The loadfile directory does not exist. You may need to create it. \
+            The /GRDGEN/load_files/ folder contains utility scripts to convert common models into \
+            LoadDef-compatible formats, and will automatically create a loadfile directory.')
+
+    # Test for Load Files
+    if not load_files:
+        sys.exit('Error: Could not find load files. You may need to generate them. \
+            The /GRDGEN/load_files/ folder contains utility scripts to convert \
+            common models into LoadDef-compatible formats.')
+
+    # Sort the Filenames
+    load_files = np.asarray(load_files)
+    fidx = np.argsort(load_files)
+    load_files = load_files[fidx]
+    num_lfiles = len(load_files)
+
+# If I'm a Worker, I Know Nothing About the Data
 else:
-    sys.exit('Error: The loadfile directory does not exist. You may need to create it. \
-        The /GRDGEN/load_files/ folder contains utility scripts to convert common models into \
-        LoadDef-compatible formats, and will automatically create a loadfile directory.')
+    lslat = lslon = lsmask = load_files = None
+    eamp = epha = namp = npha = vamp = vpha = None
 
-# Test for Load Files
-if not load_files:
-    sys.exit('Error: Could not find load files. You may need to generate them. \
-        The /GRDGEN/load_files/ folder contains utility scripts to convert \
-        common models into LoadDef-compatible formats.')
-
-# Sort the Filenames
-load_files = np.asarray(load_files)
-fidx = np.argsort(load_files)
-load_files = load_files[fidx]
-num_lfiles = len(load_files)
+# Make Sure Everyone Has Reported Back Before Moving On
+comm.Barrier()
 
 # Prepare the common mesh, if applicable
-if (common_mesh == True):
+if (rank == 0): 
+    if (common_mesh == True):
 
-    ## Read in the common mesh
-    print(':: Common Mesh True. Reading in ilat, ilon, iarea.')
-    lcext = convmesh[-2::]
-    if (lcext == 'xt'):
-        ilat,ilon,unit_area = np.loadtxt(convmesh,usecols=(0,1,2),unpack=True)
-        # convert from unit area to true area of the spherical patch in m^2
-        iarea = np.multiply(unit_area, planet_radius**2)
-    elif (lcext == 'nc'):
-        f = netCDF4.Dataset(convmesh)
-        ilat = f.variables['midpoint_lat'][:]
-        ilon = f.variables['midpoint_lon'][:]
-        unit_area = f.variables['unit_area_patch'][:]
-        f.close()
-        # convert from unit area to true area of the spherical patch in m^2
-        iarea = np.multiply(unit_area, planet_radius**2)
+        ## Read in the common mesh
+        print(':: Common Mesh True. Reading in ilat, ilon, iarea.')
+        lcext = convmesh[-2::]
+        if (lcext == 'xt'):
+            ilat,ilon,unit_area = np.loadtxt(convmesh,usecols=(0,1,2),unpack=True)
+            # convert from unit area to true area of the spherical patch in m^2
+            iarea = np.multiply(unit_area, planet_radius**2)
+        elif (lcext == 'nc'):
+            f = netCDF4.Dataset(convmesh)
+            ilat = f.variables['midpoint_lat'][:]
+            ilon = f.variables['midpoint_lon'][:]
+            unit_area = f.variables['unit_area_patch'][:]
+            f.close()
+            # convert from unit area to true area of the spherical patch in m^2
+            iarea = np.multiply(unit_area, planet_radius**2)
 
-    ## Determine the Land-Sea Mask: Interpolate onto Mesh
-    print(':: Common Mesh True. Applying Land-Sea Mask.')
-    print(':: Number of Grid Points: %s | Size of LSMask: %s' %(str(len(ilat)), str(lsmask.shape)))
-    lsmk = interpolate_lsmask.main(ilat,ilon,lslat,lslon,lsmask)
-    print(':: Finished LSMask Interpolation.')
+        ## Determine the Land-Sea Mask: Interpolate onto Mesh
+        print(':: Common Mesh True. Applying Land-Sea Mask.')
+        print(':: Number of Grid Points: %s | Size of LSMask: %s' %(str(len(ilat)), str(lsmask.shape)))
+        lsmk = interpolate_lsmask.main(ilat,ilon,lslat,lslon,lsmask)
+        print(':: Finished LSMask Interpolation.')
 
-    ## For a common mesh, can already interpolate the load(s) onto the mesh, and also apply the land-sea mask.
-    ## Prepare land-sea mask application
-    if (lsmask_type == 2):
-        test_elements = np.where(lsmk == 0); test_elements = test_elements[0]
-    elif (lsmask_type == 1):
-        test_elements = np.where(lsmk == 1); test_elements = test_elements[0]
-
-    ## Loop through load file(s)
-    full_files = []
-    for hh in range(0,len(load_files)):
-
-        ## Current load file
-        cldfile = load_files[hh]
-
-        ## Filename identifier
-        str_components = cldfile.split('_')
-        cext = str_components[-1]
-        if (loadfile_format == "txt"):
-            file_id = cext[0:-4]
-        elif (loadfile_format == "nc"):
-            file_id = cext[0:-3]
-        else:
-            print(':: Error. Invalid file format for load models. [load_convolution.py]')
-            sys.exit()
-
-        ## Read the File
-        llat,llon,amp,pha,llat1dseq,llon1dseq,amp2darr,pha2darr = read_AmpPha.main(cldfile,loadfile_format,regular_grid=regular)
-        ## Find Where Amplitude is NaN (if anywhere) and Set to Zero
-        nanidx = np.isnan(amp); amp[nanidx] = 0.; pha[nanidx] = 0.
-        ## Convert Amp/Pha Arrays to Real/Imag
-        real = np.multiply(amp,np.cos(np.multiply(pha,pi/180.)))
-        imag = np.multiply(amp,np.sin(np.multiply(pha,pi/180.)))
-
-        ## Interpolate Load at Each Grid Point onto the Integration Mesh
-        ic1,ic2   = interpolate_load.main(ilat,ilon,llat,llon,real,imag,regular)
-
-        ## Multiply the Load Heights by the Load Density
-        ic1 = np.multiply(ic1,ldens)
-        ic2 = np.multiply(ic2,ldens)
-
-        ## Enforce Mass Conservation, if Desired
-        if (mass_cons == True):
-            if (lsmask_type == 1): # For Oceans
-                print(':: Warning: Enforcing Mass Conservation Over Oceans.')
-                ic1_mc,ic2_mc = mass_conservation.main(ic1[lsmk==0],ic2[lsmk==0],iarea[lsmk==0])
-                ic1[lsmk==0] = ic1_mc
-                ic2[lsmk==0] = ic2_mc
-            else: # For Land and Whole-Globe Models (like atmosphere and continental water)
-                print(':: Warning: Enforcing Mass Conservation Over Entire Globe.')
-                ic1,ic2 = mass_conservation.main(ic1,ic2,iarea)
-
-        ## Apply Land-Sea Mask Based on LS Mask Database (LAND=1;OCEAN=0)
-        # If lsmask_type = 2, Set Oceans to Zero (retain land)
-        # If lsmask_type = 1, Set Land to Zero (retain ocean)
-        # Else, Do Nothing (retain full model)
+        ## For a common mesh, can already interpolate the load(s) onto the mesh, and also apply the land-sea mask.
+        ## Prepare land-sea mask application
         if (lsmask_type == 2):
-            ic1[lsmk == 0] = 0.
-            ic2[lsmk == 0] = 0.
+            test_elements = np.where(lsmk == 0); test_elements = test_elements[0]
         elif (lsmask_type == 1):
-            ic1[lsmk == 1] = 0.
-            ic2[lsmk == 1] = 0.
+            test_elements = np.where(lsmk == 1); test_elements = test_elements[0]
 
-        ## Write results to temporary netCDF files
-        print(":: Writing netCDF-formatted temporary file for: ", cldfile)
-        custom_file = (tempdir + "temp" + outstr + "_" + file_id + ".nc")
-        full_files.append(custom_file)
-        # Open new NetCDF file in "write" mode
-        dataset = netCDF4.Dataset(custom_file,'w',format='NETCDF4_CLASSIC')
-        # Define dimensions for variables
-        num_pts = len(ic1)
-        latitude = dataset.createDimension('latitude',num_pts)
-        longitude = dataset.createDimension('longitude',num_pts)
-        real = dataset.createDimension('real',num_pts)
-        imag = dataset.createDimension('imag',num_pts)
-        parea = dataset.createDimension('area',num_pts)
-        # Create variables
-        latitudes = dataset.createVariable('latitude',float,('latitude',))
-        longitudes = dataset.createVariable('longitude',float,('longitude',))
-        reals = dataset.createVariable('real',float,('real',))
-        imags = dataset.createVariable('imag',float,('imag',))
-        pareas = dataset.createVariable('area',float,('area',))
-        # Add units
-        latitudes.units = 'degree_north'
-        longitudes.units = 'degree_east'
-        reals.units = 'kg/m^2 (real part of load * load density)'
-        imags.units = 'kg/m^2 (imag part of load * load density)'
-        pareas.units = 'm^2 (unit area of patch * planet_radius^2)'
-        # Assign data
-        latitudes[:] = ilat
-        longitudes[:] = ilon
-        reals[:] = ic1
-        imags[:] = ic2
-        pareas[:] = iarea
-        # Write Data to File
-        dataset.close()
+        ## Loop through load file(s)
+        full_files = []
+        for hh in range(0,len(load_files)):
 
-    ## Rename file list
-    load_files = full_files.copy()
+            ## Current load file
+            cldfile = load_files[hh]
+
+            ## Filename identifier
+            str_components = cldfile.split('_')
+            cext = str_components[-1]
+            if (loadfile_format == "txt"):
+                file_id = cext[0:-4]
+            elif (loadfile_format == "nc"):
+                file_id = cext[0:-3]
+            else:
+                print(':: Error. Invalid file format for load models. [load_convolution.py]')
+                sys.exit()
+
+            ## Name of file and check whether it already exists
+            custom_file = (tempdir + "temp" + outstr_conv + outstr + "_" + file_id + ".nc")
+            full_files.append(custom_file)
+            if os.path.isfile(custom_file):
+                print(':: File exists: ', custom_file, ' -- moving on.')
+                continue
+
+            ## Read the File
+            llat,llon,amp,pha,llat1dseq,llon1dseq,amp2darr,pha2darr = read_AmpPha.main(cldfile,loadfile_format,regular_grid=regular)
+            ## Find Where Amplitude is NaN (if anywhere) and Set to Zero
+            nanidx = np.isnan(amp); amp[nanidx] = 0.; pha[nanidx] = 0.
+            ## Convert Amp/Pha Arrays to Real/Imag
+            real = np.multiply(amp,np.cos(np.multiply(pha,pi/180.)))
+            imag = np.multiply(amp,np.sin(np.multiply(pha,pi/180.)))
+
+            ## Interpolate Load at Each Grid Point onto the Integration Mesh
+            ic1,ic2   = interpolate_load.main(ilat,ilon,llat,llon,real,imag,regular)
+
+            ## Multiply the Load Heights by the Load Density
+            ic1 = np.multiply(ic1,ldens)
+            ic2 = np.multiply(ic2,ldens)
+
+            ## Enforce Mass Conservation, if Desired
+            if (mass_cons == True):
+                if (lsmask_type == 1): # For Oceans
+                    print(':: Warning: Enforcing Mass Conservation Over Oceans.')
+                    ic1_mc,ic2_mc = mass_conservation.main(ic1[lsmk==0],ic2[lsmk==0],iarea[lsmk==0])
+                    ic1[lsmk==0] = ic1_mc
+                    ic2[lsmk==0] = ic2_mc
+                else: # For Land and Whole-Globe Models (like atmosphere and continental water)
+                    print(':: Warning: Enforcing Mass Conservation Over Entire Globe.')
+                    ic1,ic2 = mass_conservation.main(ic1,ic2,iarea)
+
+            ## Apply Land-Sea Mask Based on LS Mask Database (LAND=1;OCEAN=0)
+            # If lsmask_type = 2, Set Oceans to Zero (retain land)
+            # If lsmask_type = 1, Set Land to Zero (retain ocean)
+            # Else, Do Nothing (retain full model)
+            if (lsmask_type == 2):
+                ic1[lsmk == 0] = 0.
+                ic2[lsmk == 0] = 0.
+            elif (lsmask_type == 1):
+                ic1[lsmk == 1] = 0.
+                ic2[lsmk == 1] = 0.
+
+            ## Write results to temporary netCDF files
+            print(":: Writing netCDF-formatted temporary file for: ", cldfile)
+            # Open new NetCDF file in "write" mode
+            dataset = netCDF4.Dataset(custom_file,'w',format='NETCDF4_CLASSIC')
+            # Define dimensions for variables
+            num_pts = len(ic1)
+            latitude = dataset.createDimension('latitude',num_pts)
+            longitude = dataset.createDimension('longitude',num_pts)
+            real = dataset.createDimension('real',num_pts)
+            imag = dataset.createDimension('imag',num_pts)
+            parea = dataset.createDimension('area',num_pts)
+            # Create variables
+            latitudes = dataset.createVariable('latitude',float,('latitude',))
+            longitudes = dataset.createVariable('longitude',float,('longitude',))
+            reals = dataset.createVariable('real',float,('real',))
+            imags = dataset.createVariable('imag',float,('imag',))
+            pareas = dataset.createVariable('area',float,('area',))
+            # Add units
+            latitudes.units = 'degree_north'
+            longitudes.units = 'degree_east'
+            reals.units = 'kg/m^2 (real part of load * load density)'
+            imags.units = 'kg/m^2 (imag part of load * load density)'
+            pareas.units = 'm^2 (unit area of patch * planet_radius^2)'
+            # Assign data
+            latitudes[:] = ilat
+            longitudes[:] = ilon
+            reals[:] = ic1
+            imags[:] = ic2
+            pareas[:] = iarea
+            # Write Data to File
+            dataset.close()
+
+        ## Rename file list
+        load_files = full_files.copy()
+
+# Make Sure Everyone Has Reported Back Before Moving On
+comm.Barrier()
 
 ## If Using a Common Mesh, Then Re-set the LoadFile Format to Indicate a Common Mesh is Used
 if (common_mesh == True):
-    loadfile_format = "common" 
+    loadfile_format = "common"
 
+# All Processors Get Certain Arrays and Parameters; Broadcast Them
+lslat        = comm.bcast(lslat, root=0)
+lslon        = comm.bcast(lslon, root=0)
+lsmask       = comm.bcast(lsmask, root=0)
+load_files   = comm.bcast(load_files, root=0)
+ 
 # Gather the Processor Workloads for All Processors
 sendcounts = comm.gather(procN, root=0)
 
@@ -600,7 +679,14 @@ for dd in range(0,len(gffiles)):
 # Free Data Type
 cntype.Free()
 ltype.Free()
-  
+
+# Remove load files that are no longer needed
+if (rank == 0):
+    if (common_mesh == True):
+        for gg in range(0,len(load_files)):
+            cfile = load_files[gg]
+            os.remove(cfile)
+
 # Make Sure All Jobs Have Finished Before Continuing
 comm.Barrier()
  
