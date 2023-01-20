@@ -52,6 +52,9 @@ grid_spacing_x = 0.01
 grid_spacing_y = 0.01
  
 # 3. Land-Sea Mask
+#  :: 0 = do not mask ocean or land (retain full model); 1 = mask out land (retain ocean); 2 = mask out oceans (retain land)
+#  :: Recommended: 1 for oceanic; 2 for atmospheric
+lsmask_type = 2
 land_sea = ("../../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 
 # 4. Write Load Information to a netCDF-formatted File? (Default for convolution)
@@ -108,37 +111,52 @@ for ii in range(1,len(gllat_rad)):
 unit_area = np.asarray(unit_area)
 
 # Create the Grid
-xv1,yv1 = np.meshgrid(lon_mdpts,lat_mdpts)
-xv2,yv2 = np.meshgrid(lon_mdpts,unit_area)
+llon,llat = np.meshgrid(lon_mdpts,lat_mdpts)
+xv2,unit_area = np.meshgrid(lon_mdpts,unit_area)
 
-# Read In the Land-Sea Mask 
-print(':: Reading in the Land-Sea Mask.')
-lslat,lslon,lsmask = read_lsmask.main(land_sea) 
+# Apply a land-sea mask?
+if (lsmask_type == 1 or lsmask_type == 2):
 
-# Ensure that Land-Sea Mask Longitudes are in Range 0-360
-neglon_idx = np.where(lslon<0.)
-lslon[neglon_idx] = lslon[neglon_idx] + 360.
- 
-# Determine the Land-Sea Mask (1' Resolution) From ETOPO1 (and Optionally GSHHG as well)
-print(':: Interpolating Land-Sea Mask onto Grid.')
-lsmk = interpolate_lsmask.main(yv1,xv1,lslat,lslon,lsmask)
+    # Read In the Land-Sea Mask
+    print(':: Reading in the Land-Sea Mask.')
+    lslat,lslon,lsmask = read_lsmask.main(land_sea)
 
-# Apply Land-Sea Mask
-print(':: Applying Land-Sea Mask to the Grids.')
-landlat = yv1[lsmk == 1]
-landlon = xv1[lsmk == 1]
-unit_area = yv2[lsmk == 1]
-print(':: Total Number of Locations: %6d' %(len(landlat)))
+    # Ensure that Land-Sea Mask Longitudes are in Range 0-360
+    neglon_idx = np.where(lslon<0.)
+    lslon[neglon_idx] = lslon[neglon_idx] + 360.
+
+    # Determine the Land-Sea Mask (1' Resolution) From ETOPO1 (and Optionally GSHHG as well)
+    print(':: Interpolating Land-Sea Mask onto Grid.')
+    lsmk = interpolate_lsmask.main(llat,llon,lslat,lslon,lsmask)
+
+    # Apply Land-Sea Mask
+    print(':: Applying Land-Sea Mask to the Grids.')
+    if (lsmask_type == 1): # mask out land and retain ocean
+        llat = llat[lsmk == 0]
+        llon = llon[lsmk == 0]
+        unit_area = unit_area[lsmk == 0]
+        print(':: Total Number of Ocean Elements: %6d' %(len(llat)))
+        xtr_str = "_landmask"
+    elif (lsmask_type == 2): # mask out ocean and retain land
+        llat = llat[lsmk == 1]
+        llon = llon[lsmk == 1]
+        unit_area = unit_area[lsmk == 1]
+        print(':: Total Number of Land Elements: %6d' %(len(llat)))
+        xtr_str = "_oceanmask"
+
+else:
+    # Print status update
+    print(':: Total Number of Mesh Elements: %6d' %(len(llat)))
 
 # Output Load Cells to File for Use with LoadDef
 if (write_nc == True):
     print(":: Writing netCDF-formatted file.")
-    outname = ("commonMesh_regional_" + str(slat) + "_" + str(nlat) + "_" + str(wlon) + "_" + str(elon) + "_" + str(grid_spacing_y) + "_" + str(grid_spacing_x) + ".nc")
+    outname = ("commonMesh_regional_" + str(slat) + "_" + str(nlat) + "_" + str(wlon) + "_" + str(elon) + "_" + str(grid_spacing_y) + "_" + str(grid_spacing_x) + xtr_str + ".nc")
     outfile = ("../../output/Grid_Files/nc/commonMesh/" + outname)
     # Open new NetCDF file in "write" mode
     dataset = netCDF4.Dataset(outfile,'w',format='NETCDF4_CLASSIC')
     # Define dimensions for variables
-    numpts = len(landlat)
+    numpts = len(llat)
     gridline_lat = dataset.createDimension('gridline_lat',len(gllat))
     gridline_lon = dataset.createDimension('gridline_lon',len(gllon))
     midpoint_lat = dataset.createDimension('midpoint_lat',numpts)
@@ -159,22 +177,22 @@ if (write_nc == True):
     # Assign data
     gridline_lats[:] = gllat
     gridline_lons[:] = gllon
-    midpoint_lats[:] = landlat
-    midpoint_lons[:] = landlon
+    midpoint_lats[:] = llat
+    midpoint_lons[:] = llon
     unit_area_patches[:] = unit_area
     # Write Data to File
     dataset.close()
 if (write_txt == True):
     print(":: Writing plain-text file.")
-    outname = ("commonMesh_regional_" + str(slat) + "_" + str(nlat) + "_" + str(wlon) + "_" + str(elon) + "_" + str(grid_spacing_y) + "_" + str(grid_spacing_x) + ".txt")
+    outname = ("commonMesh_regional_" + str(slat) + "_" + str(nlat) + "_" + str(wlon) + "_" + str(elon) + "_" + str(grid_spacing_y) + "_" + str(grid_spacing_x) + xtr_str + ".txt")
     outfile = ("../../output/Grid_Files/text/commonMesh/" + outname)
     # Prepare Data
-    all_data = np.array(list(zip(landlat,landlon,unit_area)), dtype=[('landlat',float),('landlon',float),('unit_area',float)])
+    all_data = np.array(list(zip(llat,llon,unit_area)), dtype=[('llat',float),('llon',float),('unit_area',float)])
     # Write Data to File
     np.savetxt(outfile, all_data, fmt=["%.15f",]*3, delimiter="      ")
 
 # Plot
-plt.plot(landlon,landlat,'.',ms=6)
+plt.plot(llon,llat,'.',ms=6)
 plt.show()
 
 

@@ -320,7 +320,7 @@ if (write_nc == True):
 if (write_txt == True):
     print(":: Writing plain-text file.")
     outname = ("commonMesh_global_" + str(gspace_lat) + "_" + str(gspace_lon) + "_" + str(slat_inn) + "_" + str(nlat_inn) + "_" + \
-        str(wlon_inn) + "_" + str(elon_inn) + "_" + str(enhanced_lat_inn) + "_" + str(enhanced_lon_inn) + ".txt")
+        str(wlon_inn) + "_" + str(elon_inn) + "_" + str(enhanced_lat_inn) + "_" + str(enhanced_lon_inn) + xtr_str + ".txt")
     outfile = ("../../output/Grid_Files/text/commonMesh/" + outname)
     # Prepare Data
     all_data = np.array(list(zip(llat,llon,unit_area)), dtype=[('llat',float),('llon',float),('unit_area',float)])
