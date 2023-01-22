@@ -2,9 +2,9 @@
 
 # *********************************************************************
 # PROGRAM TO GENERATE GRIDS FOR LOADS FROM GRACE
-# :: GRIDS GENERATED MAY BE USED BY LOADDEF (run_cn.py) OR IN GMT
+# :: GRIDS GENERATED HERE MAY BE USED BY LOADDEF (run_cn_[].py) OR IN GMT
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -216,7 +216,7 @@ for ii in range(0,len(date_list)):
     if (os.path.isfile(loadfile1)):
         llat,llon,amp,pha,llat1dseq,llon1dseq,amp2darr,pha2darr = read_grace_tellus.main(loadfile1,mydt,ldfl2=loadfile2,ldfl3=loadfile3,scl=scaling,avsolns=avgsol,appscaling=appscl)
         if llat is None:
-            print(':: Warning: Date does not exist within file.')
+            print(':: Checking next date for a data entry...')
             # Save date_list index, then continue
             dates_to_delete.append(ii)
             continue
@@ -230,7 +230,7 @@ for ii in range(0,len(date_list)):
             lon_array = llon.copy()
             print(grace_amp.shape)
     else: # File Does Not Exist
-        print(':: Warning: Load File Does Not Exist.')
+        print(':: Load file could not be found.')
         #to_mask[:,ii] = np.ones((grace_shape[0],)) # set mask to true
         #grace_amp[:,ii] = np.zeros((grace_shape[0],))
 
@@ -337,13 +337,8 @@ for kk in range(0,len(date_list_out)):
     if (len(dselect > 0)):
         dselect = dselect[0]
     else:
-        print(':: Warning: No Date Match Found for Output Date in Range of Amplitude Array | %s' %(string_date))
+        #print(':: No Date Match Found for Output Date in Range of Amplitude Array | %s' %(string_date))
         continue
-    #idx = str(jj) # Convert to string to test if a value exists (including zero)
-    #if not idx:
-    #    print(':: Warning: No Date Match Found for Output Date in Range of Amplitude Array | %s' %(string_date))
-    #    continue
-    #jj = int(idx) # Convert back to integer to use as index
     # Prepare to Write to File
     print(':: Writing %s' %(string_dates[dselect]))
     grace_out = ("grace_" + tag + string_date + ".txt")
