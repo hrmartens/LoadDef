@@ -191,6 +191,9 @@ if (write_txt == True):
     # Write Data to File
     np.savetxt(outfile, all_data, fmt=["%.15f",]*3, delimiter="      ")
 
+# Print file name
+print(':: New mesh file: ', outfile)
+
 # Plot
 plt.plot(llon,llat,'.',ms=6)
 plt.show()

@@ -79,7 +79,7 @@ pm_correct = False
 # 7. Land-Sea Mask
 #  :: 0 = do not mask ocean or land (retain full model); 1 = mask out land (retain ocean); 2 = mask out oceans (retain land)
 #  :: Recommended: 1 for oceanic; 2 for atmospheric
-lsmask_type = 1
+lsmask_type = 2
 land_sea = ("../../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 
 # 8. Write Load Information to a netCDF-formatted File? (Default for convolution)
@@ -293,7 +293,8 @@ else:
 # Output Load Cells to File for Use with LoadDef
 if (write_nc == True):
     print(":: Writing netCDF-formatted file.")
-    outname = ("commonMesh_global_" + str(gspace_lat) + "_" + str(gspace_lon) + "_" + str(slat_inn) + "_" + str(nlat_inn) + "_" + \
+    outname = ("commonMesh_global_" + str(gspace_lat) + "_" + str(gspace_lon) + "_" + str(slat_mid) + "_" + str(nlat_mid) + "_" + \
+        str(wlon_mid) + "_" + str(elon_mid) + "_" + str(enhanced_lat_mid) + "_" + str(enhanced_lon_mid) + "_" + str(slat_inn) + "_" + str(nlat_inn) + "_" + \
         str(wlon_inn) + "_" + str(elon_inn) + "_" + str(enhanced_lat_inn) + "_" + str(enhanced_lon_inn) + xtr_str + ".nc")
     outfile = ("../../output/Grid_Files/nc/commonMesh/" + outname)
     # Open new NetCDF file in "write" mode
@@ -319,13 +320,17 @@ if (write_nc == True):
     dataset.close()
 if (write_txt == True):
     print(":: Writing plain-text file.")
-    outname = ("commonMesh_global_" + str(gspace_lat) + "_" + str(gspace_lon) + "_" + str(slat_inn) + "_" + str(nlat_inn) + "_" + \
-        str(wlon_inn) + "_" + str(elon_inn) + "_" + str(enhanced_lat_inn) + "_" + str(enhanced_lon_inn) + xtr_str + ".txt")
+    outname = ("commonMesh_global_" + str(gspace_lat) + "_" + str(gspace_lon) + "_" + str(slat_mid) + "_" + str(nlat_mid) + "_" + \
+        str(wlon_mid) + "_" + str(elon_mid) + "_" + str(enhanced_lat_mid) + "_" + str(enhanced_lon_mid) + "_" + str(slat_inn) + "_" + str(nlat_inn) + "_" + \
+        str(wlon_inn) + "_" + str(elon_inn) + "_" + str(enhanced_lat_inn) + "_" + str(enhanced_lon_inn) + xtr_str + ".nc")
     outfile = ("../../output/Grid_Files/text/commonMesh/" + outname)
     # Prepare Data
     all_data = np.array(list(zip(llat,llon,unit_area)), dtype=[('llat',float),('llon',float),('unit_area',float)])
     # Write Data to File
     np.savetxt(outfile, all_data, fmt=["%.15f",]*3, delimiter="      ")
+
+# Print file name
+print(':: New mesh file: ', outfile)
 
 # Plot
 plt.plot(llon,llat,'.',ms=6)
