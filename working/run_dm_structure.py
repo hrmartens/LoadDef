@@ -144,7 +144,7 @@ mass_cons = False
 sta_file = ("../input/Station_Locations/NOTA.txt")
 
 # Optional: Additional string to include in all output filenames (Love numbers, Green's functions, Convolution)
-outstr = ("")
+outstr = ("test")
 
 # Optional: Additional string to include in output filenames for the convolution (e.g. "_2022")
 if (common_mesh == True):
@@ -219,21 +219,21 @@ for ee in range(0,len(nodes)):
     # Current output name (must match what "perturb_pmod" produces!)
     outname = (str('{:.4f}'.format(perturbation)) + "_" + str(crad_range[0]) + "_" + str(crad_range[1]))
     # New model for mu
-    mu_name = (pmod + "_mu_" + outname + outstr)
+    mu_name = (pmod + "_mu_" + outname)
     fname_mu = (outdir_pmods + mu_name + ".txt")
-    lngfext_mu = (mu_name + ".txt")
+    lngfext_mu = (mu_name + outstr + ".txt")
     ln_mu = ("../output/Love_Numbers/LLN/lln_" + lngfext_mu)
     gf_mu = ("../output/Greens_Functions/" + rfm + "_" + lngfext_mu)
     # New model for kappa
-    kappa_name = (pmod + "_kappa_" + outname + outstr)
+    kappa_name = (pmod + "_kappa_" + outname)
     fname_kappa = (outdir_pmods + kappa_name + ".txt")
-    lngfext_kappa = (kappa_name + ".txt")
+    lngfext_kappa = (kappa_name + outstr + ".txt")
     ln_kappa = ("../output/Love_Numbers/LLN/lln_" + lngfext_kappa)
     gf_kappa = ("../output/Greens_Functions/" + rfm + "_" + lngfext_kappa)
     # New model for rho
-    rho_name = (pmod + "_rho_" + outname + outstr)
+    rho_name = (pmod + "_rho_" + outname)
     fname_rho = (outdir_pmods + rho_name + ".txt")
-    lngfext_rho = (rho_name + ".txt")
+    lngfext_rho = (rho_name + outstr + ".txt")
     ln_rho = ("../output/Love_Numbers/LLN/lln_" + lngfext_rho)
     gf_rho = ("../output/Greens_Functions/" + rfm + "_" + lngfext_rho)
     # Append files to list
