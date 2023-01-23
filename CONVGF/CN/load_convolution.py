@@ -1,7 +1,7 @@
 # *********************************************************************
 # FUNCTION TO COMPUTE LOAD-INDUCED SURFACE DISPLACEMENTS
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -209,8 +209,13 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
         vint = iarea * gfv
 
         # Un-normalize
-        uint = np.divide(uint,delta) / nfactor
-        vint = np.divide(vint,delta) / nfactor
+        try: 
+            uint = np.divide(uint,delta) / nfactor
+            vint = np.divide(vint,delta) / nfactor
+        except:
+            print(':: Warning: Encountered an angle at or near zero; setting integrated LGFs to zero. [load_convolution.py]')
+            uint = 0.
+            vint = 0.
 
         # Compute Greens Functions Specific to Receiver and Grid (Geographic Coordinates)
         ur,ue,un = compute_specific_greens_fcns.main(haz,uint,vint)
