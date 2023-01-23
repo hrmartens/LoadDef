@@ -5,7 +5,7 @@
 # BY CONVOLVING DISPLACEMENT LOAD GREENS FUNCTIONS WITH A UNIFORM LOAD IN 
 # EACH USER-DEFINED GRID CELL 
 #
-# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -75,13 +75,13 @@ norm_flag  = False
 cellfname = ("cells_28.0_50.0_233.0_258.0_0.25")
 loadgrid  = ("../output/Grid_Files/nc/cells/" + cellfname + ".nc") 
 
-# OPTIONAL: Provide a common geographic mesh? 
+# NEW OPTION: Provide a common geographic mesh? 
 # If True, must provide the full path to a mesh file (see: GRDGEN/common_mesh). 
 # If False, a station-centered grid will be created within the functions called here. 
-common_mesh = False
+common_mesh = True
 # Full Path to Grid File Containing Surface Mesh (for sampling the load Green's functions)
 #  :: Format: latitude midpoints [float,degrees N], longitude midpoints [float,degrees E], unit area of each patch [float,dimensionless (need to multiply by r^2)]
-meshfname = ("commonMesh_regional_28.0_50.0_233.0_258.0_0.01_0.01")
+meshfname = ("commonMesh_regional_28.0_50.0_233.0_258.0_0.01_0.01_oceanmask")
 convmesh = ("../output/Grid_Files/nc/commonMesh/" + meshfname + ".nc")
 
 # Planet Radius (in meters; used for Greens function normalization)
@@ -94,8 +94,8 @@ ldens = 1000.0
 # Ocean/Land Mask
 #  :: 0 = do not mask ocean or land (retain full model); 1 = mask out land (retain ocean); 2 = mask out oceans (retain land)
 #  :: Recommended: 1 for oceanic; 2 for atmospheric and continental water
-#  :: When pre-generating a common mesh, a land-sea mask can already be applied. Thus, it is recommended to set lsmask_type = 0 here. 
-lsmask_type = 2
+#  :: When pre-generating a common mesh, a land-sea mask can be applied a priori to the mesh. If that is done, it is recommended to set lsmask_type = 0 here. 
+lsmask_type = 0
 
 # Full Path to Land-Sea Mask File (May be Irregular and Sparse)
 #  :: Format: Lat, Lon, Mask [0=ocean; 1=land]
@@ -528,12 +528,10 @@ if (rank == 0):
     except:
         eamp = eamp[nidx]; namp = namp[nidx]; vamp = vamp[nidx]
         epha = epha[nidx]; npha = npha[nidx]; vpha = vpha[nidx]
-    print('Up amplitude (rows = stations; cols = load cells):')
-    print(vamp.shape)
-    print(vamp)
-    print('Up phase (rows = stations; cols = load cells):')
-    print(vpha.shape)
-    print(vpha)
+    #print('Up amplitude (rows = stations; cols = load cells):')
+    #print(vamp)
+    #print('Up phase (rows = stations; cols = load cells):')
+    #print(vpha)
 
 # Loop Through Each Station & Populate the Design Matrix
 for jj in range(0,len(slat)):

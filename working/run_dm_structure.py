@@ -3,7 +3,7 @@
 # *********************************************************************
 # MAIN PROGRAM TO COMPUTE A DESIGN MATRIX TO INVERT FOR STRUCTURE --
 #
-# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -116,13 +116,13 @@ regular = True
 #  Recommended: 1025-1035 kg/m^3 for oceanic loads (e.g., FES2014, ECCO2); 1 kg/m^3 for atmospheric loads (e.g. ECMWF); 1000 kg/m^3 for fresh water
 ldens = 1030.0
 
-# OPTIONAL: Provide a common geographic mesh?
+# NEW OPTION: Provide a common geographic mesh?
 # If True, must provide the full path to a mesh file (see: GRDGEN/common_mesh). 
 # If False, a station-centered grid will be created within the functions called here. 
 common_mesh = True
 # Full Path to Grid File Containing Surface Mesh (for sampling the load Green's functions)
 #  :: Format: latitude midpoints [float,degrees N], longitude midpoints [float,degrees E], unit area of each patch [float,dimensionless (need to multiply by r^2)]
-meshfname = ("commonMesh_global_1.0_1.0_28.0_50.0_233.0_258.0_0.01_0.01_landmask")
+meshfname = ("commonMesh_global_1.0_1.0_18.0_60.0_213.0_278.0_0.1_0.1_28.0_50.0_233.0_258.0_0.01_0.01_landmask")
 convmesh = ("../output/Grid_Files/nc/commonMesh/" + meshfname + ".nc")
 
 # Planet Radius (in meters; used for Greens function normalization)
