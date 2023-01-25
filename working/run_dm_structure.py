@@ -144,7 +144,7 @@ mass_cons = False
 sta_file = ("../input/Station_Locations/NOTA.txt")
 
 # Optional: Additional string to include in all output filenames (Love numbers, Green's functions, Convolution)
-outstr = ("test")
+outstr = ("")
 
 # Optional: Additional string to include in output filenames for the convolution (e.g. "_2022")
 if (common_mesh == True):
