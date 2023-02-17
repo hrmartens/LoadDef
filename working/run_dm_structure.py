@@ -680,6 +680,9 @@ for dd in range(0,len(gffiles)):
 cntype.Free()
 ltype.Free()
 
+# Make Sure All Jobs Have Finished Before Continuing
+comm.Barrier()
+
 # Remove load files that are no longer needed
 if (rank == 0):
     if (common_mesh == True):

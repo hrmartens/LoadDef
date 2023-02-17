@@ -505,6 +505,9 @@ if (rank == 0):
     #print('Up phase (rows = stations; cols = load models):')
     #print(vpha)
 
+# Make Sure All Jobs Have Finished Before Continuing
+comm.Barrier()
+
 # Remove load files that are no longer needed
 if (rank == 0):
     if (common_mesh == True): 
