@@ -215,9 +215,9 @@ for ee in range(0,len(nodes)):
     # Current radial range
     crad_range = nodes[ee]
     # RUN THE PERTURBATIONS
-    perturb_pmod.main(planet_model,pmod,perturbation,crad_range,outdir_pmods)
+    perturb_pmod.main(planet_model,pmod,perturbation,crad_range,outdir_pmods,suffix=outstr)
     # Current output name (must match what "perturb_pmod" produces!)
-    outname = (str('{:.4f}'.format(perturbation)) + "_" + str(crad_range[0]) + "_" + str(crad_range[1]))
+    outname = (str('{:.4f}'.format(perturbation)) + "_" + str(crad_range[0]) + "_" + str(crad_range[1]) + outstr)
     # New model for mu
     mu_name = (pmod + "_mu_" + outname)
     fname_mu = (outdir_pmods + mu_name + ".txt")

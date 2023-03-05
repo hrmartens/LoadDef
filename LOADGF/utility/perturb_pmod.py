@@ -36,10 +36,10 @@ from LOADGF.LN import prepare_planet_model
 #  :: rad_range: The range of radii to perturb (in km)
 #  :: include_start_point: Include first point for lower bound?
 #  :: include_end_point: Include last point for upper bound?
-def main(planet_model,pmod,perturb,rad_range,outdir,ref_rho=1,ref_mu=1,ref_ka=1,include_start_point=False,include_end_point=True):
+def main(planet_model,pmod,perturb,rad_range,outdir,ref_rho=1,ref_mu=1,ref_ka=1,include_start_point=False,include_end_point=True,suffix=""):
 
     # Output Filename
-    outname = (str('{:.4f}'.format(perturb)) + "_" + str(rad_range[0]) + "_" + str(rad_range[1]))
+    outname = (str('{:.4f}'.format(perturb)) + "_" + str(rad_range[0]) + "_" + str(rad_range[1]) + suffix)
 
     # Prepare Planet Model
     print(':: Preparing Planet Model')
