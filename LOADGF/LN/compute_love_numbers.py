@@ -1,7 +1,7 @@
 # *********************************************************************
 # FUNCTION TO COMPUTE LOVE NUMBERS
 #
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -100,8 +100,8 @@ nmaxfull : Maximum spherical harmonic degree for which integration will be perfo
 
 file_out : Extension for the output files.
     Default is ".txt"
-
-nongrav : Option to toggle off self gravity. When set to False, self gravity is included. When set to True, gravity is not considered. 
+ 
+nongrav : NEW option to toggle off self gravity. When set to False, self gravity is included. When set to True, gravity is not considered. 
     CAUTION : The option for no gravity is not yet well tested. Proceed with care and check your results. 
     Default is False
 
