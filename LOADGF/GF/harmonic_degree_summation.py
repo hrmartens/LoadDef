@@ -30,7 +30,11 @@ from LOADGF.GF import compute_legendre
 from LOADGF.GF import compute_disk_factor
 from LOADGF.GF import series_sum
 
-def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_type,lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper):
+def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_type,lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper,max_theta=200.):
+
+    # Note on 'max_theta': Used to set a maximum angular distance, beyond which the LGFs are computed by direct sum 
+    #   rather than using the asymptotic Love numbers (Guo, personal communication, 2016)
+    # Greater than 180 degrees disables the function (i.e., all angular distances will be computed using asymptotic Love numbers)
 
     # Convert Theta to Radians
     myt = np.multiply(mytheta,(math.pi/180.))
@@ -98,10 +102,6 @@ def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_typ
     if (apply_taper == True):
         cfs[-recursive_iterations::] = conv_coeff[recursive_iterations-1,0:-1]
 
-    # Set a maximum angular distance, beyond which the LGFs are computed by direct sum 
-    #  rather than using the asymptotic love numbers (Guo, personal communication, 2016)
-    max_theta = 200. # Greater than 180 disables the function (all angular distances will be computed using asymptotic Love numbers)
-
     # Precision might be an issue with equations in the form of Guo et al. (2004), Appendix B
     # :: Write equations in a different format 
     # :: B2,B6,B8 from Farrell (1972), Appendix A; B4,B7,B9 from Guo (2016), personal communication; Eq. 16a-16d from Na and Baek (2011)
@@ -142,7 +142,6 @@ def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_typ
         myn = n[vv]
         # Degree-0
         if (myn == 0): 
-            #usum[vcount] = (lln_h[vv] - h_inf) * P[vv]
             if (mytheta <= max_theta):
                 usum[vcount] = (lln_h[vv] - h_inf) * P[vv]
             else:
