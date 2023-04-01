@@ -103,6 +103,7 @@ file_out : Extension for the output files.
 
 nongrav : Option to toggle off self gravity. When set to False, self gravity is included. When set to True, gravity is not considered. 
     Default is False
+
 """
 
 # Main Function

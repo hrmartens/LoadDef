@@ -33,3 +33,14 @@ of mass of the system.
 # PROBABLY... BUT THE SOLUTIONS SEEM TO MATCH LLNs COMPUTED DIRECTLY AT HIGH N
 # SHOULD INVESTIGATE THIS FURTHER...
 
+** 1 April 2023: 
+- Added an option to compute_love_numbers() called "nongrav", which toggles self-gravity on or off
+
+NOTES: 
+
+The Love number computation differs from the standard LoadDef (so that we can remove self-gravity). Other than that, you should be able to run all the other steps (Green's functions, convolution) as normal. Simply set "nongrav = True" in the call to compute_love_numbers.
+
+Note that neglecting self-gravity means that we cannot include a fluid layer, but this does not matter for homogeneous sphere tests.
+
+Furthermore, the degree-1 term (rigid body motion) is not constrained for the no-gravity case. I therefore set n=1 Love numbers to zero. This will bias the results. One way to get around this is to place a symmetric load at both poles, such that we have perfect loading symmetry, and the reference-frame origin does not matter. In other words, CE = CM = CF when the loads are symmetric at the poles. For comparing LDEF with gravity versus LDEF without gravity, we can keep the loading consistent (i.e., symmetric loads at both poles for each of those modeling exercises).
+
