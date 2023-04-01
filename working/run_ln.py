@@ -21,16 +21,15 @@
 #    along with LoadDef.  If not, see <https://www.gnu.org/licenses/>.
 #
 # *********************************************************************
-#
+
+# *********************************************************************
 # Special note: We now include a new keyword agrument in the call to 
 #               compute_love_numbers ("nongrav"), which toggles self-
 #               gravity on or off. Please note that the computation 
 #               without self-gravity (nongrav=True) is not yet well 
 #               tested. Proceed with caution and check your results. 
 #               The default is to include self-gravity (nongrav=False).
-#
 # *********************************************************************
-
 
 # IMPORT MPI MODULE
 from mpi4py import MPI
