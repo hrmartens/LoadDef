@@ -6,7 +6,7 @@
 # PURPOSE: CONVERT EAST and NORTH AMPLITUDES TO HORIZONTAL PMEs
 # LITERATURE: Martens et al. (2016, GJI), Martens (2016, Caltech)
 # 
-# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -56,6 +56,9 @@ def main(directory,prefix,suffix,output_directory="./output/"):
     # Check for files
     if not station_files:
         sys.exit('No station files match the criteria.')
+
+    # Sort the Filenames
+    station_files = np.sort(station_files)
  
     # Create list for all filenames
     all_files = []
