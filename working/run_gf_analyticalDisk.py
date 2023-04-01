@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
 # *********************************************************************
-# MAIN PROGRAM TO COMPUTE LOAD GREENS FUNCTIONS (DISPLACEMENT, GRAVITY, TILT, STRAIN)
+# SPECIAL PROGRAM TO COMPUTE LOAD GREENS FUNCTIONS 
+#  (ONLY VERTICAL AND HORIZONTAL DISPLACEMENT FOR NOW)
+#  FOR A DISK LOAD USING AN ANALYTICAL APPROACH BASED ON THE 
+#  DISK FACTOR FROM FARRELL (1972)
 #
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -22,6 +25,30 @@
 #
 # *********************************************************************
 
+# *********************************************************************
+# SPECIAL NOTE: This program will compute the displacement response to 
+#               a disk load without the need to run a separate convolution. 
+#               We take advantage of the simple disk geometry and the disk
+#               factor described in Farrell (1972) to compute the 
+#               deformation response to a disk load of arbitrary radius,
+#               height, and density (user specified). 
+#
+#               Note that the displacement results will appear in the 
+#               Green's-function file itself (columns 2 and 3). 
+#               Angular distance from the center of the disk appears in 
+#               the first column. Ignore all other columns (4+).
+#               In other words, the disp LGFs are no longer for a point load, 
+#               but for the finite-sized disk load specified by the user. 
+#
+#               If investigating the response to loading at both poles, 
+#               simply add the Green's functions together,  
+#               after reversing the angular order of one set. 
+#
+#               This is a relatively new addition to LoadDef and is 
+#               therefore not as extensively tested as other features.
+#               As always, proceed with caution and check your results.
+# *********************************************************************
+ 
 # IMPORT MPI MODULE
 from mpi4py import MPI
 
@@ -37,33 +64,38 @@ from LOADGF.GF import compute_greens_functions
 # --------------- SPECIFY USER INPUTS --------------------- #
  
 # Full path to Load Love Number file (output from run_ln.py)
-#lln_file = ("../output/Love_Numbers/LLN/lln_PREM.txt")
-lln_file = ("../output/Love_Numbers/LLN/lln_Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
+lln_file = ("../output/Love_Numbers/LLN/lln_PREM.txt")
+#lln_file = ("../output/Love_Numbers/LLN/lln_Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
  
 # Output filename (Default is 'grn.txt')
-#file_out = ("PREM_analyticalDisk.txt")
-file_out = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_analyticalDisk.txt")
+file_out = ("PREM_analyticalDisk.txt")
+#file_out = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_analyticalDisk.txt")
 
 # Apply a disk factor everywhere, with a radius of 'disks' degrees
-diskf = True
-angdst = 0.
-disks = 10.
+diskf = True # True tells LoadDef to apply the disk factor
+angdst = 0. # The angular distance from the load point at which to start applying the disk factor (For analytical LGFs, angdst must be set to 0.)
+disks = 10. # The angular radius of the disk (in degrees)
 
 #### Maximum Theta (Beyond Which Asymptotic Approximations -- i.e. Kummer's Transformation -- are not Used)
 #### NOTE: MUST SET max_theta = 0 when computing analytical LGFs for a disk.
 #### This avoids the Kummer's transformation.
-#### I cannot remember precisely why this is necessary, but must have to do with not incorporating the disk factor in the asymptotic series.
+#### As I understand, this has to do with not incorporating the disk factor in the asymptotic series.
 max_theta = 0.
 
-# Area of disk (on a sphere): Must integrate analytically over the surface of the sphere (this is in lieu of the convolution)
-# Int_phi=0^2pi Int_theta=0^disks r^2 sin(theta) dphi dtheta
-# Disk area unit sphere = 2 * pi * -(cos(disk_radius) - cos(0)) = 2 * pi * (1 - cos(disk_radius))
+# We need to compute the area of the disk (on a sphere)
+#   For the analytical approach, we must integrate analytically over the surface of the sphere 
+#    (this is in lieu of the convolution)
+# Note: Int_phi=0^2pi Int_theta=0^disks r^2 sin(theta) dphi dtheta
+#   computes the area of the disk at the pole
+# Disk area for a unit-radius sphere = 2 * pi * -(cos(disk_radius) - cos(0)) = 2 * pi * (1 - cos(disk_radius))
+# USER INPUTS:
 planet_radius = 6371000. # units of meters
+height_of_load = 1. # units of meters
+density_of_load = 1000. # units of [kg/m^3]
+# COMPUTATIONS BASED ON USER INPUTS:
 disk_area_unit_sphere = 2. * np.pi * -(np.cos(np.radians(disks)) - np.cos(np.radians(0)))
 disk_area = (planet_radius)**2 * disk_area_unit_sphere
-height_of_load = 1. # units of meters
 volume_of_load = disk_area * height_of_load
-density_of_load = 1000. # units of [kg/m^3]
 mass_of_load = volume_of_load * density_of_load # units of kg
 
 # ------------------ END USER INPUTS ----------------------- #

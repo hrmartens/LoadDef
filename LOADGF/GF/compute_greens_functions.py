@@ -1,7 +1,7 @@
 # *********************************************************************
 # FUNCTION TO COMPUTE LOAD GREENS FUNCTIONS 
 #
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -89,8 +89,8 @@ apply_taper : Option to apply a taper to the series summation in the computation
               The taper mimics the recursive averaging desribed in Guo et al. 2004 [Eqs. 23 and 24]
     Default is True
 
-loadmass : Option to provide the mass of a disk load. 
-           Used when computing the analytical solution for a disk load. 
+loadmass : NEW option to provide the mass of a disk load. 
+           Used ONLY when computing the analytical solution for a disk load. 
            Currently implemented only for displacement LGFs (vertical and horizontal displacement). 
     Default is None
 
