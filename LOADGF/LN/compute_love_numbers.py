@@ -102,6 +102,7 @@ file_out : Extension for the output files.
     Default is ".txt"
 
 nongrav : Option to toggle off self gravity. When set to False, self gravity is included. When set to True, gravity is not considered. 
+    CAUTION : The option for no gravity is not yet well tested. Proceed with care and check your results. 
     Default is False
 
 """
