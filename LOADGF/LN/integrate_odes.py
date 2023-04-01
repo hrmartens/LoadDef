@@ -41,7 +41,7 @@ from LOADGF.LN import compute_solutions
 from scipy import interpolate
 
 def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
-    num_soln,backend,abs_tol,rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=1):
+    num_soln,backend,abs_tol,rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=1,eval_radii=1,numrad=1):
 
     # Determine the maximum n for which whole-planet integration will be performed (if not specified by user)
     if nmaxfull is None:
@@ -54,6 +54,21 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
         # Note: If receiving an error like this: ValueError: operands could not be broadcast together with shapes (2,) (100,) 
         #       then consider further limiting the number of spherical-harmonic degrees integrated through full body
         nmaxfull = math.ceil(math.log(inf_tol)/math.log(soc))
+
+    # Initialize arrays (when computing Love numbers at more than one depth)
+    hprime = np.empty(numrad)
+    nlprime = np.empty(numrad)
+    nkprime = np.empty(numrad)
+    hpot = np.empty(numrad)
+    nlpot = np.empty(numrad)
+    nkpot = np.empty(numrad)
+    hstr = np.empty(numrad)
+    nlstr = np.empty(numrad)
+    nkstr = np.empty(numrad)
+    hshr = np.empty(numrad)
+    nlshr = np.empty(numrad)
+    nkshr = np.empty(numrad)
+    sidx = np.empty(numrad)
   
     # Special Case: n=0
     if (n == 0):
@@ -71,17 +86,30 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
         Y_str  = compute_solutions_n0.main(Y1,Y2,m_str)
         Y_shr  = compute_solutions_n0.main(Y1,Y2,m_shr)
 
-        # Compute Load Love Numbers
-        hprime,nlprime,nkprime = evaluate_load_ln_n0.main(n,Y_load[-1,:],adim,gsdim,T_sc,L_sc)
+        # Compute Love Numbers at Desired Depth: Find the appropriate radii
+        if (numrad == 1):
+            abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii)) # absolute values of the differences between the integration radii and the test depth
+            sidx = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
+        else:
+            for jj in range(0,numrad):
+                abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii[jj])) # absolute values of the differences between the integration radii and the test depth
+                sidx[jj] = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
+        sidx = sidx.astype(np.int)
 
-	# Potential Love Numbers
-        hpot,nlpot,nkpot = evaluate_potential_ln_n0.main(n)
-
-        # Stress Love Numbers
-        hstr,nlstr,nkstr = evaluate_stress_ln_n0.main(n,Y_str[-1,:],adim,gsdim,T_sc,L_sc)
-
-        # Shear Love Numbers: A Purely Shear Force Cannot Generate a Degree-0 Harmonic Response
-        hshr,nlshr,nkshr = evaluate_shear_ln_n0.main(n)
+        # Compute Love Numbers at Desired Depth: Sample the Y Solutions
+        for kk in range(0,numrad):
+            if (numrad == 1):
+                csidx = sidx.copy()
+            else:
+                csidx = sidx[kk]
+            # Compute Load Love Numbers
+            hprime[kk],nlprime[kk],nkprime[kk] = evaluate_load_ln_n0.main(n,Y_load[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Compute Potential Love Numbers
+            hpot[kk],nlpot[kk],nkpot[kk] = evaluate_potential_ln_n0.main(n)
+            # Compute Stress Love Numbers
+            hstr[kk],nlstr[kk],nkstr[kk] = evaluate_stress_ln_n0.main(n,Y_str[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Compute Shear Love Numbers: A Purely Shear Force Cannot Generate a Degree-0 Harmonic Response
+            hshr[kk],nlshr[kk],nkshr[kk] = evaluate_shear_ln_n0.main(n)
 
     # Determine When to Integrate Through Cores, Versus When to Begin Integration in the Mantle (Note: r^n > inf_tol)
     # (r/a)^n > inf_tol : start integration at the r for which this expression holds
@@ -109,17 +137,36 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
         Y_str  = compute_solutions.main(Y1,Y2,Y3,m_str)
         Y_shr  = compute_solutions.main(Y1,Y2,Y3,m_shr)
 
-        # Compute Load Love Numbers
-        hprime,nlprime,nkprime = evaluate_load_ln.main(n,Y_load[-1,:],adim,gsdim,T_sc,L_sc)
+        # Compute Love Numbers at Desired Depth: Find the appropriate radii
+        if (numrad == 1):
+            abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii)) # absolute values of the differences between the integration radii and the test depth
+            sidx = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
+        else:
+            for jj in range(0,numrad):
+                abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii[jj])) # absolute values of the differences between the integration radii and the test depth
+                sidx[jj] = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
+        sidx = sidx.astype(np.int)
 
-        # Compute Potential Love Numbers
-        hpot,nlpot,nkpot = evaluate_potential_ln.main(n,Y_pot[-1,:],adim,gsdim,T_sc,L_sc)
-
-        # Compute Stress Love Numbers
-        hstr,nlstr,nkstr = evaluate_stress_ln.main(n,Y_str[-1,:],adim,gsdim,T_sc,L_sc)
-
-        # Compute Shear Love Numbers
-        hshr,nlshr,nkshr = evaluate_shear_ln.main(n,Y_shr[-1,:],adim,gsdim,T_sc,L_sc)
+        # Compute Love Numbers at Desired Depth: Sample the Y Solutions
+        for kk in range(0,numrad):
+            if (numrad == 1):
+                csidx = sidx.copy()
+                crad = eval_radii.copy()
+            else:
+                csidx = sidx[kk]
+                crad = eval_radii[kk]
+            # Compute Load Love Numbers
+            hprime[kk],nlprime[kk],nkprime[kk] = evaluate_load_ln.main(n,Y_load[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Compute Potential Love Numbers
+            hpot[kk],nlpot[kk],nkpot[kk] = evaluate_potential_ln.main(n,Y_pot[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Compute Stress Love Numbers
+            hstr[kk],nlstr[kk],nkstr[kk] = evaluate_stress_ln.main(n,Y_str[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Compute Shear Love Numbers
+            hshr[kk],nlshr[kk],nkshr[kk] = evaluate_shear_ln.main(n,Y_shr[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Check: If the Evaluation Radii are less than the Starting Radius of the Integration, then Set the Love Numbers at those Radii to NaN
+            #print(sint_mt[csidx])
+            if (np.float(crad) < min(sint_mt)):
+                hprime[kk] = nlprime[kk] = nkprime[kk] = hpot[kk] = nlpot[kk] = nkpot[kk] = hstr[kk] = nlstr[kk] = nkstr[kk] = hshr[kk] = nlshr[kk] = nkshr[kk] = np.float("nan")
 
     else:
 
@@ -136,24 +183,43 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
         Y_str  = compute_solutions.main(Y1,Y2,Y3,m_str)
         Y_shr  = compute_solutions.main(Y1,Y2,Y3,m_shr)
 
-        # Compute Load Love Numbers
-        hprime,nlprime,nkprime = evaluate_load_ln.main(n,Y_load[-1,:],adim,gsdim,T_sc,L_sc)
+        # Compute Love Numbers at Desired Depth: Find the appropriate radii
+        if (numrad == 1):
+            abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii)) # absolute values of the differences between the integration radii and the test depth
+            sidx = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
+        else: 
+            for jj in range(0,numrad):
+                abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii[jj])) # absolute values of the differences between the integration radii and the test depth
+                sidx[jj] = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
+        sidx = sidx.astype(np.int)
 
-        # Compute Potential Love Numbers
-        hpot,nlpot,nkpot = evaluate_potential_ln.main(n,Y_pot[-1,:],adim,gsdim,T_sc,L_sc)
-
-        # Compute Stress Love Numbers
-        hstr,nlstr,nkstr = evaluate_stress_ln.main(n,Y_str[-1,:],adim,gsdim,T_sc,L_sc)
-
-        # Compute Shear Love Numbers
-        hshr,nlshr,nkshr = evaluate_shear_ln.main(n,Y_shr[-1,:],adim,gsdim,T_sc,L_sc)
+        # Compute Love Numbers at Desired Depth: Sample the Y Solutions
+        for kk in range(0,numrad):
+            if (numrad == 1):
+                csidx = sidx.copy()
+                crad = eval_radii.copy()
+            else:
+                csidx = sidx[kk]
+                crad = eval_radii[kk]
+            # Compute Load Love Numbers
+            hprime[kk],nlprime[kk],nkprime[kk] = evaluate_load_ln.main(n,Y_load[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Compute Potential Love Numbers
+            hpot[kk],nlpot[kk],nkpot[kk] = evaluate_potential_ln.main(n,Y_pot[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Compute Stress Love Numbers
+            hstr[kk],nlstr[kk],nkstr[kk] = evaluate_stress_ln.main(n,Y_str[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Compute Shear Love Numbers
+            hshr[kk],nlshr[kk],nkshr[kk] = evaluate_shear_ln.main(n,Y_shr[csidx,:],adim,gsdim,T_sc,L_sc)
+            # Check: If the Evaluation Radii are less than the Starting Radius of the Integration, then Set the Love Numbers at those Radii to NaN
+            #print(sint_mt[csidx])
+            if (np.float(crad) < min(sint_mt)):
+                hprime[kk] = nlprime[kk] = nkprime[kk] = hpot[kk] = nlpot[kk] = nkpot[kk] = hstr[kk] = nlstr[kk] = nkstr[kk] = hshr[kk] = nlshr[kk] = nkshr[kk] = np.float("nan")
 
     # Flatten the Y Solution Vectors into 1d Arrays
     Y_load = Y_load.flatten()
     Y_pot  = Y_pot.flatten()
     Y_str  = Y_str.flatten()
     Y_shr  = Y_shr.flatten()
-
+ 
     # Return Love Numbers
     return hprime,nlprime,nkprime,hpot,nlpot,nkpot,hstr,nlstr,nkstr,hshr,nlshr,nkshr,sint_mt,Y_load,Y_pot,Y_str,Y_shr
 

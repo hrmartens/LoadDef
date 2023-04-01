@@ -98,18 +98,24 @@ nmaxfull : Maximum spherical harmonic degree for which integration will be perfo
            Beyond nmaxfull, integration will begin in the mantle
     Default is None (estimated from inf_tol within integrate_odes.py)
 
-file_out : Extension for the output files.
-    Default is ".txt"
- 
 nongrav : NEW option to toggle off self gravity. When set to False, self gravity is included. When set to True, gravity is not considered. 
     CAUTION : The option for no gravity is not yet well tested. Proceed with care and check your results. 
     Default is False
+
+eval_radii : NEW option to specify the radius (or radii) at which to compute the Love numbers (meters)
+    :: Important: For smoothest results, increase the "num_soln" parameter (see information above)
+    ::             such that different spherical-harmonic degrees evaluate the Love numbers as closely as possible at the same radius.
+    ::             (In the mantle, the integration starts at different radii, so the solutions will be exported at different radii.)
+    Default is an empty list, which will then be replaced by the surface of the planet (maximum radius in the model provided)
+
+file_out : Extension for the output files.
+    Default is ".txt"
 
 """
 
 # Main Function
 def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.42,r_min=1000.,inf_tol=1E-5,\
-    rel_tol=1E-13,abs_tol=1E-13,backend='dop853',nstps=3000,G=6.672E-11,file_out='.txt',kx=1,num_soln=100,interp_emod=False,nmaxfull=None,nongrav=False):
+    rel_tol=1E-13,abs_tol=1E-13,backend='dop853',nstps=3000,G=6.672E-11,file_out='.txt',kx=1,num_soln=100,interp_emod=False,nmaxfull=None,nongrav=False,eval_radii=[]):
 
     # :: MPI ::
     startn = int(startn)
@@ -153,6 +159,15 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         mu_surface = mu[surface_idx]
         g_surface = g[surface_idx]
 
+        # Normalize the Evaluation Radius (and select the surface as default if no radius is provided)
+        if not eval_radii:
+            eval_radii = max(r)
+        if isinstance(eval_radii,float) == True: # only 1 radius
+            numrad = 1
+        else:
+            numrad = len(eval_radii)
+        evalrad = np.divide(np.asarray(eval_radii).astype(np.float),max(r))
+
         # Optional: Plot Interpolated Values to Verify Interpolation
 #        myrnd = interpolate.splev(s,tck_rnd,der=0)
 #        mygnd = interpolate.splev(s,tck_gnd,der=0)
@@ -186,18 +201,18 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         np.random.shuffle(myn_mix)
 
         # Initialize Arrays
-        hprime  = np.empty((len(myn),))
-        nkprime = np.empty((len(myn),))
-        nlprime = np.empty((len(myn),))
-        hpot    = np.empty((len(myn),))
-        nkpot   = np.empty((len(myn),))
-        nlpot   = np.empty((len(myn),))
-        hstr    = np.empty((len(myn),))
-        nkstr   = np.empty((len(myn),))
-        nlstr   = np.empty((len(myn),))
-        hshr    = np.empty((len(myn),))
-        nkshr   = np.empty((len(myn),))
-        nlshr   = np.empty((len(myn),))
+        hprime  = np.empty((len(myn),numrad))
+        nkprime = np.empty((len(myn),numrad))
+        nlprime = np.empty((len(myn),numrad))
+        hpot    = np.empty((len(myn),numrad))
+        nkpot   = np.empty((len(myn),numrad))
+        nlpot   = np.empty((len(myn),numrad))
+        hstr    = np.empty((len(myn),numrad))
+        nkstr   = np.empty((len(myn),numrad))
+        nlstr   = np.empty((len(myn),numrad))
+        hshr    = np.empty((len(myn),numrad))
+        nkshr   = np.empty((len(myn),numrad))
+        nlshr   = np.empty((len(myn),numrad))
         sint_mt = np.empty((len(myn),num_soln))
         Yload   = np.empty((len(myn),num_soln*6))
         Ypot    = np.empty((len(myn),num_soln*6))
@@ -224,12 +239,18 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         myn = myn_mix = hprime = nlprime = nkprime = hpot = nlpot = nkpot = hstr = nlstr = nkstr = hshr = nlshr = nkshr = None
         s_min = tck_lnd = tck_mnd = tck_rnd = tck_gnd = wnd = ond = kx = None
         piG = sic = soc = small = backend = abs_tol = rel_tol = nstps = None
-        order = gnd = adim = gsdim = L_sc = T_sc = inf_tol = s = None
+        order = gnd = adim = gsdim = L_sc = T_sc = inf_tol = s = evalrad = numrad = None
         sint_mt = Yload = Ypot = Ystr = Yshr = None
         lln_out = pln_out = str_out = shr_out = None
 
+    # Create a Data Type for the Spherical Harmonic Degrees
+    ntype = MPI.DOUBLE.Create_contiguous(1)
+    ntype.Commit()
+
     # Create a Data Type for the Love Numbers
-    lntype = MPI.DOUBLE.Create_contiguous(1)
+    numrad = comm.bcast(numrad, root=0) # All Processors Get Certain Arrays and Parameters; Broadcast Them
+    ln_vec_size = int(numrad)
+    lntype = MPI.DOUBLE.Create_contiguous(ln_vec_size)
     lntype.Commit()
 
     # Create a Data Type for Solution Radii
@@ -248,7 +269,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
 
     # Scatter the Harmonic Degrees
     n_sub = np.empty((procN,))
-    comm.Scatterv([myn_mix, (sendcounts, None), lntype], n_sub, root=0)
+    comm.Scatterv([myn_mix, (sendcounts, None), ntype], n_sub, root=0)
 
     # All Processors Get Certain Arrays and Parameters; Broadcast Them
     s_min = comm.bcast(s_min, root=0)
@@ -276,24 +297,25 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     T_sc = comm.bcast(T_sc, root=0)
     inf_tol = comm.bcast(inf_tol, root=0)
     s = comm.bcast(s, root=0)
+    evalrad = comm.bcast(evalrad, root=0)
     lln_out = comm.bcast(lln_out, root=0)
     pln_out = comm.bcast(pln_out, root=0)
     str_out = comm.bcast(str_out, root=0)
     shr_out = comm.bcast(shr_out, root=0)
 
     # Loop Through Spherical Harmonic Degrees
-    hprime_sub = np.empty((len(n_sub),))
-    nlprime_sub = np.empty((len(n_sub),))
-    nkprime_sub = np.empty((len(n_sub),))
-    hpot_sub = np.empty((len(n_sub),))
-    nlpot_sub = np.empty((len(n_sub),))
-    nkpot_sub = np.empty((len(n_sub),))
-    hstr_sub = np.empty((len(n_sub),))
-    nlstr_sub = np.empty((len(n_sub),))
-    nkstr_sub = np.empty((len(n_sub),))
-    hshr_sub = np.empty((len(n_sub),))
-    nlshr_sub = np.empty((len(n_sub),))
-    nkshr_sub = np.empty((len(n_sub),))
+    hprime_sub = np.empty((len(n_sub),numrad))
+    nlprime_sub = np.empty((len(n_sub),numrad))
+    nkprime_sub = np.empty((len(n_sub),numrad))
+    hpot_sub = np.empty((len(n_sub),numrad))
+    nlpot_sub = np.empty((len(n_sub),numrad))
+    nkpot_sub = np.empty((len(n_sub),numrad))
+    hstr_sub = np.empty((len(n_sub),numrad))
+    nlstr_sub = np.empty((len(n_sub),numrad))
+    nkstr_sub = np.empty((len(n_sub),numrad))
+    hshr_sub = np.empty((len(n_sub),numrad))
+    nlshr_sub = np.empty((len(n_sub),numrad))
+    nkshr_sub = np.empty((len(n_sub),numrad))
     sint_mt_sub = np.empty((len(n_sub),num_soln))
     Yload_sub = np.empty((len(n_sub),num_soln*6))
     Ypot_sub  = np.empty((len(n_sub),num_soln*6))
@@ -309,29 +331,29 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         print('Working on Harmonic Degree: %7s | Number: %6d of %6d | Rank: %6d' %(str(int(current_n)), (ii+1), len(n_sub), rank))
         # Compute Integration Results for the Current Spherical Harmonic Degree, n
         if (nongrav == False):
-            hprime_sub[ii],nlprime_sub[ii],nkprime_sub[ii],hpot_sub[ii],nlpot_sub[ii],nkpot_sub[ii],hstr_sub[ii],nlstr_sub[ii],nkstr_sub[ii],\
-                hshr_sub[ii],nlshr_sub[ii],nkshr_sub[ii],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
+            hprime_sub[ii,:],nlprime_sub[ii,:],nkprime_sub[ii,:],hpot_sub[ii,:],nlpot_sub[ii,:],nkpot_sub[ii,:],hstr_sub[ii,:],nlstr_sub[ii,:],nkstr_sub[ii,:],\
+                hshr_sub[ii,:],nlshr_sub[ii,:],nkshr_sub[ii,:],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
                 integrate_odes.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
-                    rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx)
+                    rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radii=evalrad,numrad=numrad)
         else: # no gravity case
-            hprime_sub[ii],nlprime_sub[ii],nkprime_sub[ii],hpot_sub[ii],nlpot_sub[ii],nkpot_sub[ii],hstr_sub[ii],nlstr_sub[ii],nkstr_sub[ii],\
-                hshr_sub[ii],nlshr_sub[ii],nkshr_sub[ii],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
+            hprime_sub[ii,:],nlprime_sub[ii,:],nkprime_sub[ii,:],hpot_sub[ii,:],nlpot_sub[ii,:],nkpot_sub[ii,:],hstr_sub[ii,:],nlstr_sub[ii,:],nkstr_sub[ii,:],\
+                hshr_sub[ii,:],nlshr_sub[ii,:],nkshr_sub[ii,:],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
                 integrate_odes_noGrav.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
-                    rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx)
+                    rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radii=evalrad,numrad=numrad)
  
     # Gather Results 
-    comm.Gatherv(hprime_sub, [hprime, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(nlprime_sub, [nlprime, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(nkprime_sub, [nkprime, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(hpot_sub, [hpot, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(nlpot_sub, [nlpot, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(nkpot_sub, [nkpot, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(hstr_sub, [hstr, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(nlstr_sub, [nlstr, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(nkstr_sub, [nkstr, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(hshr_sub, [hshr, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(nlshr_sub, [nlshr, (sendcounts, None), MPI.DOUBLE], root=0)
-    comm.Gatherv(nkshr_sub, [nkshr, (sendcounts, None), MPI.DOUBLE], root=0)
+    comm.Gatherv(hprime_sub, [hprime, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(nlprime_sub, [nlprime, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(nkprime_sub, [nkprime, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(hpot_sub, [hpot, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(nlpot_sub, [nlpot, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(nkpot_sub, [nkpot, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(hstr_sub, [hstr, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(nlstr_sub, [nlstr, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(nkstr_sub, [nkstr, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(hshr_sub, [hshr, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(nlshr_sub, [nlshr, (sendcounts, None), lntype], root=0)
+    comm.Gatherv(nkshr_sub, [nkshr, (sendcounts, None), lntype], root=0)
     comm.Gatherv(sint_mt_sub, [sint_mt, (sendcounts, None), stype], root=0)
     comm.Gatherv(Yload_sub, [Yload, (sendcounts, None), ytype], root=0)
     comm.Gatherv(Ypot_sub, [Ypot, (sendcounts, None), ytype], root=0)
@@ -342,6 +364,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     comm.Barrier()
 
     # Free Data Types
+    ntype.Free()
     lntype.Free()
     stype.Free()
     ytype.Free()
@@ -351,125 +374,150 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
  
         # Re-Organize Spherical Harmonic Degrees
         narr,nidx = np.unique(myn_mix,return_index=True)
-        hprime = hprime[nidx]; nlprime = nlprime[nidx]; nkprime = nkprime[nidx]
-        hpot = hpot[nidx]; nlpot = nlpot[nidx]; nkpot = nkpot[nidx]
-        hstr = hstr[nidx]; nlstr = nlstr[nidx]; nkstr = nkstr[nidx]
-        hshr = hshr[nidx]; nlshr = nlshr[nidx]; nkshr = nkshr[nidx]
+        try:
+            hprime = hprime[nidx,:]; nlprime = nlprime[nidx,:]; nkprime = nkprime[nidx,:]
+            hpot = hpot[nidx,:]; nlpot = nlpot[nidx,:]; nkpot = nkpot[nidx,:]
+            hstr = hstr[nidx,:]; nlstr = nlstr[nidx,:]; nkstr = nkstr[nidx,:]
+            hshr = hshr[nidx,:]; nlshr = nlshr[nidx,:]; nkshr = nkshr[nidx,:]
+        except:
+            hprime = hprime[nidx]; nlprime = nlprime[nidx]; nkprime = nkprime[nidx]
+            hpot = hpot[nidx]; nlpot = nlpot[nidx]; nkpot = nkpot[nidx]
+            hstr = hstr[nidx]; nlstr = nlstr[nidx]; nkstr = nkstr[nidx]
+            hshr = hshr[nidx]; nlshr = nlshr[nidx]; nkshr = nkshr[nidx]
         sint_mt = sint_mt[nidx,:]; Yload = Yload[nidx,:]; Ypot = Ypot[nidx,:]; Ystr = Ystr[nidx,:]; Yshr = Yshr[nidx,:]
 
-        # Prepare Output Filenames (Random Integers Distinguish Files if Code is Being Run In Multiple Instances -- Body & Header Files Deleted After Writing)
-        lln_file = ("../output/Love_Numbers/LLN/" + lln_out)
-        pln_file = ("../output/Love_Numbers/PLN/" + pln_out)
-        str_file = ("../output/Love_Numbers/STR/" + str_out)
-        shr_file = ("../output/Love_Numbers/SHR/" + shr_out)
-        lln_head = ("../output/Love_Numbers/LLN/" + str(np.random.randint(500)) + "header.txt")
-        pln_head = ("../output/Love_Numbers/PLN/" + str(np.random.randint(500)) + "header.txt")
-        str_head = ("../output/Love_Numbers/STR/" + str(np.random.randint(500)) + "header.txt")
-        shr_head = ("../output/Love_Numbers/SHR/" + str(np.random.randint(500)) + "header.txt")
-        lln_body = ("../output/Love_Numbers/LLN/" + str(np.random.randint(500)) + "body.txt")
-        pln_body = ("../output/Love_Numbers/PLN/" + str(np.random.randint(500)) + "body.txt")
-        str_body = ("../output/Love_Numbers/STR/" + str(np.random.randint(500)) + "body.txt")
-        shr_body = ("../output/Love_Numbers/SHR/" + str(np.random.randint(500)) + "body.txt")
- 
-        # For case of no gravity and surface loading, set n=1 Love numbers to zero (degree 1 is not constrained without self gravity)
-        if (nongrav == True): 
-            findn1 = np.where(myn == 1); findn1 = findn1[0]
-            hprime[findn1] = 0.
-            nlprime[findn1] = 0.
+        # Loop through the number of radii and write separate output files
+        for gg in range(0,numrad):
 
-        # Prepare Data For Output
-        all_lln_data = np.column_stack((myn,hprime,nlprime,nkprime,hprime_asym,nlprime_asym,nkprime_asym))
-        all_pln_data = np.column_stack((myn,hpot,nlpot,nkpot))
-        all_str_data = np.column_stack((myn,hstr,nlstr,nkstr))
-        all_shr_data = np.column_stack((myn,hshr,nlshr,nkshr))
+            try:
+                crad = str(eval_radii[gg])
+            except:
+                crad = str(eval_radii)
 
-        # Universal Header
-        uh1 = ('------------------------------------------------------ \n')
-        uh2a = (':: Load Love Numbers (Load-Deformation Coefficients) \n')
-        uh2b = (':: Potential Love Numbers \n')
-        uh2c = (':: Stress Love Numbers \n')
-        uh2d = (':: Shear Love Numbers \n')
-        uh3 = (':: Computed at ' + datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y") + '\n')
-        uh4 = ('------------------------------------------------------ \n')
-        uh5 = (':: Material Parameters \n')
-        uh6 = ('Planet-Radius (m) | Planet-Mass (kg) | Lambda-Surface (Pa) | Mu-Surface (Pa) | Gravity-Surface (m/s^2) \n')
-        uh7 = (str(planet_radius) + ' ' + str(planet_mass) + ' ' + str(lmda_surface) + ' ' + str(mu_surface) + ' ' + str(g_surface) + '\n')
-        uh8 = ('------------------------------------------------------ \n')
-        uh9 = (':: Asymptotic Love Numbers \n')
-        uh10 = ('hp     |     hpp     |     nlp     |     nlpp     |     nkp     |     nkpp \n')
-        uh11 = (str(h_inf) + ' ' + str(h_inf_prime) + ' ' + str(l_inf) + ' ' + str(l_inf_prime) + ' ' + str(k_inf) + ' ' + str(k_inf_prime) + '\n')
-        uh12 = ('------------------------------------------------------ \n')
-        uh13 = ('******************   Love Numbers   ****************** \n')
+            # Prepare Output Filenames (Random Integers Distinguish Files if Code is Being Run In Multiple Instances -- Body & Header Files Deleted After Writing)
 
-        # Write Header Info to File
-        hf = open(lln_head,'w')
-        lln_str = 'n   |   h   |   nl   |   nk | h_asymptotic | nl_asymptotic | nk_asymptotic \n'
-        hf.write(uh1); hf.write(uh2a); hf.write(uh3); hf.write(uh4); hf.write(uh5); hf.write(uh6)
-        hf.write(uh7); hf.write(uh8); hf.write(uh9); hf.write(uh10); hf.write(uh11); hf.write(uh12); hf.write(uh13)
-        hf.write(lln_str)
-        hf.close()
-        hf = open(pln_head,'w')
-        pln_str = 'n   |   h   |   nl   |   nk \n'
-        hf.write(uh1); hf.write(uh2b); hf.write(uh3); hf.write(uh4); hf.write(uh5); hf.write(uh6)
-        hf.write(uh7); hf.write(uh8); hf.write(uh13)
-        hf.write(pln_str)
-        hf.close()
-        hf = open(str_head,'w')
-        str_str = 'n   |   h   |   nl   |   nk \n'
-        hf.write(uh1); hf.write(uh2c); hf.write(uh3); hf.write(uh4); hf.write(uh5); hf.write(uh6)
-        hf.write(uh7); hf.write(uh8); hf.write(uh13)
-        hf.write(str_str)
-        hf.close()
-        hf = open(shr_head,'w')
-        shr_str = 'n   |   h   |   nl   |   nk \n'
-        hf.write(uh1); hf.write(uh2d); hf.write(uh3); hf.write(uh4); hf.write(uh5); hf.write(uh6)
-        hf.write(uh7); hf.write(uh8); hf.write(uh13)
-        hf.write(shr_str)
-        hf.close()
+            lln_file = ("../output/Love_Numbers/LLN/" + lln_out[0:-4] + "_" + crad + ".txt")
+            pln_file = ("../output/Love_Numbers/PLN/" + pln_out[0:-4] + "_" + crad + ".txt")
+            str_file = ("../output/Love_Numbers/STR/" + str_out[0:-4] + "_" + crad + ".txt")
+            shr_file = ("../output/Love_Numbers/SHR/" + shr_out[0:-4] + "_" + crad + ".txt")
+            lln_head = ("../output/Love_Numbers/LLN/" + str(np.random.randint(500)) + "header.txt")
+            pln_head = ("../output/Love_Numbers/PLN/" + str(np.random.randint(500)) + "header.txt")
+            str_head = ("../output/Love_Numbers/STR/" + str(np.random.randint(500)) + "header.txt")
+            shr_head = ("../output/Love_Numbers/SHR/" + str(np.random.randint(500)) + "header.txt")
+            lln_body = ("../output/Love_Numbers/LLN/" + str(np.random.randint(500)) + "body.txt")
+            pln_body = ("../output/Love_Numbers/PLN/" + str(np.random.randint(500)) + "body.txt")
+            str_body = ("../output/Love_Numbers/STR/" + str(np.random.randint(500)) + "body.txt")
+            shr_body = ("../output/Love_Numbers/SHR/" + str(np.random.randint(500)) + "body.txt")
 
-        # Write Load Love Numbers to File
-        np.savetxt(lln_body, all_lln_data, fmt='%7d %15.10f %15.10f %15.10f %15.10f %15.10f %15.10f')
+            # For case of no gravity and surface loading, set n=1 Love numbers to zero (degree 1 is not constrained without self gravity)
+            if (nongrav == True):
+                findn1 = np.where(myn == 1); findn1 = findn1[0]
+                try: 
+                    hprime[findn1,gg] = 0.
+                    nlprime[findn1,gg] = 0.
+                else:
+                    hprime[findn1] = 0.
+                    nlprime[findn1] = 0.
 
-        # Write Potential Love Numbers to File
-        np.savetxt(pln_body, all_pln_data, fmt='%7d %15.10f %15.10f %15.10f')
+            # Prepare Data For Output
+            try:
+                all_lln_data = np.column_stack((myn,hprime[:,gg],nlprime[:,gg],nkprime[:,gg],hprime_asym,nlprime_asym,nkprime_asym))
+                all_pln_data = np.column_stack((myn,hpot[:,gg],nlpot[:,gg],nkpot[:,gg]))
+                all_str_data = np.column_stack((myn,hstr[:,gg],nlstr[:,gg],nkstr[:,gg]))
+                all_shr_data = np.column_stack((myn,hshr[:,gg],nlshr[:,gg],nkshr[:,gg]))
+            except:
+                all_lln_data = np.column_stack((myn,hprime,nlprime,nkprime,hprime_asym,nlprime_asym,nkprime_asym))
+                all_pln_data = np.column_stack((myn,hpot,nlpot,nkpot))
+                all_str_data = np.column_stack((myn,hstr,nlstr,nkstr))
+                all_shr_data = np.column_stack((myn,hshr,nlshr,nkshr))
 
-        # Write Stress Love Numbers to File
-        np.savetxt(str_body, all_str_data, fmt='%7d %15.10f %15.10f %15.10f')
+            # Universal Header
+            uh1 = ('------------------------------------------------------ \n')
+            uh2a = (':: Load Love Numbers (Load-Deformation Coefficients) \n')
+            uh2b = (':: Potential Love Numbers \n')
+            uh2c = (':: Stress Love Numbers \n')
+            uh2d = (':: Shear Love Numbers \n')
+            uh3 = (':: Computed at ' + datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y") + '\n')
+            uh4 = ('------------------------------------------------------ \n')
+            uh5 = (':: Material Parameters \n')
+            uh6 = ('Planet-Radius (m) | Planet-Mass (kg) | Lambda-Surface (Pa) | Mu-Surface (Pa) | Gravity-Surface (m/s^2) \n')
+            uh7 = (str(planet_radius) + ' ' + str(planet_mass) + ' ' + str(lmda_surface) + ' ' + str(mu_surface) + ' ' + str(g_surface) + '\n')
+            uh8 = ('------------------------------------------------------ \n')
+            uh9 = (':: Asymptotic Love Numbers \n')
+            uh10 = ('hp     |     hpp     |     nlp     |     nlpp     |     nkp     |     nkpp \n')
+            uh11 = (str(h_inf) + ' ' + str(h_inf_prime) + ' ' + str(l_inf) + ' ' + str(l_inf_prime) + ' ' + str(k_inf) + ' ' + str(k_inf_prime) + '\n')
+            uh12 = ('------------------------------------------------------ \n')
+            uh13 = ('******************   Love Numbers   ****************** \n')
 
-        # Write Shear Love Numbers to File
-        np.savetxt(shr_body, all_shr_data, fmt='%7d %15.10f %15.10f %15.10f')
- 
-        # Combine Header and Body Files
-        filenames_lln = [lln_head, lln_body]
-        with open(lln_file,'w') as outfile:
-            for fname in filenames_lln:
-                with open(fname) as infile:
-                    outfile.write(infile.read())
-        filenames_pln = [pln_head, pln_body]
-        with open(pln_file,'w') as outfile:
-            for fname in filenames_pln:
-                with open(fname) as infile:
-                    outfile.write(infile.read())
-        filenames_str = [str_head, str_body]
-        with open(str_file,'w') as outfile:
-            for fname in filenames_str:
-                with open(fname) as infile:
-                    outfile.write(infile.read())
-        filenames_shr = [shr_head, shr_body]
-        with open(shr_file,'w') as outfile:
-            for fname in filenames_shr:
-                with open(fname) as infile:
-                    outfile.write(infile.read())
+            # Write Header Info to File
+            hf = open(lln_head,'w')
+            lln_str = 'n   |   h   |   nl   |   nk | h_asymptotic | nl_asymptotic | nk_asymptotic \n'
+            hf.write(uh1); hf.write(uh2a); hf.write(uh3); hf.write(uh4); hf.write(uh5); hf.write(uh6)
+            hf.write(uh7); hf.write(uh8); hf.write(uh9); hf.write(uh10); hf.write(uh11); hf.write(uh12); hf.write(uh13)
+            hf.write(lln_str)
+            hf.close()
+            hf = open(pln_head,'w')
+            pln_str = 'n   |   h   |   nl   |   nk \n'
+            hf.write(uh1); hf.write(uh2b); hf.write(uh3); hf.write(uh4); hf.write(uh5); hf.write(uh6)
+            hf.write(uh7); hf.write(uh8); hf.write(uh13)
+            hf.write(pln_str)
+            hf.close()
+            hf = open(str_head,'w')
+            str_str = 'n   |   h   |   nl   |   nk \n'
+            hf.write(uh1); hf.write(uh2c); hf.write(uh3); hf.write(uh4); hf.write(uh5); hf.write(uh6)
+            hf.write(uh7); hf.write(uh8); hf.write(uh13)
+            hf.write(str_str)
+            hf.close()
+            hf = open(shr_head,'w')
+            shr_str = 'n   |   h   |   nl   |   nk \n'
+            hf.write(uh1); hf.write(uh2d); hf.write(uh3); hf.write(uh4); hf.write(uh5); hf.write(uh6)
+            hf.write(uh7); hf.write(uh8); hf.write(uh13)
+            hf.write(shr_str)
+            hf.close()
 
-        # Remove Header and Body Files
-        os.remove(lln_head)
-        os.remove(lln_body)
-        os.remove(pln_head)
-        os.remove(pln_body)
-        os.remove(str_head)
-        os.remove(str_body)
-        os.remove(shr_head)
-        os.remove(shr_body)
+            # Write Load Love Numbers to File
+            np.savetxt(lln_body, all_lln_data, fmt='%7d %15.10f %15.10f %15.10f %15.10f %15.10f %15.10f')
+
+            # Write Potential Love Numbers to File
+            np.savetxt(pln_body, all_pln_data, fmt='%7d %15.10f %15.10f %15.10f')
+
+            # Write Stress Love Numbers to File
+            np.savetxt(str_body, all_str_data, fmt='%7d %15.10f %15.10f %15.10f')
+
+            # Write Shear Love Numbers to File
+            np.savetxt(shr_body, all_shr_data, fmt='%7d %15.10f %15.10f %15.10f')
+
+            # Combine Header and Body Files
+            filenames_lln = [lln_head, lln_body]
+            with open(lln_file,'w') as outfile:
+                for fname in filenames_lln:
+                    with open(fname) as infile:
+                        outfile.write(infile.read())
+            filenames_pln = [pln_head, pln_body]
+            with open(pln_file,'w') as outfile:
+                for fname in filenames_pln:
+                    with open(fname) as infile:
+                        outfile.write(infile.read())
+            filenames_str = [str_head, str_body]
+            with open(str_file,'w') as outfile:
+                for fname in filenames_str:
+                    with open(fname) as infile:
+                        outfile.write(infile.read())
+            filenames_shr = [shr_head, shr_body]
+            with open(shr_file,'w') as outfile:
+                for fname in filenames_shr:
+                    with open(fname) as infile:
+                        outfile.write(infile.read())
+
+            # Remove Header and Body Files
+            os.remove(lln_head)
+            os.remove(lln_body)
+            os.remove(pln_head)
+            os.remove(pln_body)
+            os.remove(str_head)
+            os.remove(str_body)
+            os.remove(shr_head)
+            os.remove(shr_body)
 
         # Re-Shape the Y Solution Arrays
         if (nongrav == True):
