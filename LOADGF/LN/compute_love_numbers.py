@@ -34,7 +34,9 @@ from scipy import interpolate
 # Import Modules from LoadDef
 from LOADGF.LN import prepare_planet_model
 from LOADGF.LN import compute_asymptotic_LLN
+from LOADGF.LN import compute_asymptotic_LLN_noGrav
 from LOADGF.LN import integrate_odes
+from LOADGF.LN import integrate_odes_noGrav
 
 """
 Compute load-deformation coefficients (also known as load Love numbers) based on an input 
@@ -96,6 +98,10 @@ nmaxfull : Maximum spherical harmonic degree for which integration will be perfo
            Beyond nmaxfull, integration will begin in the mantle
     Default is None (estimated from inf_tol within integrate_odes.py)
 
+nongrav : NEW option to toggle off self gravity. When set to False, self gravity is included. When set to True, gravity is not considered. 
+    CAUTION : The option for no gravity is not yet well tested. Proceed with care and check your results. 
+    Default is False
+
 eval_radii : NEW option to specify the radius (or radii) at which to compute the Love numbers (meters)
     :: Important: For smoothest results, increase the "num_soln" parameter (see information above)
     ::             such that different spherical-harmonic degrees evaluate the Love numbers as closely as possible at the same radius.
@@ -109,7 +115,7 @@ file_out : Extension for the output files.
 
 # Main Function
 def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.42,r_min=1000.,inf_tol=1E-5,\
-    rel_tol=1E-13,abs_tol=1E-13,backend='dop853',nstps=3000,G=6.672E-11,file_out='.txt',kx=1,num_soln=100,interp_emod=False,nmaxfull=None,eval_radii=[]):
+    rel_tol=1E-13,abs_tol=1E-13,backend='dop853',nstps=3000,G=6.672E-11,file_out='.txt',kx=1,num_soln=100,interp_emod=False,nmaxfull=None,nongrav=False,eval_radii=[]):
 
     # :: MPI ::
     startn = int(startn)
@@ -154,7 +160,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         g_surface = g[surface_idx]
 
         # Normalize the Evaluation Radius (and select the surface as default if no radius is provided)
-        if not eval_radii: 
+        if not eval_radii:
             eval_radii = max(r)
         if isinstance(eval_radii,float) == True: # only 1 radius
             numrad = 1
@@ -183,8 +189,12 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
 
         # Compute Asymptotic Load Love Numbers
         myn = np.linspace(startn,stopn,num=((stopn-startn)+1),endpoint=True)
-        hprime_asym,nkprime_asym,nlprime_asym,h_inf,h_inf_prime,l_inf,l_inf_prime, \
-            k_inf,k_inf_prime = compute_asymptotic_LLN.main(myn,piG,lnd,mnd,gnd,rnd,adim,L_sc)
+        if (nongrav == True):
+            hprime_asym,nkprime_asym,nlprime_asym,h_inf,h_inf_prime,l_inf,l_inf_prime, \
+                k_inf,k_inf_prime = compute_asymptotic_LLN_noGrav.main(myn,piG,lnd,mnd,gnd,rnd,adim,L_sc)
+        else: 
+            hprime_asym,nkprime_asym,nlprime_asym,h_inf,h_inf_prime,l_inf,l_inf_prime, \
+                k_inf,k_inf_prime = compute_asymptotic_LLN.main(myn,piG,lnd,mnd,gnd,rnd,adim,L_sc)
 
         # Shuffle the Degrees, Since Lower Degrees Take Longer to Compute
         myn_mix = myn.copy()
@@ -208,6 +218,11 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         Ypot    = np.empty((len(myn),num_soln*6))
         Ystr    = np.empty((len(myn),num_soln*6))
         Yshr    = np.empty((len(myn),num_soln*6)) 
+        if (nongrav == True): 
+            Yload   = np.empty((len(myn),num_soln*4))
+            Ypot    = np.empty((len(myn),num_soln*4))
+            Ystr    = np.empty((len(myn),num_soln*4))
+            Yshr    = np.empty((len(myn),num_soln*4))
  
         # Load Love Number Output Filename
         lln_out      = ("lln_"+file_out)
@@ -244,6 +259,8 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
 
     # Create a Data Type for the Solutions (Ys)
     sol_vec_size = num_soln*6
+    if (nongrav == True): 
+        sol_vec_size = num_soln*4
     ytype = MPI.DOUBLE.Create_contiguous(sol_vec_size)
     ytype.Commit()
 
@@ -304,15 +321,26 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     Ypot_sub  = np.empty((len(n_sub),num_soln*6))
     Ystr_sub  = np.empty((len(n_sub),num_soln*6))
     Yshr_sub  = np.empty((len(n_sub),num_soln*6))
+    if (nongrav == True): 
+        Yload_sub = np.empty((len(n_sub),num_soln*4))
+        Ypot_sub  = np.empty((len(n_sub),num_soln*4))
+        Ystr_sub  = np.empty((len(n_sub),num_soln*4))
+        Yshr_sub  = np.empty((len(n_sub),num_soln*4))
     for ii in range(0,len(n_sub)):
         current_n = n_sub[ii]
         print('Working on Harmonic Degree: %7s | Number: %6d of %6d | Rank: %6d' %(str(int(current_n)), (ii+1), len(n_sub), rank))
         # Compute Integration Results for the Current Spherical Harmonic Degree, n
-        hprime_sub[ii,:],nlprime_sub[ii,:],nkprime_sub[ii,:],hpot_sub[ii,:],nlpot_sub[ii,:],nkpot_sub[ii,:],hstr_sub[ii,:],nlstr_sub[ii,:],nkstr_sub[ii,:],\
-            hshr_sub[ii,:],nlshr_sub[ii,:],nkshr_sub[ii,:],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
-            integrate_odes.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
-                rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radii=evalrad,numrad=numrad)
-
+        if (nongrav == False):
+            hprime_sub[ii,:],nlprime_sub[ii,:],nkprime_sub[ii,:],hpot_sub[ii,:],nlpot_sub[ii,:],nkpot_sub[ii,:],hstr_sub[ii,:],nlstr_sub[ii,:],nkstr_sub[ii,:],\
+                hshr_sub[ii,:],nlshr_sub[ii,:],nkshr_sub[ii,:],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
+                integrate_odes.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
+                    rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radii=evalrad,numrad=numrad)
+        else: # no gravity case
+            hprime_sub[ii,:],nlprime_sub[ii,:],nkprime_sub[ii,:],hpot_sub[ii,:],nlpot_sub[ii,:],nkpot_sub[ii,:],hstr_sub[ii,:],nlstr_sub[ii,:],nkstr_sub[ii,:],\
+                hshr_sub[ii,:],nlshr_sub[ii,:],nkshr_sub[ii,:],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
+                integrate_odes_noGrav.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
+                    rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radii=evalrad,numrad=numrad)
+ 
     # Gather Results 
     comm.Gatherv(hprime_sub, [hprime, (sendcounts, None), lntype], root=0)
     comm.Gatherv(nlprime_sub, [nlprime, (sendcounts, None), lntype], root=0)
@@ -336,6 +364,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
     comm.Barrier()
 
     # Free Data Types
+    ntype.Free()
     lntype.Free()
     stype.Free()
     ytype.Free()
@@ -362,11 +391,11 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
 
             try:
                 crad = str(eval_radii[gg])
-            except: 
+            except:
                 crad = str(eval_radii)
 
             # Prepare Output Filenames (Random Integers Distinguish Files if Code is Being Run In Multiple Instances -- Body & Header Files Deleted After Writing)
-      
+
             lln_file = ("../output/Love_Numbers/LLN/" + lln_out[0:-4] + "_" + crad + ".txt")
             pln_file = ("../output/Love_Numbers/PLN/" + pln_out[0:-4] + "_" + crad + ".txt")
             str_file = ("../output/Love_Numbers/STR/" + str_out[0:-4] + "_" + crad + ".txt")
@@ -379,14 +408,24 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
             pln_body = ("../output/Love_Numbers/PLN/" + str(np.random.randint(500)) + "body.txt")
             str_body = ("../output/Love_Numbers/STR/" + str(np.random.randint(500)) + "body.txt")
             shr_body = ("../output/Love_Numbers/SHR/" + str(np.random.randint(500)) + "body.txt")
- 
+
+            # For case of no gravity and surface loading, set n=1 Love numbers to zero (degree 1 is not constrained without self gravity)
+            if (nongrav == True):
+                findn1 = np.where(myn == 1); findn1 = findn1[0]
+                try: 
+                    hprime[findn1,gg] = 0.
+                    nlprime[findn1,gg] = 0.
+                else:
+                    hprime[findn1] = 0.
+                    nlprime[findn1] = 0.
+
             # Prepare Data For Output
             try:
                 all_lln_data = np.column_stack((myn,hprime[:,gg],nlprime[:,gg],nkprime[:,gg],hprime_asym,nlprime_asym,nkprime_asym))
                 all_pln_data = np.column_stack((myn,hpot[:,gg],nlpot[:,gg],nkpot[:,gg]))
                 all_str_data = np.column_stack((myn,hstr[:,gg],nlstr[:,gg],nkstr[:,gg]))
                 all_shr_data = np.column_stack((myn,hshr[:,gg],nlshr[:,gg],nkshr[:,gg]))
-            except: 
+            except:
                 all_lln_data = np.column_stack((myn,hprime,nlprime,nkprime,hprime_asym,nlprime_asym,nkprime_asym))
                 all_pln_data = np.column_stack((myn,hpot,nlpot,nkpot))
                 all_str_data = np.column_stack((myn,hstr,nlstr,nkstr))
@@ -447,7 +486,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
 
             # Write Shear Love Numbers to File
             np.savetxt(shr_body, all_shr_data, fmt='%7d %15.10f %15.10f %15.10f')
- 
+
             # Combine Header and Body Files
             filenames_lln = [lln_head, lln_body]
             with open(lln_file,'w') as outfile:
@@ -481,11 +520,17 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
             os.remove(shr_body)
 
         # Re-Shape the Y Solution Arrays
-        Yload = Yload.reshape(len(myn),int(len(Yload[0,:])/6),6)
-        Ypot  = Ypot.reshape(len(myn), int(len( Ypot[0,:])/6),6)
-        Ystr  = Ystr.reshape(len(myn), int(len( Ystr[0,:])/6),6)
-        Yshr  = Yshr.reshape(len(myn), int(len( Yshr[0,:])/6),6)
-
+        if (nongrav == True):
+            Yload = Yload.reshape(len(myn),int(len(Yload[0,:])/4),4)
+            Ypot  = Ypot.reshape(len(myn), int(len( Ypot[0,:])/4),4)
+            Ystr  = Ystr.reshape(len(myn), int(len( Ystr[0,:])/4),4)
+            Yshr  = Yshr.reshape(len(myn), int(len( Yshr[0,:])/4),4)
+        else:
+            Yload = Yload.reshape(len(myn),int(len(Yload[0,:])/6),6)
+            Ypot  = Ypot.reshape(len(myn), int(len( Ypot[0,:])/6),6)
+            Ystr  = Ystr.reshape(len(myn), int(len( Ystr[0,:])/6),6)
+            Yshr  = Yshr.reshape(len(myn), int(len( Yshr[0,:])/6),6)
+ 
         # Return Variables
         return myn,hprime,nlprime,nkprime,h_inf,l_inf,k_inf,h_inf_prime,l_inf_prime,k_inf_prime,hpot,nlpot,nkpot,\
             hstr,nlstr,nkstr,hshr,nlshr,nkshr,planet_radius,planet_mass,sint_mt,Yload,Ypot,Ystr,Yshr,lmda_surface,mu_surface
