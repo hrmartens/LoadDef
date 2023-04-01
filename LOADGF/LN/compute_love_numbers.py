@@ -1,7 +1,7 @@
 # *********************************************************************
 # FUNCTION TO COMPUTE LOVE NUMBERS
 #
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -96,7 +96,7 @@ nmaxfull : Maximum spherical harmonic degree for which integration will be perfo
            Beyond nmaxfull, integration will begin in the mantle
     Default is None (estimated from inf_tol within integrate_odes.py)
 
-eval_radii : Radius (or radii) at which to compute the Love numbers (meters)
+eval_radii : NEW option to specify the radius (or radii) at which to compute the Love numbers (meters)
     :: Important: For smoothest results, increase the "num_soln" parameter (see information above)
     ::             such that different spherical-harmonic degrees evaluate the Love numbers as closely as possible at the same radius.
     ::             (In the mantle, the integration starts at different radii, so the solutions will be exported at different radii.)
