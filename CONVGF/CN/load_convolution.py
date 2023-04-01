@@ -298,8 +298,8 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
         cnv_file = ("../output/Convolution/cn_OceanOnly_" + cnv_out)
     else:
         cnv_file = ("../output/Convolution/cn_LandAndOceans_" + cnv_out)
-    cnv_head = ("../output/Convolution/"+str(np.random.randint(5000))+"cn_head.txt")
-    cnv_body = ("../output/Convolution/"+str(np.random.randint(5000))+"cn_body.txt")
+    cnv_head = ("../output/Convolution/"+str(np.random.randint(5000))+"_"+stname+"_cn_head.txt")
+    cnv_body = ("../output/Convolution/"+str(np.random.randint(5000))+"_"+stname+"_cn_body.txt")
  
     # Prepare Data for Output (Create a Structured Array)
     slat_arr = np.ones((len(eamp),)) * slat
