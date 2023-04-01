@@ -29,6 +29,18 @@
 #               without self-gravity (nongrav=True) is not yet well 
 #               tested. Proceed with caution and check your results. 
 #               The default is to include self-gravity (nongrav=False).
+#
+# Special note: If desiring to compute Love numbers at depths interior
+#               to the planet (and/or at multiple depths), then you can
+#               now set a new keyword parameter, "eval_radii", to a list
+#               of the radii (in meters) at which you want to evaluate
+#               the Love numbers. 
+#               Example: eval_radii = [6356000,6331000,6167000,6371000]
+#               If computing Love numbers at a radius other than the
+#               surface, it is recommended to increase the value of
+#               "num_soln" (also a keyword argument) to help with 
+#               honing in on the correct radius.
+#               Example: num_soln = 500
 # *********************************************************************
 
 # IMPORT MPI MODULE
