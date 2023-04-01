@@ -41,7 +41,7 @@
 #               "num_soln" (also a keyword argument) to help with 
 #               honing in on the correct radius.
 #               Example: num_soln = 500
-#               As a new option, eval_radii is relatively untested.
+#               As a new option, eval_radii has not been extensively tested.
 #               As always, proceed with caution and check your results.
 # *********************************************************************
 
