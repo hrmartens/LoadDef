@@ -162,6 +162,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         # Normalize the Evaluation Radius (and select the surface as default if no radius is provided)
         if not eval_radii:
             eval_radii = max(r)
+            erad = 'surface'
         if isinstance(eval_radii,float) == True: # only 1 radius
             numrad = 1
         else:
@@ -395,11 +396,16 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
                 crad = str(eval_radii)
 
             # Prepare Output Filenames (Random Integers Distinguish Files if Code is Being Run In Multiple Instances -- Body & Header Files Deleted After Writing)
-
-            lln_file = ("../output/Love_Numbers/LLN/" + lln_out[0:-4] + "_" + crad + ".txt")
-            pln_file = ("../output/Love_Numbers/PLN/" + pln_out[0:-4] + "_" + crad + ".txt")
-            str_file = ("../output/Love_Numbers/STR/" + str_out[0:-4] + "_" + crad + ".txt")
-            shr_file = ("../output/Love_Numbers/SHR/" + shr_out[0:-4] + "_" + crad + ".txt")
+            if (erad == 'surface'): 
+                lln_file = ("../output/Love_Numbers/LLN/" + lln_out[0:-4] + ".txt")
+                pln_file = ("../output/Love_Numbers/PLN/" + pln_out[0:-4] + ".txt")
+                str_file = ("../output/Love_Numbers/STR/" + str_out[0:-4] + ".txt")
+                shr_file = ("../output/Love_Numbers/SHR/" + shr_out[0:-4] + ".txt")
+            else: 
+                lln_file = ("../output/Love_Numbers/LLN/" + lln_out[0:-4] + "_" + crad + ".txt")
+                pln_file = ("../output/Love_Numbers/PLN/" + pln_out[0:-4] + "_" + crad + ".txt")
+                str_file = ("../output/Love_Numbers/STR/" + str_out[0:-4] + "_" + crad + ".txt")
+                shr_file = ("../output/Love_Numbers/SHR/" + shr_out[0:-4] + "_" + crad + ".txt")
             lln_head = ("../output/Love_Numbers/LLN/" + str(np.random.randint(500)) + "header.txt")
             pln_head = ("../output/Love_Numbers/PLN/" + str(np.random.randint(500)) + "header.txt")
             str_head = ("../output/Love_Numbers/STR/" + str(np.random.randint(500)) + "header.txt")
