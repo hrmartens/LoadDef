@@ -415,7 +415,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
                 try: 
                     hprime[findn1,gg] = 0.
                     nlprime[findn1,gg] = 0.
-                else:
+                except:
                     hprime[findn1] = 0.
                     nlprime[findn1] = 0.
 
