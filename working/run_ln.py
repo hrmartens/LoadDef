@@ -66,9 +66,11 @@ from LOADGF.LN import compute_love_numbers
 #     If the file delimiter is not whitespace, then specify in
 #         call to function. 
 planet_model = ("../input/Planet_Models/PREM.txt")
+#planet_model = ("../input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
  
 # Extension for the output filename (Default is '.txt')
 file_ext      = ("PREM.txt")
+#file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
 
 # ------------------ END USER INPUTS ----------------------- #
 
