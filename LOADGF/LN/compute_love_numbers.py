@@ -163,12 +163,12 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
         if not eval_radii:
             eval_radii = max(r)
             erad = 'surface'
+        else:
+            erad = 'userspec'
         if isinstance(eval_radii,float) == True: # only 1 radius
             numrad = 1
-            erad = 'userspec'
         else:
             numrad = len(eval_radii)
-            erad = 'userspec'
         evalrad = np.divide(np.asarray(eval_radii).astype(np.float),max(r))
 
         # Optional: Plot Interpolated Values to Verify Interpolation
