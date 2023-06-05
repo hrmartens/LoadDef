@@ -100,7 +100,7 @@ ldens = 1000.0
 # NEW OPTION: Provide a common geographic mesh?
 # If True, must provide the full path to a mesh file (see: GRDGEN/common_mesh). 
 # If False, a station-centered grid will be created within the functions called here. 
-common_mesh = True
+common_mesh = False
 # Full Path to Grid File Containing Surface Mesh (for sampling the load Green's functions)
 #  :: Format: latitude midpoints [float,degrees N], longitude midpoints [float,degrees E], unit area of each patch [float,dimensionless (need to multiply by r^2)]
 meshfname = ("commonMesh_global_1.0_1.0_85.0_90.0_0.0_360.0_0.1_0.1_89.5_90.0_0.0_360.0_0.005_0.005")
