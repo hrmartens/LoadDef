@@ -2,7 +2,7 @@
 
 # *********************************************************************
 # PROGRAM TO CREATE A MESH OF GEOGRAPHIC GRIDLINES and MIDPOINTS 
-#  OVER DESIGNATED LAND AREAS
+#  FOR A POLAR DISK
 # 
 # Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
