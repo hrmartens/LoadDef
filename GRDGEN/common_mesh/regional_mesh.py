@@ -4,7 +4,7 @@
 # PROGRAM TO CREATE A MESH OF GEOGRAPHIC GRIDLINES and MIDPOINTS 
 #  OVER DESIGNATED LAND AREAS
 # 
-# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -113,6 +113,9 @@ unit_area = np.asarray(unit_area)
 # Create the Grid
 llon,llat = np.meshgrid(lon_mdpts,lat_mdpts)
 xv2,unit_area = np.meshgrid(lon_mdpts,unit_area)
+llon = llon.flatten()
+llat = llat.flatten()
+unit_area = unit_area.flatten()
 
 # Apply a land-sea mask?
 if (lsmask_type == 1 or lsmask_type == 2):
@@ -128,6 +131,7 @@ if (lsmask_type == 1 or lsmask_type == 2):
     # Determine the Land-Sea Mask (1' Resolution) From ETOPO1 (and Optionally GSHHG as well)
     print(':: Interpolating Land-Sea Mask onto Grid.')
     lsmk = interpolate_lsmask.main(llat,llon,lslat,lslon,lsmask)
+    lsmk = lsmk.flatten()
 
     # Apply Land-Sea Mask
     print(':: Applying Land-Sea Mask to the Grids.')
@@ -144,7 +148,11 @@ if (lsmask_type == 1 or lsmask_type == 2):
         print(':: Total Number of Land Elements: %6d' %(len(llat)))
         xtr_str = "_oceanmask"
 
+    # Print status update
+    print(':: Total Number of Mesh Elements: %6d' %(len(llat)))
+
 else:
+    xtr_str = ""
     # Print status update
     print(':: Total Number of Mesh Elements: %6d' %(len(llat)))
 
