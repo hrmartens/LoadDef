@@ -169,7 +169,7 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
             numrad = 1
         else:
             numrad = len(eval_radii)
-        evalrad = np.divide(np.asarray(eval_radii).astype(np.float),max(r))
+        evalrad = np.divide(np.asarray(eval_radii).astype(float),max(r))
 
         # Optional: Plot Interpolated Values to Verify Interpolation
 #        myrnd = interpolate.splev(s,tck_rnd,der=0)
