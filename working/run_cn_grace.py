@@ -112,7 +112,7 @@ planet_radius = 6371000.
 # Ocean/Land Mask 
 #  :: 0 = do not mask ocean or land (retain full model); 1 = mask out land (retain ocean); 2 = mask out oceans (retain land)
 #  :: Recommended: 1 for oceanic; 2 for atmospheric
-lsmask_type = 2
+lsmask_type = 0
 
 # Full Path to Land-Sea Mask File (May be Irregular and Sparse)
 #  :: Format: Lat, Lon, Mask [0=ocean; 1=land]
