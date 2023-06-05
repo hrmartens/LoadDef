@@ -216,7 +216,7 @@ for ii in range(0,len(date_list)):
     if (os.path.isfile(loadfile1)):
         llat,llon,amp,pha,llat1dseq,llon1dseq,amp2darr,pha2darr = read_grace_tellus.main(loadfile1,mydt,ldfl2=loadfile2,ldfl3=loadfile3,scl=scaling,avsolns=avgsol,appscaling=appscl)
         if llat is None:
-            print(':: Checking next date for a data entry...')
+            #print(':: Checking next date for a data entry...')
             # Save date_list index, then continue
             dates_to_delete.append(ii)
             continue
