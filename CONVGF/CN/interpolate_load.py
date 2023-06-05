@@ -23,7 +23,8 @@
 import numpy as np
 import scipy as sc
 from scipy import interpolate
-from mpl_toolkits.basemap import interp # If no basemap module, comment out and use gridddata below instead
+# basemap package has now been replaced by "cartopy"
+# from mpl_toolkits.basemap import interp # If no basemap module, comment out and use gridddata below instead
 from math import pi
 import sys
 
@@ -68,15 +69,15 @@ def main(ilat,ilon,llat,llon,lreal,limag,regular):
         imag2darr[myidxllat,myidxllon] = limag
         # OPTION 1: Basemap
         # Interpolate Using Basemap
-        ic1 = interp(real2darr,llon1dseq,llat1dseq,ilon,ilat,order=1)
-        ic2 = interp(imag2darr,llon1dseq,llat1dseq,ilon,ilat,order=1)
+        #ic1 = interp(real2darr,llon1dseq,llat1dseq,ilon,ilat,order=1)
+        #ic2 = interp(imag2darr,llon1dseq,llat1dseq,ilon,ilat,order=1)
         # OPTION 2: RectBivariateSpline (Slower than Basemap, but only requires SciPy)
         # Build Interpolator
-        #flreal = interpolate.RectBivariateSpline(llat1dseq,llon1dseq,real2darr,kx=1,ky=1,s=0) 
-        #flimag = interpolate.RectBivariateSpline(llat1dseq,llon1dseq,imag2darr,kx=1,ky=1,s=0) 
+        flreal = interpolate.RectBivariateSpline(llat1dseq,llon1dseq,real2darr,kx=1,ky=1,s=0) 
+        flimag = interpolate.RectBivariateSpline(llat1dseq,llon1dseq,imag2darr,kx=1,ky=1,s=0) 
         # Evaluate Interpolator
-        #ic1 = flreal.ev(ilat,ilon)
-        #ic2 = flimag.ev(ilat,ilon)
+        ic1 = flreal.ev(ilat,ilon)
+        ic2 = flimag.ev(ilat,ilon)
     else:
         # OPTION 1: Interpolate Using Griddata (Faster than LinearNDInterpolator)
         ic1 = interpolate.griddata((llat,llon),lreal,(ilat,ilon),method='linear',fill_value=0.)
