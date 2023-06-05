@@ -107,10 +107,10 @@ sta_file = ("../input/Station_Locations/" + sta_file_name + ".txt")
 
 # Optional: Additional string to include in output filenames (e.g. "_2019")
 if (common_mesh == True):
-    mtag = "commonMesh"
+    mtag = meshfname
 else:
     mtag = "stationMesh"
-outstr = (pmod + "_" + mtag + "_" + cellfname + "_" + meshfname + "_" + sta_file_name)
+outstr = (pmod + "_" + cellfname + "_" + mtag + "_" + sta_file_name)
 
 # ------------------ END USER INPUTS ----------------------- #
 
