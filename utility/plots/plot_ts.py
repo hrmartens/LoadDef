@@ -37,7 +37,7 @@ import matplotlib.pyplot as plt
 
 # Input Parameters
 station = ("P144")
-filename = ("cn_LandAndOceans_" + station + "_cf_convgf_grace_rmTM1False_rmSM2False_20191001-20211001_GRACE_Tellus_RL06_JPL_ScalingFalse_PREM")
+filename = ("cn_LandAndOceans_" + station + "_cf_convgf_grace_rmTM1False_rmSM2False_20191001-20211001_GRACE_Tellus_RL06_JPL_ScalingFalse_stationMesh_PREM")
 ts_file = ("../../output/Convolution/" + filename + ".txt")
 figname = (filename + ".pdf")
 
