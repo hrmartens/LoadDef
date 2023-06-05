@@ -49,7 +49,7 @@ elon = 258.
 cell_size = 0.25 
  
 # 3. Apply a land-sea mask? 
-apply_ls = False
+apply_ls = True
 land_sea = ("../../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 ls_mask = 'land' # 'ocean' = keep ocean (including cells with partial ocean); 'land' = keep land (including cells with partial land)
  
@@ -57,7 +57,7 @@ ls_mask = 'land' # 'ocean' = keep ocean (including cells with partial ocean); 'l
 write_nc = True
 
 # 5. Write Load Information to a Text File? (Alternative for convolution)
-write_txt = True
+write_txt = False
 
 # ------------------ END USER INPUTS ----------------------- #
 
