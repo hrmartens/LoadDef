@@ -42,34 +42,34 @@ import matplotlib.pyplot as plt
 # --------------- SPECIFY USER INPUTS --------------------- #
 
 # 1. Specify the basic mesh resolution (in degrees)
-gspace_lon = 1.0 # longitude
-gspace_lat = 1.0 # latitude
+gspace_lon = 5.0 # longitude
+gspace_lat = 5.0 # latitude
 
-# 2. Specify bounding box for a region with enhanced mesh resolution (e.g. boundingbox.klokantech.com) | Middle region
+# 2. Specify the enhanced mesh resolution (in degrees) | Middle region (partial refinement)
+enhanced_lon_mid = 1.0
+enhanced_lat_mid = 0.2
+
+# 3. Specify bounding box for a region with enhanced mesh resolution (e.g. boundingbox.klokantech.com) | Middle region
 #  :: In general, the longitude range should be [0,360]
 #  :: In the special case that the bounding box crosses the prime meridian,
 #     the range should be [-180,0] for wlon and [0,180] for elon
-wlon_mid=0. # range [0,360] | If Bounding Box Crosses Prime Meridian, range = [-180,0]
-elon_mid=360. # range [0,360] | If Bounding Box Crosses Prime Meridian, range = [0,180]
+wlon_mid=00. # range [0,360] | If a Bounding Box Crosses Prime Meridian, range = [-180,0] (SEE FLAG BELOW)
+elon_mid=360. # range [0,360] | If a Bounding Box Crosses Prime Meridian, range = [0,180] (SEE FLAG BELOW)
 slat_mid=85.  # range [-90,90]
 nlat_mid=90.  # range [-90,90]
 
-# 3. Specify the enhanced mesh resolution (in degrees) | Middle region
-enhanced_lon_mid = 0.1
-enhanced_lat_mid = 0.1
- 
-# 4. Specify bounding box for a region with enhanced mesh resolution (e.g. boundingbox.klokantech.com) | Inner region
+# 4. Specify the enhanced mesh resolution (in degrees) | Inner region (full refinement)
+enhanced_lon_inn = 1.0
+enhanced_lat_inn = 0.001
+  
+# 5. Specify bounding box for a region with enhanced mesh resolution (e.g. boundingbox.klokantech.com) | Inner region
 #  :: In general, the longitude range should be [0,360]
 #  :: In the special case that the bounding box crosses the prime meridian,
 #     the range should be [-180,0] for wlon and [0,180] for elon
-wlon_inn=0. # range [0,360] | If Bounding Box Crosses Prime Meridian, range = [-180,0]
-elon_inn=360. # range [0,360] | If Bounding Box Crosses Prime Meridian, range = [0,180]
-slat_inn=89.5  # range [-90,90]
+wlon_inn=0.0 # range [0,360] | If a Bounding Box Crosses Prime Meridian, range = [-180,0] (SEE FLAG BELOW)
+elon_inn=360.0 # range [0,360] | If a Bounding Box Crosses Prime Meridian, range = [0,180] (SEE FLAG BELOW)
+slat_inn=89.4  # range [-90,90]
 nlat_inn=90.  # range [-90,90]
-
-# 5. Specify the enhanced mesh resolution (in degrees) | Inner region
-enhanced_lon_inn = 0.005
-enhanced_lat_inn = 0.005
 
 # 6. Apply Prime-Meridian Correction? 
 #  :: Set to "True" if the Bounding Box Stradles the Prime Meridian
@@ -143,9 +143,9 @@ ua1 = np.ravel(yv2)
 # If Necessary, Apply Prime-Meridian Correction (Shift to Range [-180,180])
 if (pm_correct == True):
     print(':: Applying the prime-meridian correction.')
-    if wlon > 0.:
+    if wlon_mid > 0.:
         sys.exit('Error: When applying the prime-meridian correction, the longitudes of the bounding box must range from [-180,180].')
-    if elon < 0.:
+    if elon_mid < 0.:
         sys.exit('Error: When applying the prime-meridian correction, the longitudes of the bounding box must range from [-180,180].')
     pm_correction = np.where(llon1>=180.); pm_correction = pm_correction[0]
     llon1[pm_correction] -= 360.
@@ -256,6 +256,7 @@ unit_area = np.concatenate([ua1,ua2])
 
 # If Necessary, Shift Longitude Values back to Original Range ([0,360])
 if (pm_correct == True):
+    pm_correction = np.where(llon<0.); pm_correction = pm_correction[0]
     llon[pm_correction] += 360.
 
 # Apply a land-sea mask?
@@ -293,7 +294,7 @@ else:
 # Output Load Cells to File for Use with LoadDef
 if (write_nc == True):
     print(":: Writing netCDF-formatted file.")
-    outname = ("commonMesh_global_" + str(gspace_lat) + "_" + str(gspace_lon) + "_" + str(slat_mid) + "_" + str(nlat_mid) + "_" + \
+    outname = ("commonMesh_disk_" + str(gspace_lat) + "_" + str(gspace_lon) + "_" + str(slat_mid) + "_" + str(nlat_mid) + "_" + \
         str(wlon_mid) + "_" + str(elon_mid) + "_" + str(enhanced_lat_mid) + "_" + str(enhanced_lon_mid) + "_" + str(slat_inn) + "_" + str(nlat_inn) + "_" + \
         str(wlon_inn) + "_" + str(elon_inn) + "_" + str(enhanced_lat_inn) + "_" + str(enhanced_lon_inn) + xtr_str + ".nc")
     outfile = ("../../output/Grid_Files/nc/commonMesh/" + outname)

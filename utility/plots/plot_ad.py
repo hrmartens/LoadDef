@@ -36,11 +36,11 @@ import matplotlib.cm as cm
 import numpy as np
  
 # Filenames for Input Load Greens Function Files
-extension = "PREM_analyticalDisk"
+extension = "PREM_analyticalDisk_10"
 #extension = "Homogeneous_Vp05.92_Vs03.42_Rho03.00_analyticalDisk"
-gfcm = ("../../output/Greens_Functions/cm_" + extension + ".txt")
-gfce = ("../../output/Greens_Functions/ce_" + extension + ".txt")
-gfcf = ("../../output/Greens_Functions/cf_" + extension + ".txt")
+gfcm = ("../../output/Greens_Functions/cm_" + extension + "deg-NoTaper_1m.txt")
+gfce = ("../../output/Greens_Functions/ce_" + extension + "deg-NoTaper_1m.txt")
+gfcf = ("../../output/Greens_Functions/cf_" + extension + "deg-NoTaper_1m.txt")
 
 # Output Figure Name
 figname1 = ("Greens_Functions_Displacement_" + extension + ".pdf")

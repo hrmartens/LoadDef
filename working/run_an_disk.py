@@ -64,16 +64,20 @@ from LOADGF.GF import compute_greens_functions
  
 # Full path to Load Love Number file (output from run_ln.py)
 lln_file = ("../output/Love_Numbers/LLN/lln_PREM.txt")
-#lln_file = ("../output/Love_Numbers/LLN/lln_Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
  
-# Output filename (Default is 'grn.txt')
-file_out = ("PREM_analyticalDisk.txt")
-#file_out = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_analyticalDisk.txt")
-
-# Apply a disk factor everywhere, with a radius of 'disks' degrees
+# Apply a disk factor everywhere
 diskf = True # True tells LoadDef to apply the disk factor
 angdst = 0. # The angular distance from the load point at which to start applying the disk factor (for analytical disk, angdst must be set to 0.)
-disks = 10. # The angular radius of the disk (in degrees)
+
+# Size of the disk
+use_km = True # If set to True, user must define "disk_radius"; if set to False, user must define "disks" 
+## If using km:
+disk_radius = 10. # in km
+disks = (disk_radius / ((2*6371*np.pi)/360)) # latitude of the edge of the disk; north of here will have load, and south of here will have no load
+disks = np.around(disks,decimals=4) # round the disk latitude to 4 decimal places
+## If using degrees directly:
+#disks = 10. # The angular radius of the disk (in degrees)
+print(':: Edge of disk in degrees: ', disks)
 
 #### Maximum theta value beyond which asymptotic approximations -- i.e. Kummer's transformation -- are not used.
 #### NOTE: MUST set max_theta = 0 when computing analytical displacement response to a disk load.
@@ -97,7 +101,10 @@ volume_of_load = disk_area * height_of_load
 mass_of_load = volume_of_load * density_of_load # units of kg
 
 # Specify theta values
-theta = [0.001,0.01,0.1,0.2,0.4,0.6,0.8,1.0,2.,3.,4.,5.,6.,7.,8.,9.,9.1,9.2,9.3,9.4,9.5,9.6,9.7,9.8,9.9,10., \
+theta = [0.0001,0.0005,0.001,0.005,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.082,0.084,0.086,0.088,0.089,0.0898,0.0899,0.09,0.091,0.092,0.094,0.096,0.098, \
+            0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.2,0.205,0.21,0.215,0.22,0.224,0.2245,0.2248,0.225,0.2255,0.226,0.23,0.235,0.24, \
+            0.25,0.26,0.27,0.28,0.29,0.3,0.32,0.34,0.36,0.38,0.4,0.42,0.44,0.46,0.48,0.5, \
+            0.6,0.8,1.0,2.,3.,4.,5.,6.,7.,8.,9.,9.1,9.2,9.3,9.4,9.5,9.6,9.7,9.8,9.9,10., \
             10.1,10.2,10.3,10.4,10.5,10.6,10.7,10.8,10.9,11.,12.,13.,14.,15.,16.,17.,18.,19.,20.,21.,22.,23., \
             24.,25.,26.,27.,28.,29.,30.,31.,32.,33.,34.,35.,36.,37.,38.,39.,40.,41.,42.,43.,44.,45.,46.,47.,48.,49.,50., \
             51.,52.,53.,54.,55.,56.,57.,58.,59.,60.,61.,62.,63.,64.,65.,66.,67.,68.,69.,70.,71.,72.,73.,74.,75.,76.,77., \
@@ -109,7 +116,13 @@ theta = [0.001,0.01,0.1,0.2,0.4,0.6,0.8,1.0,2.,3.,4.,5.,6.,7.,8.,9.,9.1,9.2,9.3,
             170.1,170.2,170.3,170.4,170.5,170.6,170.7,170.8,170.9,171.,172.,173.,174.,175.,176.,177.,178.,179., \
             179.2,179.4,179.6,179.8,179.9,179.99,179.999]
 
-# NOTE: Plot results using ../utility/plots/plot_ad.py
+# Output filename (Default is 'grn.txt')
+if (use_km == True):
+    file_out = ("PREM_analyticalDisk_" + str(disk_radius) + "km-NoTaper_1m.txt")
+else:
+    file_out = ("PREM_analyticalDisk_" + str(disks) + "deg-NoTaper_1m.txt") 
+
+# NOTE: Plot results using ../utility/plots/plot_dk_ad.py and/or ../utility/plots/plot_ad.py
 
 # ------------------ END USER INPUTS ----------------------- #
 

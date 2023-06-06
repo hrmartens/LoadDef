@@ -100,12 +100,12 @@ ldens = 1000.0
 # NEW OPTION: Provide a common geographic mesh?
 # If True, must provide the full path to a mesh file (see: GRDGEN/common_mesh). 
 # If False, a station-centered grid will be created within the functions called here. 
-common_mesh = False
+common_mesh = True
 # Full Path to Grid File Containing Surface Mesh (for sampling the load Green's functions)
 #  :: Format: latitude midpoints [float,degrees N], longitude midpoints [float,degrees E], unit area of each patch [float,dimensionless (need to multiply by r^2)]
-meshfname = ("commonMesh_global_1.0_1.0_85.0_90.0_0.0_360.0_0.1_0.1_89.5_90.0_0.0_360.0_0.005_0.005")
+meshfname = ("commonMesh_disk_5.0_5.0_85.0_90.0_0.0_360.0_0.2_1.0_89.4_90.0_0.0_360.0_0.001_1.0")
 convmesh = ("../output/Grid_Files/nc/commonMesh/" + meshfname + ".nc")
-
+ 
 # Planet Radius (in meters; used for Greens function normalization)
 planet_radius = 6371000.
   
@@ -340,6 +340,7 @@ if (rank == 0):
 
             ## Current load file
             cldfile = load_files[hh]
+            print(':: Current load file: ', cldfile)
 
             ## Filename identifier
             str_components = cldfile.split('_')
@@ -353,6 +354,7 @@ if (rank == 0):
                 sys.exit()
 
             ## Read the File
+            print(":: Reading the load file...")
             llat,llon,amp,pha,llat1dseq,llon1dseq,amp2darr,pha2darr = read_AmpPha.main(cldfile,loadfile_format,regular_grid=regular)
             ## Find Where Amplitude is NaN (if anywhere) and Set to Zero
             nanidx = np.isnan(amp); amp[nanidx] = 0.; pha[nanidx] = 0.
@@ -361,7 +363,9 @@ if (rank == 0):
             imag = np.multiply(amp,np.sin(np.multiply(pha,pi/180.)))
             
             ## Interpolate Load at Each Grid Point onto the Integration Mesh
+            print(":: Interpolating the load onto the mesh. Depending on the level of mesh refinement, this can take some time...")
             ic1,ic2   = interpolate_load.main(ilat,ilon,llat,llon,real,imag,regular)
+            print(":: Finished load interpolation.")
             
             ## Multiply the Load Heights by the Load Density
             ic1 = np.multiply(ic1,ldens)

@@ -16,13 +16,19 @@ import os
 import sys
 from CONVGF.utility import read_convolution_file
 
-# Convolution files
-prefix = ("LandAndOceans_")
-suffix = ("km-NoTaper_ce_convgf_disk_1m_commonMesh_PREM")
-disk_rad = 10
+#### USER INPUTS
+
+# Integrated Green's Function Files
+extension = "PREM_analyticalDisk"
+gfce = ("../../output/Greens_Functions/ce_" + extension + ".txt")
+
+# Plotting information
+prefix = ("ce_PREM_analyticalDisk_")
+suffix = ("km-NoTaper_1m")
+disk_rad = 10.0
 label1 = '10 km'
 mod1 = (prefix + str(disk_rad) + suffix)
-disk_rad = 25
+disk_rad = 25.0
 label2 = '25 km'
 mod2 = (prefix + str(disk_rad) + suffix)
 mods = [mod1,mod2]
@@ -40,7 +46,7 @@ ymaxu = 2.0
 colat = True
 # Figure names
 plot_title = ("Disks | PREM | 1 m Fresh Water")
-plot_name_NU = ("./output/all_disks_NU_1m_PREM_" + str(90-xmax) + "_" + str(90-xmin) + ".pdf")
+plot_name_NU = ("./output/all_analyticalDisks_NU_1m_PREM_" + str(90-xmax) + "_" + str(90-xmin) + ".pdf")
 
  
 #### BEGIN CODE
@@ -60,7 +66,7 @@ for ii in range(0,len(mods)):
     cmod = mods[ii]
 
     # Current file
-    cfile = ("../pmes/output/cn_" + cmod + ".txt")
+    cfile = ("../../output/Greens_Functions/" + cmod + ".txt")
 
     # Current color
     ccol = colors[ii] 
@@ -69,19 +75,17 @@ for ii in range(0,len(mods)):
     clabel = labels[ii]
  
     # Read the file
-    extension,lat,lon,eamp,epha,namp,npha,vamp,vpha = read_convolution_file.main(cfile)
+    thce,uce,vce,ucenorm,vcenorm,gece,tece,ettce,ellce,gnce,tnce = np.loadtxt(cfile,usecols=(0,1,2,3,4,5,6,8,9,10,11),unpack=True,skiprows=5)
+    # Convert from m to mm
+    vamp = uce*1000.
+    namp = -(vce*1000.)
 
-    # Combine amp and pha
-    eamp = np.multiply(eamp,np.cos(epha*(np.pi/180.)))
-    namp = np.multiply(namp,np.cos(npha*(np.pi/180.)))
-    vamp = np.multiply(vamp,np.cos(vpha*(np.pi/180.)))
- 
+    # Convert co-latitude to latitude
+    lat = 90.-thce
+
     # Sort by Latitude
     lat_idx = np.argsort(lat)
     lat = lat[lat_idx]
-    lon = lon[lat_idx]
-    extension = extension[lat_idx]
-    eamp = eamp[lat_idx]
     namp = namp[lat_idx]
     vamp = vamp[lat_idx]
 
@@ -96,8 +100,6 @@ for ii in range(0,len(mods)):
         xlab = ("Angular Distance from Load Center (deg)")
         order = np.argsort(lat)
         lat = lat[order]
-        lon = lon[order]
-        eamp = eamp[order]
         namp = namp[order]
         vamp = vamp[order]
 
@@ -105,7 +107,7 @@ for ii in range(0,len(mods)):
     plot_fig = True
     fs = 10
     plt.subplot(2,1,1)
-    plt.plot(lat,namp,color=ccol,linestyle='-',ms=4,marker='o',label=clabel)
+    plt.plot(lat,namp,color=ccol,linestyle='-',ms=3,marker='o',label=clabel)
     plt.title(plot_title,fontsize=fs)
     plt.ylabel('Lateral Displ. (mm)',fontsize=fs)
     frame = plt.gca()
@@ -116,7 +118,7 @@ for ii in range(0,len(mods)):
     plt.xlim(xminp,xmaxp)
     plt.ylim(yminh,ymaxh)
     plt.subplot(2,1,2)
-    plt.plot(lat,vamp,color=ccol,linestyle='-',ms=4,marker='o')
+    plt.plot(lat,vamp,color=ccol,linestyle='-',ms=3,marker='o')
     #plt.title(plot_title,fontsize=fs)
     plt.ylabel('Up Displ. (mm)',fontsize=fs)
     plt.xlabel(xlab,fontsize=fs)

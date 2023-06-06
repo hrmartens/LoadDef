@@ -39,11 +39,12 @@ from CONVGF.utility import read_AmpPha
 # --------------- SPECIFY USER INPUTS --------------------- #
 
 # Define the disk radius in km
-disk_radius = 10 # in km
+disk_radius = 25 # in km
 
 # compute disk latitude in degrees (90 degrees lat at north pole, minus the disk radius divided by the km in 1 angular degree (pi * diameter / 360))
 disk_lat = 90 - (disk_radius / ((2*6371*np.pi)/360)) # latitude of the edge of the disk; north of here will have load, and south of here will have no load
 disk_lat = np.around(disk_lat,decimals=4) # round the disk latitude to 4 decimal places
+print(':: Disk latitude at edge: ', disk_lat)
 
 # Grid Spacing
 gspace = 0.0005
@@ -232,5 +233,14 @@ if (write_txt == True):
     np.savetxt(custom_file, all_custom_data, fmt='%f %f %f %f')
 
 # --------------------- END CODE --------------------------- #
+
+
+# NOTES:  
+
+# LoadDef is designed to accommodate loads of arbitrary geometry and spatial extent. Given that the benchmark results appear promising, I think the issue you were experiencing before boils down to the difficulty of representing a perfectly circular disk load on a lat/lon grid. For the benchmark test above, I centered the disk on the north pole, so that I could perfectly capture the circular shape of the disk on a lat/lon grid. For a disk placed arbitrary within the lat/lon grid, however, many points may be required to accurately represent the shape of the disk boundary.
+#
+# Depending on the precision required for your problem, I would recommend refining your grid around the edge of the disk. Fortunately, you only need to have a high resolution at the edge, and can reduce the resolution within and around the disk, which would improve efficiency of the calculation. LoadDef can handle non-regular grids, so that's no problem (it is an option in run_cn.py). Furthermore, if your observation point/station is close to (or within) the disk, then you might also consider refining the parameters of the integration mesh, which may be supplied as keywords to the function at the bottom of run_cn.py. For stations close to the disk, you will want the resolution of the integration mesh to match the resolution of the disk load (only necessary for small station-load distances). This is because LoadDef will interpolate the load values onto the station-centered integration mesh, so if you have better resolution in the mesh than in the load, then you might unwittingly set up a taper at the edge of the disk.
+#
+# Otherwise, if your problem would allow the use of rectangular (rather than circular) loads on a lat/lon grid, then you could avoid the geometric challenges entirely. An added benefit of rectangular loads is that there's no empty space between multiple patches; circular disks do not pack together so well as rectangular patches. But this will depend on the details of your problem.
 
 
