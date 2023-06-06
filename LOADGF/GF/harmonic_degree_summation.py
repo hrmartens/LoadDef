@@ -30,7 +30,7 @@ from LOADGF.GF import compute_legendre
 from LOADGF.GF import compute_disk_factor
 from LOADGF.GF import series_sum
 
-def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_type,lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper,max_theta=200.):
+def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_type,lmda_surface,mu_surface,g_surface,disk_factor,angdist,disk_size,apply_taper=False,max_theta=200.):
 
     # Note on 'max_theta': Used to set a maximum angular distance, beyond which the LGFs are computed by direct sum 
     #   rather than using the asymptotic Love numbers (Guo, personal communication, 2016)
@@ -99,6 +99,8 @@ def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_typ
         # Reset final element in series to zero
         conv_coeff[ii,recursive_iterations] = 0.0 
     # Fill the coefficients into the "convergence factors" array
+    # The length of the "convergence factors" array is equal to the number of spherical-harmonic degrees (n) used in the summation (not including asymptotic values)
+    # Nearly all the values in the array are equal to 1, except for those values at high n (with a dependence on the number of recursive iterations
     if (apply_taper == True):
         cfs[-recursive_iterations::] = conv_coeff[recursive_iterations-1,0:-1]
 
@@ -143,7 +145,7 @@ def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_typ
         # Degree-0
         if (myn == 0): 
             if (mytheta <= max_theta):
-                usum[vcount] = (lln_h[vv] - h_inf) * P[vv]
+                usum[vcount] = (lln_h[vv] - h_inf) * P[vv] * cfs[vv]
             else:
                 usum[vcount] = lln_h[vv]*P[vv] * cfs[vv]
             if disk_factor:
@@ -281,7 +283,7 @@ def main(n,a,me,mytheta,h,h_inf,h_inf_p,nl,l_inf,l_inf_p,nk,k_inf,k_inf_p,rf_typ
             # Without kummer's: (-g/M)*(k'*P); see Guo et al. 2004; see LoadDef ESS paper supplement Eq. (6)
             # nk' at n=0 = 0. k' at n=0 is undefined. 
             # With kummer's: (-g/M) * (k'-k_inf)*P
-            gsum[vcount] = (lln_nk[vv] - k_inf) * P[vv] 
+            gsum[vcount] = (lln_nk[vv] - k_inf) * P[vv] * cfs[vv]
             if disk_factor:
                 if (mytheta >= angdist):
                     gsum[vcount] *= dfac[vv]

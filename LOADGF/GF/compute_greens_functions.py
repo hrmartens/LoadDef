@@ -87,7 +87,7 @@ disk_size : Radius of the disk in degrees
 
 apply_taper : Option to apply a taper to the series summation in the computation of the LGFs
               The taper mimics the recursive averaging desribed in Guo et al. 2004 [Eqs. 23 and 24]
-    Default is True
+    Default is False
 
 loadmass : NEW option to provide the mass of a disk load. 
            Used ONLY when computing the analytical solution for a disk load. 
@@ -98,7 +98,7 @@ grn_out : Extension for the output Green's function files
     Default is 'grn.txt'
 """
 
-def main(lln_file,rank,comm,size,grn_out='grn.txt',theta=None,a=6371000.,me=5.976E24,lmda_surface=3.422E10,mu_surface=2.662E10,g_surface=9.81,disk_factor=True,angdist=10.,disk_size=0.1,apply_taper=True,loadmass=None,max_theta=200.):
+def main(lln_file,rank,comm,size,grn_out='grn.txt',theta=None,a=6371000.,me=5.976E24,lmda_surface=3.422E10,mu_surface=2.662E10,g_surface=9.81,disk_factor=True,angdist=10.,disk_size=0.1,apply_taper=False,loadmass=None,max_theta=200.):
 
     # Generate Array of Angular Distances, if None Provided
     if theta is None:
