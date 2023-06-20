@@ -79,7 +79,7 @@ pm_correct = False
 # 7. Land-Sea Mask
 #  :: 0 = do not mask ocean or land (retain full model); 1 = mask out land (retain ocean); 2 = mask out oceans (retain land)
 #  :: Recommended: 1 for oceanic; 2 for atmospheric
-lsmask_type = 2
+lsmask_type = 1
 land_sea = ("../../input/Land_Sea/ETOPO1_Ice_g_gmt4_wADD.txt")
 
 # 8. Write Load Information to a netCDF-formatted File? (Default for convolution)
