@@ -143,6 +143,9 @@ mass_cons = False
 # Station/Grid-Point Location File (Lat, Lon, StationName)
 sta_file = ("../input/Station_Locations/NOTA.txt")
 
+# Overwrite old convolution files? (May be helpful if you want to change / add load files, but keep everything else the same)
+overwrite = True
+
 # Optional: Additional string to include in all output filenames (Love numbers, Green's functions, Convolution)
 outstr = ("")
 
@@ -662,16 +665,20 @@ for dd in range(0,len(gffiles)):
 
         # Check if file already exists
         if (os.path.isfile(cn_fullpath)):
-            print(":: File already exists: " + cn_fullpath + ". Continuing...")
-            continue
-        else:
 
-            # Status update
-            print(':: Working on station: %s | Number: %6d of %6d | Rank: %6d' %(csta, (ii+1), len(d_sub), rank))
+            if (overwrite == True): 
+                os.remove(cn_fullpath) 
 
-            # Compute Convolution for Current File
-            eamp,epha,namp,npha,vamp,vpha = load_convolution.main(\
-                grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmask,lsmask_type,clat,clon,csta,cnv_out,load_density=ldens)
+            else: 
+                print(":: File already exists: " + cn_fullpath + ". Continuing...")
+                continue
+
+        # Status update
+        print(':: Working on station: %s | Number: %6d of %6d | Rank: %6d' %(csta, (ii+1), len(d_sub), rank))
+
+        # Compute Convolution for Current File
+        eamp,epha,namp,npha,vamp,vpha = load_convolution.main(\
+            grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmask,lsmask_type,clat,clon,csta,cnv_out,load_density=ldens)
  
     # No need to gather the data from MPI processors; no need to use variables passed back from convolution
     # We will just write out the files, and then read them in again later.
