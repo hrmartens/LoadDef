@@ -316,9 +316,9 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
     # Write Header Info to File
     hf = open(cnv_head,'w')
     if (loadfile_format == "bbox"):
-        cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  V-Amp(mm)  V-Pha(deg)  South-Lat(deg)  North-Lat(deg)  West-Lon(deg)  East-Lon(deg) \n'
+        cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  U-Amp(mm)  U-Pha(deg)  South-Lat(deg)  North-Lat(deg)  West-Lon(deg)  East-Lon(deg) \n'
     else:
-        cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  V-Amp(mm)  V-Pha(deg) \n'
+        cnv_str = 'Extension/Epoch  Lat(+N,deg)  Lon(+E,deg)  E-Amp(mm)  E-Pha(deg)  N-Amp(mm)  N-Pha(deg)  U-Amp(mm)  U-Pha(deg) \n'
     hf.write(cnv_str)
     hf.close()
 
