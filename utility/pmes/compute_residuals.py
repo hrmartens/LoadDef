@@ -80,7 +80,7 @@ def main(filename1,filename2,myoutfile,rmCMode,stations_to_exclude):
             idx_to_delete.append(jj)
     # Gather All Indices Together into an Array, and Apply to Station Data
     idx_to_delete = np.asarray(idx_to_delete)
-    if idx_to_delete:
+    if (len(idx_to_delete) > 0):
         sta = np.delete(sta,idx_to_delete)
         lat = np.delete(lat,idx_to_delete)
         lon = np.delete(lon,idx_to_delete)
@@ -107,7 +107,7 @@ def main(filename1,filename2,myoutfile,rmCMode,stations_to_exclude):
             idx_to_delete.append(jj)
     # Gather All Indices Together into an Array, and Apply to Station Data
     idx_to_delete = np.asarray(idx_to_delete)
-    if idx_to_delete:
+    if (len(idx_to_delete) > 0):
         sta = np.delete(sta,idx_to_delete)
         lat = np.delete(lat,idx_to_delete)
         lon = np.delete(lon,idx_to_delete)
@@ -224,7 +224,7 @@ def main(filename1,filename2,myoutfile,rmCMode,stations_to_exclude):
             idx_to_delete.append(jj)
     # Gather All Indices Together into an Array, and Apply to Station Data
     idx_to_delete = np.asarray(idx_to_delete)
-    if idx_to_delete:
+    if (len(idx_to_delete) > 0):
         sta = np.delete(sta,idx_to_delete)
         lat = np.delete(lat,idx_to_delete)
         lon = np.delete(lon,idx_to_delete)
@@ -248,7 +248,7 @@ def main(filename1,filename2,myoutfile,rmCMode,stations_to_exclude):
             idx_to_delete.append(jj)
     # Gather All Indices Together into an Array, and Apply to Station Data
     idx_to_delete = np.asarray(idx_to_delete)
-    if idx_to_delete:
+    if (len(idx_to_delete) > 0):
         sta = np.delete(sta,idx_to_delete)
         lat = np.delete(lat,idx_to_delete)
         lon = np.delete(lon,idx_to_delete)
