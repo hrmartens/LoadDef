@@ -32,7 +32,7 @@ sys.path.append(os.getcwd() + "/../../")
 
 # IMPORT PYTHON MODULES
 import numpy as np
-from LOADGF.LN import prepare_earth_model
+from LOADGF.LN import prepare_planet_model
 
 # Specify the Perturbation Amount  
 #  :: The Perturbation Factor Will be Added to the Log of Each Model Parameter
@@ -46,7 +46,7 @@ include_start_point = False # First Point for Lower Bound
 include_end_point = True # Last Point for Upper Bound
 
 # Input and Output Filenames
-earth_model = ("../../input/Planet_Models/PREM.txt")
+planet_model = ("../../input/Planet_Models/PREM.txt")
 outfile = ("PREM_" + str('{:.4f}'.format(m_perturb)) + "_" + str(d_perturb[0]) + "_" + str(d_perturb[1]) + ".txt")
 
 #### BEGIN CODE
@@ -59,7 +59,7 @@ outdir = "../../output/Planet_Models/"
 # Prepare Planet Model
 print(':: Preparing Planet Model')
 radial_dist,mu,kappa,lmda,rho,g,tck_lnd,tck_mnd,tck_rnd,tck_gnd,s,lnd,mnd,rnd,gnd,s_min,small,\
-    earth_radius,earth_mass,sic,soc,adim,gsdim,pi,piG,L_sc,R_sc,T_sc = prepare_earth_model.main(earth_model)
+    planet_radius,planet_mass,sic,soc,adim,gsdim,pi,piG,L_sc,R_sc,T_sc = prepare_planet_model.main(planet_model)
   
 # Convert to Vp,Vs
 vs = np.sqrt(np.divide(mu,rho))
