@@ -54,7 +54,6 @@ import os
 sys.path.append(os.getcwd() + "/../")
 
 # IMPORT PYTHON MODULES
-import numpy as np
 from LOADGF.LN import compute_love_numbers 
 
 # --------------- SPECIFY USER INPUTS --------------------- #
