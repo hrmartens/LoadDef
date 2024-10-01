@@ -17,7 +17,12 @@ To install via Anaconda:
 We recommend creating a dedicated environment for LoadDef. 
 
 At the command line, run:
-  conda create -n LDEF python=3.10 mpi4py scipy netCDF4 numba
+  conda create -n LDEF python=3.11 
+  conda install mpi4py 
+  conda install scipy 
+  conda install netCDF4 
+  conda install numba 
+  conda install matplotlib
 
 To activate the new environment, run:
   conda activate LDEF
