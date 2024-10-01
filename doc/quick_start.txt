@@ -17,15 +17,21 @@ To install via Anaconda:
 We recommend creating a dedicated environment for LoadDef. 
 
 At the command line, run:
-  conda config --prepend channels conda-forge
-  conda config --set channel_priority strict
-  conda create -n LDEF python=3.10 mpi4py scipy netCDF4 pyshp shapely numba jupyter pygmt
+  conda create -n LDEF python=3.10 mpi4py scipy netCDF4 numba
 
 To activate the new environment, run:
   conda activate LDEF
 
 If the above activation does not work, please try:
   source activate LDEF
+
+Add optional features:
+  conda install jupyter
+  conda install pyshp
+  conda install shapely
+  conda config --prepend channels conda-forge
+  conda config --set channel_priority strict
+  conda install pygmt
 
 LoadDef should now be ready to use. To deactivate the new environment when you are finished, you may run:
   conda deactivate
