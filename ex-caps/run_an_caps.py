@@ -66,8 +66,8 @@ import matplotlib.cm as cm
 # --------------- SPECIFY USER INPUTS --------------------- #
  
 # Full path to Load Love Number file (output from run_ln.py)
-#pmod = "PREM"
-pmod = "Homogeneous_Vp05.92_Vs03.42_Rho03.00"
+pmod = "PREM"
+#pmod = "Homogeneous_Vp05.92_Vs03.42_Rho03.00"
 lln_file = ("../output/Love_Numbers/LLN/lln_" + pmod + ".txt")
  
 # Apply a disk factor everywhere
@@ -160,39 +160,40 @@ else:
 
 
 # Apply the disk loads to both poles? 
-if sym_caps: 
-    up_disp = u + np.flip(u)
-    north_disp = v - np.flip(v) # for lateral displacements, we multiply the reverse by -1 to align with the convention of positive north
-    # Multiply by 1000. to convert from meters to mm
-    up_disp *= 1000.
-    north_disp *= 1000.
-    # Convert theta values to latitude
-    theta_lat = np.asarray(theta)-90.
-    # Write results to file
-    if write_syn:
-        if not (os.path.isdir("./output/")):
-            os.makedirs("./output/")
-        custom_file = ("./output/" + file_out)
-        all_custom_data = np.column_stack((theta_lat,up_disp,north_disp))
-        np.savetxt(custom_file, all_custom_data, fmt='%f %f %f')
-    # Plot (as latitude)
-    xmin = -90.
-    xmax = 90.
-    plt.subplot(2,1,1)
-    plt.plot(theta_lat,north_disp,color='k',linestyle='-',linewidth=2)
-    plt.xlim(xmin, xmax)
-    plt.grid(True)
-    plt.tick_params(labelsize='x-small')
-    plt.title('North (mm)',size='small',weight='bold')
-    plt.subplot(2,1,2)
-    plt.plot(theta_lat,up_disp,color='k',linestyle='-',linewidth=2)
-    plt.xlim(xmin, xmax)
-    plt.grid(True)
-    plt.xlabel(r'Latitude [$^{\circ}$] ',size='x-small')
-    plt.tick_params(labelsize='x-small')
-    plt.title('Up (mm)',size='small',weight='bold')
-    plt.tight_layout()
-    plt.show()
+if (rank == 0):
+    if sym_caps: 
+        up_disp = u + np.flip(u)
+        north_disp = v - np.flip(v) # for lateral displacements, we multiply the reverse by -1 to align with the convention of positive north
+        # Multiply by 1000. to convert from meters to mm
+        up_disp *= 1000.
+        north_disp *= 1000.
+        # Convert theta values to latitude
+        theta_lat = np.asarray(theta)-90.
+        # Write results to file
+        if write_syn:
+            if not (os.path.isdir("./output/")):
+                os.makedirs("./output/")
+            custom_file = ("./output/" + file_out)
+            all_custom_data = np.column_stack((theta_lat,up_disp,north_disp))
+            np.savetxt(custom_file, all_custom_data, fmt='%f %f %f')
+        # Plot (as latitude)
+        xmin = -90.
+        xmax = 90.
+        plt.subplot(2,1,1)
+        plt.plot(theta_lat,north_disp,color='k',linestyle='-',linewidth=2)
+        plt.xlim(xmin, xmax)
+        plt.grid(True)
+        plt.tick_params(labelsize='x-small')
+        plt.title('North (mm)',size='small',weight='bold')
+        plt.subplot(2,1,2)
+        plt.plot(theta_lat,up_disp,color='k',linestyle='-',linewidth=2)
+        plt.xlim(xmin, xmax)
+        plt.grid(True)
+        plt.xlabel(r'Latitude [$^{\circ}$] ',size='x-small')
+        plt.tick_params(labelsize='x-small')
+        plt.title('Up (mm)',size='small',weight='bold')
+        plt.tight_layout()
+        plt.show()
 
 # --------------------- END CODE --------------------------- #
 
