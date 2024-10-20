@@ -29,7 +29,7 @@ def main(rlat,rlon,ldel,lazm,unit_area):
     # Determine Geographic Coordinates of Mesh Midpoints
     # e.g. www.movable-type.co.uk/scripts/latlong.html
     # e.g. www.geomidpoint.com/destination/calculation.html
-    xv,yv = sc.meshgrid(ldel,lazm)
+    xv,yv = np.meshgrid(ldel,lazm)
     ldelfull = xv.flatten()
     lazmfull = yv.flatten()
     rlatrad = rlat*(pi/180.)
@@ -45,7 +45,7 @@ def main(rlat,rlon,ldel,lazm,unit_area):
     ilon = np.multiply(ilon,(180./pi))
 
     # Determine Unit Areas for Each Cell
-    xv,yv = sc.meshgrid(unit_area,lazm)
+    xv,yv = np.meshgrid(unit_area,lazm)
     iarea = xv.flatten()
 
     # Shift to Range 0-360 
