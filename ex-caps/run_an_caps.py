@@ -68,6 +68,7 @@ import matplotlib.cm as cm
 # Full path to Load Love Number file (output from run_ln.py)
 pmod = "PREM"
 #pmod = "Homogeneous_Vp05.92_Vs03.42_Rho03.00"
+#pmod = "Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav"
 lln_file = ("../output/Love_Numbers/LLN/lln_" + pmod + ".txt")
  
 # Apply a disk factor everywhere
