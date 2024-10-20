@@ -205,6 +205,8 @@ def main(grn_file,norm_flag,load_files,loadfile_format,regular,lslat,lslon,lsmas
         # Compute Integrated Greens Functions
         gfu = interpolate.splev(delta,tck_gfu,der=0)
         gfv = interpolate.splev(delta,tck_gfv,der=0)
+        # Note: Here, the LGF normalization factor is not included in the integration (in contrast to the station-centric method)
+        #       The LGF variations depend on angular distance from the station, and these "meridian" lines generally do not align with the common mesh.
         uint = iarea * gfu
         vint = iarea * gfv
 
