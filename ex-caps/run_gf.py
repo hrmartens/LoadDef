@@ -37,14 +37,14 @@ from LOADGF.GF import compute_greens_functions
 # --------------- SPECIFY USER INPUTS --------------------- #
  
 # Full path to Load Love Number file (output from run_ln.py)
-#lln_file = ("../output/Love_Numbers/LLN/lln_PREM.txt")
+lln_file = ("../output/Love_Numbers/LLN/lln_PREM.txt")
 #lln_file = ("../output/Love_Numbers/LLN/lln_Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
-lln_file = ("../output/Love_Numbers/LLN/lln_Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
+#lln_file = ("../output/Love_Numbers/LLN/lln_Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
 
 # Output filename (Default is 'grn.txt')
-#file_out = ("PREM.txt")
+file_out = ("PREM.txt")
 #file_out = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
-file_out = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
+#file_out = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
 
 # ------------------ END USER INPUTS ----------------------- #
 

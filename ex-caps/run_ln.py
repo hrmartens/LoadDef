@@ -64,14 +64,21 @@ from LOADGF.LN import compute_love_numbers
 #     Format: radius(km), vp(km/s), vs(km/s), density(g/cc)
 #     If the file delimiter is not whitespace, then specify in
 #         call to function.
-#planet_model = ("./input/Planet_Models/PREM.txt")
-planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
- 
+# PREM:
+planet_model = ("./input/Planet_Models/PREM.txt")
+# Homogeneous Sphere:
+#planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
+
 # Extension for the output filename (Default is '.txt')
-#file_ext      = ("PREM.txt")
+# PREM: With full gravity
+non_grav = False
+file_ext      = ("PREM.txt")
+# Homogeneous Sphere: With full gravity
+#non_grav = False
 #file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
-non_grav = True
-file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
+# Homogeneous Sphere: No gravity
+#non_grav = True
+#file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
 
 # ------------------ END USER INPUTS ----------------------- #
 
