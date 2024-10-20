@@ -88,13 +88,13 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
 
         # Compute Love Numbers at Desired Depth: Find the appropriate radii
         if (numrad == 1):
-            abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii)) # absolute values of the differences between the integration radii and the test depth
+            abs_val_diff = np.abs(np.asarray(sint_mt) - float(eval_radii)) # absolute values of the differences between the integration radii and the test depth
             sidx = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
         else:
             for jj in range(0,numrad):
-                abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii[jj])) # absolute values of the differences between the integration radii and the test depth
+                abs_val_diff = np.abs(np.asarray(sint_mt) - float(eval_radii[jj])) # absolute values of the differences between the integration radii and the test depth
                 sidx[jj] = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
-        sidx = sidx.astype(np.int)
+        sidx = sidx.astype(int)
 
         # Compute Love Numbers at Desired Depth: Sample the Y Solutions
         for kk in range(0,numrad):
@@ -139,13 +139,13 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
 
         # Compute Love Numbers at Desired Depth: Find the appropriate radii
         if (numrad == 1):
-            abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii)) # absolute values of the differences between the integration radii and the test depth
+            abs_val_diff = np.abs(np.asarray(sint_mt) - float(eval_radii)) # absolute values of the differences between the integration radii and the test depth
             sidx = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
         else:
             for jj in range(0,numrad):
-                abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii[jj])) # absolute values of the differences between the integration radii and the test depth
+                abs_val_diff = np.abs(np.asarray(sint_mt) - float(eval_radii[jj])) # absolute values of the differences between the integration radii and the test depth
                 sidx[jj] = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
-        sidx = sidx.astype(np.int)
+        sidx = sidx.astype(int)
 
         # Compute Love Numbers at Desired Depth: Sample the Y Solutions
         for kk in range(0,numrad):
@@ -165,8 +165,8 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
             hshr[kk],nlshr[kk],nkshr[kk] = evaluate_shear_ln_noGrav.main(n,Y_shr[csidx,:],adim,gsdim,T_sc,L_sc)
             # Check: If the Evaluation Radii are less than the Starting Radius of the Integration, then Set the Love Numbers at those Radii to NaN
             #print(sint_mt[csidx])
-            if (np.float(crad) < min(sint_mt)):
-                hprime[kk] = nlprime[kk] = nkprime[kk] = hpot[kk] = nlpot[kk] = nkpot[kk] = hstr[kk] = nlstr[kk] = nkstr[kk] = hshr[kk] = nlshr[kk] = nkshr[kk] = np.float("nan")
+            if (float(crad) < min(sint_mt)):
+                hprime[kk] = nlprime[kk] = nkprime[kk] = hpot[kk] = nlpot[kk] = nkpot[kk] = hstr[kk] = nlstr[kk] = nkstr[kk] = hshr[kk] = nlshr[kk] = nkshr[kk] = float("nan")
  
     else:
 
@@ -185,13 +185,13 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
 
         # Compute Love Numbers at Desired Depth: Find the appropriate radii
         if (numrad == 1):
-            abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii)) # absolute values of the differences between the integration radii and the test depth
+            abs_val_diff = np.abs(np.asarray(sint_mt) - float(eval_radii)) # absolute values of the differences between the integration radii and the test depth
             sidx = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
         else:
             for jj in range(0,numrad):
-                abs_val_diff = np.abs(np.asarray(sint_mt) - np.float(eval_radii[jj])) # absolute values of the differences between the integration radii and the test depth
+                abs_val_diff = np.abs(np.asarray(sint_mt) - float(eval_radii[jj])) # absolute values of the differences between the integration radii and the test depth
                 sidx[jj] = abs_val_diff.argmin() # the index for the desired depth is found by locating the smallest value in the difference array
-        sidx = sidx.astype(np.int)
+        sidx = sidx.astype(int)
 
         # Compute Love Numbers at Desired Depth: Sample the Y Solutions
         for kk in range(0,numrad):
@@ -211,8 +211,8 @@ def main(n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,\
             hshr[kk],nlshr[kk],nkshr[kk] = evaluate_shear_ln_noGrav.main(n,Y_shr[csidx,:],adim,gsdim,T_sc,L_sc)
             # Check: If the Evaluation Radii are less than the Starting Radius of the Integration, then Set the Love Numbers at those Radii to NaN
             #print(sint_mt[csidx])
-            if (np.float(crad) < min(sint_mt)):
-                hprime[kk] = nlprime[kk] = nkprime[kk] = hpot[kk] = nlpot[kk] = nkpot[kk] = hstr[kk] = nlstr[kk] = nkstr[kk] = hshr[kk] = nlshr[kk] = nkshr[kk] = np.float("nan")
+            if (float(crad) < min(sint_mt)):
+                hprime[kk] = nlprime[kk] = nkprime[kk] = hpot[kk] = nlpot[kk] = nkpot[kk] = hstr[kk] = nlstr[kk] = nkstr[kk] = hshr[kk] = nlshr[kk] = nkshr[kk] = float("nan")
 
     # Flatten the Y Solution Vectors into 1d Arrays
     Y_load = Y_load.flatten()
