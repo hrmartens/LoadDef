@@ -46,7 +46,7 @@ pmod = ("PREM")
 #pmod = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav")
 
 # Suffix of the filename (created with run_cn_caps): 
-suffix = ("ce_convgf_custom_symcaps_" + pmod + "_z111_z215_z320_z430_azm0p5.txt")
+suffix = ("ce_convgf_custom_symcaps_" + pmod + "_stationMesh_z111_z215_z320_z430_azm0p5.txt")
 
 # Use a different suffix if working with a common mesh:
 #suffix = ("ce_convgf_custom_symcaps_" + pmod + "_commonMesh_0.001-11.0_0.005-15.0_0.01-20.0_0.1-30.0_0.5-150.0_0.1-160.0_0.01-165.0_0.005-169.0_0.001.txt")
