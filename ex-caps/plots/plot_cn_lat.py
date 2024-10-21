@@ -51,6 +51,11 @@ plot_name_NU = ("./output/" + mod + "_NU.pdf")
 
 #### BEGIN CODE ####
 
+# Create Folder
+if not (os.path.isdir("./output/")):
+    os.makedirs("./output/")
+outdir = "./output/"
+
 # Read the file
 extension,lat,lon,eamp,epha,namp,npha,vamp,vpha = read_convolution_file.main(cfile)
 
