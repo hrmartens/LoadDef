@@ -24,16 +24,16 @@ taper = True
 if taper:
     #### With Linear Taper
     #### Uncomment ONE "mod" line below (based on any extra details of the results, such as mesh parameters)
-    #mod = ("LandAndOceans_linear-taper-5_ce_convgf_custom_symcaps_" + pmod + "_z111_z215_z320_z430_azm0p3")
+    mod = ("LandAndOceans_linear-taper-5_ce_convgf_custom_symcaps_" + pmod + "_stationMesh_z111_z215_z320_z430_azm0p5")
     #mod = ("LandAndOceans_linear-taper-5_ce_convgf_custom_symcaps_" + pmod + "_commonMesh_0.001-11.0_0.005-15.0_0.01-20.0_0.1-30.0_0.5-150.0_0.1-160.0_0.01-165.0_0.005-169.0_0.001")
-    mod = ("LandAndOceans_linear-taper-5_ce_convgf_custom_symcaps_" + pmod + "_commonMesh_0.5_0.5_60.0_90.0_0.1_0.5_70.0_90.0_0.01_0.5_75.0_90.0_0.005_0.5_79.0_90.0_0.001_0.5")
+    #mod = ("LandAndOceans_linear-taper-5_ce_convgf_custom_symcaps_" + pmod + "_commonMesh_0.5_0.5_60.0_90.0_0.1_0.5_70.0_90.0_0.01_0.5_75.0_90.0_0.005_0.5_79.0_90.0_0.001_0.5")
     plot_title = (pmod_short + " | Polar Caps, Radius 10deg, 5deg Taper | 1m Fresh Water")
 else: 
     #### No Taper
     #### Uncomment ONE "mod" line below (based on any extra details of the results, such as mesh parameters)
-    #mod = ("LandAndOceans_no-taper_ce_convgf_custom_symcaps_" + pmod + "_z111_z215_z320_z430_azm0p3")
+    mod = ("LandAndOceans_no-taper_ce_convgf_custom_symcaps_" + pmod + "_stationMesh_z111_z215_z320_z430_azm0p5")
     #mod = ("LandAndOceans_no-taper_ce_convgf_custom_symcaps_" + pmod + "_commonMesh_0.001-11.0_0.005-15.0_0.01-20.0_0.1-30.0_0.5-150.0_0.1-160.0_0.01-165.0_0.005-169.0_0.001")
-    mod = ("LandAndOceans_no-taper_ce_convgf_custom_symcaps_" + pmod + "_commonMesh_0.5_0.5_60.0_90.0_0.1_0.5_70.0_90.0_0.01_0.5_75.0_90.0_0.005_0.5_79.0_90.0_0.001_0.5")
+    #mod = ("LandAndOceans_no-taper_ce_convgf_custom_symcaps_" + pmod + "_commonMesh_0.5_0.5_60.0_90.0_0.1_0.5_70.0_90.0_0.01_0.5_75.0_90.0_0.005_0.5_79.0_90.0_0.001_0.5")
     plot_title = (pmod_short + " | Polar Caps, Radius 10deg, No Taper | 1m Fresh Water")
 
 # Scope of Figure
