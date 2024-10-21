@@ -58,25 +58,28 @@ from LOADGF.LN import compute_love_numbers
 
 # --------------- SPECIFY USER INPUTS --------------------- #
  
-# Full path to planet model text file
+# planet_model provides the full path to planet model text file
 #     Planet model should be spherically symmetric, elastic, 
 #         non-rotating, and isotropic (SNREI)
 #     Format: radius(km), vp(km/s), vs(km/s), density(g/cc)
 #     If the file delimiter is not whitespace, then specify in
 #         call to function.
-# PREM:
-planet_model = ("./input/Planet_Models/PREM.txt")
-# Homogeneous Sphere:
-#planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
 
-# Extension for the output filename (Default is '.txt')
-# PREM: With full gravity
+## Uncomment the relevant block of lines below 
+##    (for Option 1, 2, or 3, depending on the desired Earth model)
+
+# Option 1: PREM with full gravity
+planet_model = ("./input/Planet_Models/PREM.txt")
 non_grav = False
-file_ext      = ("PREM.txt")
-# Homogeneous Sphere: With full gravity
+file_ext      = ("PREM.txt")  # Extension for the output filename
+
+# Option 2: Homogeneous sphere with full gravity
+#planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
 #non_grav = False
 #file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
-# Homogeneous Sphere: No gravity
+
+# Option 3: Homogeneous sphere without gravity
+#planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
 #non_grav = True
 #file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
 
