@@ -3,7 +3,7 @@
 # *********************************************************************
 # PROGRAM TO PLOT LOAD LOVE NUMBERS (OUTPUT FROM run_ln.py)
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -34,10 +34,15 @@ import matplotlib.pyplot as plt
 
 #### SPECIFY USER INPUTS ####
 
-# Input Parameters
-lln_file = ("../../output/Love_Numbers/LLN/lln_PREM.txt")
-figname = ("LLN_PREM.pdf")
-asym = True; # Are asymptotic values included in input file? True=Yes; False=No
+# Select the Planetary Model
+pmod = "PREM"
+#pmod = "Homogeneous_Vp05.92_Vs03.42_Rho03.00"
+#pmod = "Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav"
+
+# Filenames
+lln_file = ("../../output/Love_Numbers/LLN/lln_" + pmod + ".txt")
+figname = ("LLN_" + pmod + ".pdf")
+asym = True # Are asymptotic values included in input file? True=Yes; False=No
 
 ####################
 
