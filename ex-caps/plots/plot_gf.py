@@ -36,29 +36,31 @@ import numpy as np
 
 #### SPECIFY USER INPUTS ####
 
-# Filenames for Input Load Greens Function Files
-extension = "PREM"
-gfcm = ("../../output/Greens_Functions/cm_" + extension + ".txt")
-gfce = ("../../output/Greens_Functions/ce_" + extension + ".txt")
-gfcf = ("../../output/Greens_Functions/cf_" + extension + ".txt")
+# Select the Planetary Model
+pmod = "PREM"
+#pmod = "Homogeneous_Vp05.92_Vs03.42_Rho03.00"
+#pmod = "Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav"
 
-####################
+# Filenames for the input LGF files
+gfcm = ("../../output/Greens_Functions/cm_" + pmod + ".txt")
+gfce = ("../../output/Greens_Functions/ce_" + pmod + ".txt")
+gfcf = ("../../output/Greens_Functions/cf_" + pmod + ".txt")
 
-#### BEGIN CODE ####
-
-# Output Figure Name
-figname1 = ("Greens_Functions_Displacement_" + extension + ".pdf")
-figname2 = ("Greens_Functions_Displacement_Overplot_" + extension + ".pdf")
-figname3 = ("Greens_Functions_Strain_" + extension + ".pdf")
-figname4 = ("Greens_Functions_Gravity_Tilt_" + extension + ".pdf")
-figname5 = ("Greens_Functions_Gravity_Tilt_NormByNewtonian_" + extension + ".pdf")
-figname6 = ("Greens_Functions_Gravity_Tilt_Strain_" + extension + ".pdf")
+# Output Figure Names
+figname1 = ("Greens_Functions_Displacement_" + pmod + ".pdf")
+figname2 = ("Greens_Functions_Displacement_Overplot_" + pmod + ".pdf")
+figname3 = ("Greens_Functions_Strain_" + pmod + ".pdf")
+figname4 = ("Greens_Functions_Gravity_Tilt_" + pmod + ".pdf")
+figname5 = ("Greens_Functions_Gravity_Tilt_NormByNewtonian_" + pmod + ".pdf")
+figname6 = ("Greens_Functions_Gravity_Tilt_Strain_" + pmod + ".pdf")
  
 # X-axis Limits
 xmin = 0.001
 xmax = 170.
 
-#### BEGIN CODE
+####################
+
+#### BEGIN CODE ####
 
 # Create Folder
 if not (os.path.isdir("./output/")):
