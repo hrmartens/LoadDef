@@ -35,7 +35,7 @@ sys.path.append(os.getcwd() + "/../../")
 from CONVGF.utility import read_convolution_file
 import numpy as np
 
-#### USER INPUT ####
+#### SPECIFY USER INPUTS ####
 
 directory = ("../../output/Convolution/")
 prefix = ("cn_LandAndOceans_")
@@ -51,6 +51,8 @@ suffix = ("ce_convgf_custom_symcaps_" + pmod + "_stationMesh_z111_z215_z320_z430
 # Use a different suffix if working with a common mesh:
 #suffix = ("ce_convgf_custom_symcaps_" + pmod + "_commonMesh_0.001-11.0_0.005-15.0_0.01-20.0_0.1-30.0_0.5-150.0_0.1-160.0_0.01-165.0_0.005-169.0_0.001.txt")
 #suffix = ("ce_convgf_custom_symcaps_" + pmod + "_commonMesh_0.5_0.5_60.0_90.0_0.1_0.5_70.0_90.0_0.01_0.5_75.0_90.0_0.005_0.5_79.0_90.0_0.001_0.5.txt")
+
+####################
 
 #### BEGIN CODE ####
 
@@ -186,3 +188,4 @@ for ii in range(0,len(station_files)):
             # Remove Header and Body Files
             os.remove(cnv_body)
 
+####################

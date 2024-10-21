@@ -3,7 +3,7 @@
 # *********************************************************************
 # PROGRAM TO PLOT LOAD GREEN'S FUNCTIONS (OUTPUT FROM run_gf.py)
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -34,11 +34,17 @@ import matplotlib.colorbar as clb
 import matplotlib.cm as cm
 import numpy as np
 
+#### SPECIFY USER INPUTS ####
+
 # Filenames for Input Load Greens Function Files
 extension = "PREM"
 gfcm = ("../../output/Greens_Functions/cm_" + extension + ".txt")
 gfce = ("../../output/Greens_Functions/ce_" + extension + ".txt")
 gfcf = ("../../output/Greens_Functions/cf_" + extension + ".txt")
+
+####################
+
+#### BEGIN CODE ####
 
 # Output Figure Name
 figname1 = ("Greens_Functions_Displacement_" + extension + ".pdf")
@@ -342,3 +348,4 @@ plt.tight_layout()
 plt.savefig((outdir+figname6),orientation='landscape',format='pdf')
 plt.show()
 
+####################

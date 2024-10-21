@@ -11,7 +11,7 @@ import os
 import sys
 from CONVGF.utility import read_convolution_file
 
-#### USER INPUTS ####
+#### SPECIFY USER INPUTS ####
 
 # Convolution files:
 # Uncomment ONE planetary model (pmod) below

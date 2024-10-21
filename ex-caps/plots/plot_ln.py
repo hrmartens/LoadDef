@@ -32,12 +32,16 @@ sys.path.append(os.getcwd() + "/../../")
 import numpy as np
 import matplotlib.pyplot as plt
 
+#### SPECIFY USER INPUTS ####
+
 # Input Parameters
 lln_file = ("../../output/Love_Numbers/LLN/lln_PREM.txt")
 figname = ("LLN_PREM.pdf")
 asym = True; # Are asymptotic values included in input file? True=Yes; False=No
- 
-#### Begin Code
+
+####################
+
+#### Begin Code ####
 
 # Create Folder
 if not (os.path.isdir("./output/")):
@@ -73,4 +77,4 @@ plt.tight_layout()
 plt.savefig((outdir+figname),orientation='portrait',format='pdf')
 plt.show()
 
-
+####################
