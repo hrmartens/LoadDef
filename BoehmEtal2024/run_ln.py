@@ -68,13 +68,13 @@ from BoehmEtal2024.LN import compute_love_numbers_analytical
 
 ## Select one option below to compute load Love numbers: 
 ##   Available options = 1, 2 or 3
-##   Option 1 : Homogeneous sphere with full gravity (analytically computed)
-##              Reproduce results for Figures 6 and 7
-##   Option 2 : Homogeneous sphere without gravity
-##              Reproduce results for Figure 7
-##   Option 3 : PREM with full gravity
+##   Option 1 : PREM with full gravity
 ##              Reproduce results for Figure 8
-option = 3
+##   Option 2 : Homogeneous sphere with full gravity (analytically computed)
+##              Reproduce results for Figures 6 and 7
+##   Option 3 : Homogeneous sphere without gravity
+##              Reproduce results for Figure 7
+option = 1
 
 # ------------------ END USER INPUTS ----------------------- #
 
@@ -93,7 +93,16 @@ size = comm.Get_size()
 
 # Define parameters for each option: 
 if (option == 1): 
-    ## Option 1 (for Figs. 6 & 7): Homogeneous sphere with full gravity
+    ## Option 1 (for Fig. 8): PREM with full gravity
+    planet_model = ("./input/Planet_Models/PREM.txt")
+    ## Must keep [non_grav = False]; cannot compute the non-gravitating case for a model with a fluid layer.
+    non_grav = False
+    ## Must keep [analytical = False]; cannot compute an analytical solution for a non-homogeneous sphere.
+    analytical = False
+    ## Filename extension
+    file_ext      = ("PREM.txt")  # Extension for the output filename
+elif (option == 2): 
+    ## Option 2 (for Figs. 6 & 7): Homogeneous sphere with full gravity
     ##   (Additional option to compute analytically; no integrations. Set analytical = True)
     planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
     ## For this case, we want to include full gravity; thus, set [non_grav = False]. 
@@ -103,8 +112,8 @@ if (option == 1):
     analytical = True
     ## Filename extension
     file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
-elif (option == 2): 
-    ## Option 2 (for Fig. 7): Homogeneous sphere without gravity
+elif (option == 3): 
+    ## Option 3 (for Fig. 7): Homogeneous sphere without gravity
     planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
     ## For this case, we wanto to exclude gravity; thus, set [non_grav = True].
     non_grav = True
@@ -113,15 +122,6 @@ elif (option == 2):
     analytical = False
     ## Filename extension
     file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
-elif (option == 3): 
-    ## Option 3 (for Fig. 8): PREM with full gravity
-    planet_model = ("./input/Planet_Models/PREM.txt")
-    ## Must keep [non_grav = False]; cannot compute the non-gravitating case for a model with a fluid layer.
-    non_grav = False
-    ## Must keep [analytical = False]; cannot compute an analytical solution for a non-homogeneous sphere.
-    analytical = False
-    ## Filename extension
-    file_ext      = ("PREM.txt")  # Extension for the output filename
 else: 
     sys.exit('Error: Invalid option specified. Please select only 1, 2, or 3. [BoehmEtal2024/run_ln.py]')
 
