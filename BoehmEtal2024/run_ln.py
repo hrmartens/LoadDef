@@ -3,7 +3,7 @@
 # *********************************************************************
 # MAIN PROGRAM TO COMPUTE LOVE NUMBERS (POTENTIAL/TIDE, LOAD, SHEAR, STRESS)
 #
-# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -66,26 +66,15 @@ from BoehmEtal2024.LN import compute_love_numbers_analytical
 #     If the file delimiter is not whitespace, then specify in
 #         call to function.
 
-## Uncomment the relevant block of lines below 
-##    (for Option 1, 2, or 3, depending on the desired Earth model)
-
-# Option 1: PREM with full gravity
-planet_model = ("./input/Planet_Models/PREM.txt")
-non_grav = False
-homsph = False
-file_ext      = ("PREM.txt")  # Extension for the output filename
-
-# Option 2: Homogeneous sphere with full gravity
-#planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
-#non_grav = False
-#homsph = True
-#file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
-
-# Option 3: Homogeneous sphere without gravity
-#planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
-#non_grav = True
-#homsph = True
-#file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
+## Select one option below to compute load Love numbers: 
+##   Available options = 1, 2 or 3
+##   Option 1 : Homogeneous sphere with full gravity (analytically computed)
+##              Reproduce results for Figures 6 and 7
+##   Option 2 : Homogeneous sphere without gravity
+##              Reproduce results for Figure 7
+##   Option 3 : PREM with full gravity
+##              Reproduce results for Figure 8
+option = 3
 
 # ------------------ END USER INPUTS ----------------------- #
 
@@ -101,6 +90,40 @@ size = comm.Get_size()
 # ---------------------------------------------------------- #
 
 # -------------------- BEGIN CODE -------------------------- #
+
+# Define parameters for each option: 
+if (option == 1): 
+    ## Option 1 (for Figs. 6 & 7): Homogeneous sphere with full gravity
+    ##   (Additional option to compute analytically; no integrations. Set analytical = True)
+    planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
+    ## For this case, we want to include full gravity; thus, set [non_grav = False]. 
+    non_grav = False
+    ## Set [analytical = True] to compute analytical solutions for the homogeneous sphere -- 
+    ##   using only the analytical "starting solutions" for a homogeneous sphere.
+    analytical = True
+    ## Filename extension
+    file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
+elif (option == 2): 
+    ## Option 2 (for Fig. 7): Homogeneous sphere without gravity
+    planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
+    ## For this case, we wanto to exclude gravity; thus, set [non_grav = True].
+    non_grav = True
+    ## Keep [analytical = False]; analytical case for non-gravitating homogeneous sphere needs more testing,
+    ##   and is not presented in the manuscript. 
+    analytical = False
+    ## Filename extension
+    file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
+elif (option == 3): 
+    ## Option 3 (for Fig. 8): PREM with full gravity
+    planet_model = ("./input/Planet_Models/PREM.txt")
+    ## Must keep [non_grav = False]; cannot compute the non-gravitating case for a model with a fluid layer.
+    non_grav = False
+    ## Must keep [analytical = False]; cannot compute an analytical solution for a non-homogeneous sphere.
+    analytical = False
+    ## Filename extension
+    file_ext      = ("PREM.txt")  # Extension for the output filename
+else: 
+    sys.exit('Error: Invalid option specified. Please select only 1, 2, or 3. [BoehmEtal2024/run_ln.py]')
 
 # Ensure that the Output Directories Exist
 if (rank == 0):
@@ -122,7 +145,7 @@ comm.Barrier()
 
 # Compute the Love numbers (Load and Potential)
 if (rank == 0):
-    if homsph: 
+    if analytical: 
         # Compute Love Numbers
         ln_n,ln_h,ln_nl,ln_nk,ln_h_inf,ln_l_inf,ln_k_inf,ln_h_inf_p,ln_l_inf_p,ln_k_inf_p,\
             ln_hpot,ln_nlpot,ln_nkpot,ln_hstr,ln_nlstr,ln_nkstr,ln_hshr,ln_nlshr,ln_nkshr,\
@@ -138,7 +161,7 @@ if (rank == 0):
             compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,nongrav=non_grav)
 # For Worker Ranks, Run the Code But Don't Return Any Variables
 else: 
-    if homsph: 
+    if analytical: 
         # Workers Compute Love Numbers
         compute_love_numbers_analytical.main(planet_model,rank,comm,size,file_out=file_ext,nongrav=non_grav)
     else: 
