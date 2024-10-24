@@ -55,6 +55,7 @@ sys.path.append(os.getcwd() + "/../")
 
 # IMPORT PYTHON MODULES
 from LOADGF.LN import compute_love_numbers 
+from BoehmEtal2024.LN import compute_love_numbers_analytical
 
 # --------------- SPECIFY USER INPUTS --------------------- #
  
@@ -71,16 +72,19 @@ from LOADGF.LN import compute_love_numbers
 # Option 1: PREM with full gravity
 planet_model = ("./input/Planet_Models/PREM.txt")
 non_grav = False
+homsph = False
 file_ext      = ("PREM.txt")  # Extension for the output filename
 
 # Option 2: Homogeneous sphere with full gravity
 #planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
 #non_grav = False
+#homsph = True
 #file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
 
 # Option 3: Homogeneous sphere without gravity
 #planet_model = ("./input/Planet_Models/Homogeneous_Vp05.92_Vs03.42_Rho03.00.txt")
 #non_grav = True
+#homsph = True
 #file_ext      = ("Homogeneous_Vp05.92_Vs03.42_Rho03.00_nonGrav.txt")
 
 # ------------------ END USER INPUTS ----------------------- #
@@ -118,16 +122,28 @@ comm.Barrier()
 
 # Compute the Love numbers (Load and Potential)
 if (rank == 0):
-    # Compute Love Numbers
-    ln_n,ln_h,ln_nl,ln_nk,ln_h_inf,ln_l_inf,ln_k_inf,ln_h_inf_p,ln_l_inf_p,ln_k_inf_p,\
-        ln_hpot,ln_nlpot,ln_nkpot,ln_hstr,ln_nlstr,ln_nkstr,ln_hshr,ln_nlshr,ln_nkshr,\
-        ln_planet_radius,ln_planet_mass,ln_sint,ln_Yload,ln_Ypot,ln_Ystr,ln_Yshr,\
-        ln_lmda_surface,ln_mu_surface = \
-        compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,nongrav=non_grav)
+    if homsph: 
+        # Compute Love Numbers
+        ln_n,ln_h,ln_nl,ln_nk,ln_h_inf,ln_l_inf,ln_k_inf,ln_h_inf_p,ln_l_inf_p,ln_k_inf_p,\
+            ln_hpot,ln_nlpot,ln_nkpot,ln_hstr,ln_nlstr,ln_nkstr,ln_hshr,ln_nlshr,ln_nkshr,\
+            ln_planet_radius,ln_planet_mass,ln_sint,ln_Yload,ln_Ypot,ln_Ystr,ln_Yshr,\
+            ln_lmda_surface,ln_mu_surface = \
+            compute_love_numbers_analytical.main(planet_model,rank,comm,size,file_out=file_ext,nongrav=non_grav)
+    else: 
+        # Compute Love Numbers
+        ln_n,ln_h,ln_nl,ln_nk,ln_h_inf,ln_l_inf,ln_k_inf,ln_h_inf_p,ln_l_inf_p,ln_k_inf_p,\
+            ln_hpot,ln_nlpot,ln_nkpot,ln_hstr,ln_nlstr,ln_nkstr,ln_hshr,ln_nlshr,ln_nkshr,\
+            ln_planet_radius,ln_planet_mass,ln_sint,ln_Yload,ln_Ypot,ln_Ystr,ln_Yshr,\
+            ln_lmda_surface,ln_mu_surface = \
+            compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,nongrav=non_grav)
 # For Worker Ranks, Run the Code But Don't Return Any Variables
 else: 
-    # Workers Compute Love Numbers
-    compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,nongrav=non_grav)
+    if homsph: 
+        # Workers Compute Love Numbers
+        compute_love_numbers_analytical.main(planet_model,rank,comm,size,file_out=file_ext,nongrav=non_grav)
+    else: 
+        # Workers Compute Love Numbers
+        compute_love_numbers.main(planet_model,rank,comm,size,file_out=file_ext,nongrav=non_grav)
     # Workers Will Know Nothing About the Data Used to Compute the GFs
     ln_n = ln_h = ln_nl = ln_nk = ln_h_inf = ln_l_inf = ln_k_inf = ln_h_inf_p = ln_l_inf_p = ln_k_inf_p = None
     ln_planet_radius = ln_planet_mass = ln_Yload = ln_Ypot = ln_Ystr = ln_Yshr = None
