@@ -341,6 +341,14 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
                     rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radii=evalrad,numrad=numrad)
         else: # no gravity case
             sys.exit(':: No-gravity analytical case is not included here.')
+            # Computing LLNs for the non-gravitating homogeneous sphere yields slightly different analytical-cap results than using the standard LLNs, 
+            #  which are computed non-analytically (i.e., by integrating through the homogeneous sphere). It is not clear why that is the case, and will be 
+            #  investigated in due course. The slight difference likely has to do with the homogeneous-sphere starting solutions for the non-gravitating case.
+            #  However, this case is not essential -- in most geophysical problems, we want to include gravity, not exclude it. This is simply a "toy" problem
+            #  that helped us with benchmarking the Salvus software. In particular, the non-gravitating case for the homogeneous sphere provided us with
+            #  an intermediate result to benchmark against Salvus during its development for the loading problem. Furthermore, we can still compute the 
+            #  non-gravitating solutions for the homogeneous sphere (via standard integration), and the results are not so discrepent; they are consistent 
+            #  within about 0.1 mm (but this is too much for the benchmark testing). 
             #hprime_sub[ii,:],nlprime_sub[ii,:],nkprime_sub[ii,:],hpot_sub[ii,:],nlpot_sub[ii,:],nkpot_sub[ii,:],hstr_sub[ii,:],nlstr_sub[ii,:],nkstr_sub[ii,:],\
             #    hshr_sub[ii,:],nlshr_sub[ii,:],nkshr_sub[ii,:],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
             #    analytical_odes_noGrav.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
