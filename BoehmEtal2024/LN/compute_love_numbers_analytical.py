@@ -28,7 +28,6 @@ import math
 import os
 import sys
 import datetime
-#import matplotlib.pyplot as plt
 from scipy import interpolate
 
 # Import Modules from LoadDef
@@ -36,7 +35,7 @@ from LOADGF.LN import prepare_planet_model
 from LOADGF.LN import compute_asymptotic_LLN
 from LOADGF.LN import compute_asymptotic_LLN_noGrav
 from BoehmEtal2024.LN import analytical_odes
-from BoehmEtal2024.LN import analytical_odes_noGrav
+#from BoehmEtal2024.LN import analytical_odes_noGrav
 
 """
 Compute load-deformation coefficients (also known as load Love numbers) based on an input 
@@ -341,10 +340,11 @@ def main(myfile,rank,comm,size,startn=0,stopn=10000,delim=None,period_hours=12.4
                 analytical_odes.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
                     rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radii=evalrad,numrad=numrad)
         else: # no gravity case
-            hprime_sub[ii,:],nlprime_sub[ii,:],nkprime_sub[ii,:],hpot_sub[ii,:],nlpot_sub[ii,:],nkpot_sub[ii,:],hstr_sub[ii,:],nlstr_sub[ii,:],nkstr_sub[ii,:],\
-                hshr_sub[ii,:],nlshr_sub[ii,:],nkshr_sub[ii,:],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
-                analytical_odes_noGrav.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
-                    rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radii=evalrad,numrad=numrad)
+            sys.exit(':: No-gravity analytical case is not included here.')
+            #hprime_sub[ii,:],nlprime_sub[ii,:],nkprime_sub[ii,:],hpot_sub[ii,:],nlpot_sub[ii,:],nkpot_sub[ii,:],hstr_sub[ii,:],nlstr_sub[ii,:],nkstr_sub[ii,:],\
+            #    hshr_sub[ii,:],nlshr_sub[ii,:],nkshr_sub[ii,:],sint_mt_sub[ii,:],Yload_sub[ii,:],Ypot_sub[ii,:],Ystr_sub[ii,:],Yshr_sub[ii,:] = \
+            #    analytical_odes_noGrav.main(current_n,s_min,tck_lnd,tck_mnd,tck_rnd,tck_gnd,wnd,ond,piG,sic,soc,small,num_soln,backend,abs_tol,\
+            #        rel_tol,nstps,order,gnd,adim,gsdim,L_sc,T_sc,inf_tol,s,nmaxfull,kx=kx,eval_radii=evalrad,numrad=numrad)
  
     # Gather Results 
     comm.Gatherv(hprime_sub, [hprime, (sendcounts, None), lntype], root=0)
