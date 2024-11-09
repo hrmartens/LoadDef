@@ -6,7 +6,7 @@
 # PURPOSE: CONVERT EAST and NORTH AMPLITUDES TO HORIZONTAL PMEs
 # LITERATURE: Martens et al. (2016, GJI), Martens (2016, Caltech)
 # 
-# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -40,8 +40,8 @@ import numpy as np
 
 harmonic="M2"
 output_directory = ("./output/")
-filename=(output_directory + "cn_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_PREM.txt")
-pme_file=(output_directory + "pme_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_PREM.txt")
+filename=(output_directory + "cn_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_stationMesh_PREM.txt")
+pme_file=(output_directory + "pme_OceanOnly_" + harmonic + "_cm_convgf_GOT410c_stationMesh_PREM.txt")
 
 #### BEGIN CODE ####
 

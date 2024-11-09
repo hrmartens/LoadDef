@@ -4,7 +4,7 @@
 # PROGRAM TO PLOT Particle Motion Ellipses (PMEs)
 #   USEFUL FOR VISUALIZING OCEAN TIDAL LOADING (OTL)
 # 
-# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -36,7 +36,7 @@ from CONVGF.utility import read_pme_file
 
 #### USER INPUT
  
-filename=("../pmes/output/pme_OceanOnly_M2_cm_convgf_GOT410c_PREM.txt")
+filename=("../pmes/output/pme_OceanOnly_M2_cm_convgf_GOT410c_stationMesh_PREM.txt")
 
 #### BEGIN CODE
 

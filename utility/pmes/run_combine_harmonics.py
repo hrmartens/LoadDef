@@ -6,7 +6,7 @@
 # PURPOSE: CONVERT EAST and NORTH AMPLITUDES TO HORIZONTAL PMEs
 # LITERATURE: Martens et al. (2016, GJI), Martens (2016, Caltech)
 # 
-# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -38,7 +38,7 @@ import numpy as np
 #### USER INPUT ####
 directory = ("../../output/Convolution/")
 prefix = ("cn_OceanOnly_")
-suffix = ("_cm_convgf_GOT410c_PREM.txt")
+suffix = ("_cm_convgf_GOT410c_stationMesh_PREM.txt")
 
 #### BEGIN CODE ####
 
