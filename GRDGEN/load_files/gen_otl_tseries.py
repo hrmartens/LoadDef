@@ -10,7 +10,7 @@
 #        astronomical argument (or phase), which is typically referenced
 #        to the peak in the equilibrium tide at the Greenwich Meridian. 
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -59,7 +59,7 @@ from CONVGF.utility import read_AmpPha
 # --------------- SPECIFY USER INPUTS --------------------- #
 
 # 1. Specify the full path to the desired tidal model: Examples Provided
-loadfile = ("../../input/Load_Models/GOT410c/got410c.m2.dat")
+loadfile = ("../../input/Load_Models/GOT410c/m2.d")
 #loadfile = ("../../input/Load_Models/FES2014b/m2.nc")
  
 # 2. Specify the type of loading model
