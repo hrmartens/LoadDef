@@ -18,6 +18,7 @@ We recommend creating a dedicated environment for LoadDef.
 
 At the command line, run:
   conda create -n LDEF python=3.11 
+  conda install numpy
   conda install mpi4py 
   conda install scipy 
   conda install netCDF4 
