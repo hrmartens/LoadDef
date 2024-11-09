@@ -3,7 +3,7 @@
 # *********************************************************************
 # MAIN PROGRAM TO COMPUTE A DESIGN MATRIX TO INVERT FOR STRUCTURE --
 #
-# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2022-2024: HILARY R. MARTENS
 #
 # This file is part of LoadDef.
 #

@@ -1,0 +1,2 @@
+Data files must conform to the following format:
+Station Name, Latitude, Longitude, E Displacement [mm], N Displacement [mm], U Displacement [mm]
