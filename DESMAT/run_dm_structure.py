@@ -154,7 +154,7 @@ if (common_mesh == True):
     mtag = "commonMesh"
 else:
     mtag = "stationMesh"
-outstr_conv = ("_dens" + str(int(ldens)) + "_" + mtag + "_2022")
+outstr_conv = ("_dens" + str(int(ldens)) + "_" + mtag)
  
 # ------------------ END USER INPUTS ----------------------- #
 
