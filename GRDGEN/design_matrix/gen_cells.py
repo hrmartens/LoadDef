@@ -2,9 +2,9 @@
 
 # *********************************************************************
 # PROGRAM TO GENERATE BOUNDING BOXES of LOAD CELLS FOR AN INVERSION
-# :: GRIDS GENERATED MAY BE USED BY LOADSOLV
+# :: GRIDS GENERATED MAY BE USED IN LOADINV
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2021-2024: HILARY R. MARTENS
 #
 # This file is part of LoadDef.
 #
