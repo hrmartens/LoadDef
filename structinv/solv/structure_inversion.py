@@ -28,6 +28,7 @@ import scipy as sc
 import netCDF4
 from structinv.utility import read_structureDM
 from structinv.solv import perform_inversion
+from LOADGF.utility import perturb_pmod
 import sys
 import os
 
