@@ -258,8 +258,8 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
         sys.exit(':: Error: Invalid Tikhonov regularization code. [perform_inversion.py]')
 
     # SOLVE (Conjugate Gradient)
-    print(C)
-    print(b)
+    #print(C)
+    #print(b)
     CTC = np.dot(C.T,C)
     CTb = np.dot(C.T,b)    
     mvec,info = linalg.cg(CTC, CTb)
