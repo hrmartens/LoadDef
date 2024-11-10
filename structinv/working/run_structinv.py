@@ -109,8 +109,6 @@ size = comm.Get_size()
 if (rank == 0):
     if not (os.path.isdir("../output/Inversion/")):
         os.makedirs("../output/Inversion/")
-    if not (os.path.isdir("../output/Inversion/Structure/")):
-        os.makedirs("../output/Inversion/Structure/")
 
 # Determine Number of Available Data Files
 data_files = []
