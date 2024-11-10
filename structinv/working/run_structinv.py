@@ -42,6 +42,9 @@ from structinv.solv import structure_inversion
 from structinv.utility import read_structureDM
 
 # --------------- SPECIFY USER INPUTS --------------------- #
+
+### -- PLANET MODEL -- (the model assumed when computing the design matrix and starting model)
+planet_model = ("../../input/Planet_Models/PREM.txt")
  
 ### -- DESIGN MATRIX -- (created with run_dm_structure.py in LoadDef)
 dm_file = ("../../output/DesignMatrixStructure/designmatrix_cn_OceanOnly_GOT410c-M2_cm_convgf_GOT410c_PREM_dens1030_commonMesh.nc")
@@ -140,10 +143,10 @@ else:
 # Perform the Inversion(s) 
 # Primary Rank
 if (rank == 0):
-    model_vector = structure_inversion.main(dm_file,data_files,startmod,rank,procN,comm,alpha=alpha,beta=beta,tikhonov=tikhonov,outfile=outfile,uonly=uonly,imaginary=inc_imag,pme=pme)
+    model_vector = structure_inversion.main(dm_file,data_files,startmod,planet_model,rank,procN,comm,alpha=alpha,beta=beta,tikhonov=tikhonov,outfile=outfile,uonly=uonly,imaginary=inc_imag,pme=pme)
 # Worker Ranks
 else:
-    structure_inversion.main(dm_file,data_files,startmod,rank,procN,comm,alpha=alpha,tikhonov=tikhonov,outfile=outfile,uonly=uonly,imaginary=inc_imag,pme=pme)
+    structure_inversion.main(dm_file,data_files,startmod,planet_model,rank,procN,comm,alpha=alpha,tikhonov=tikhonov,outfile=outfile,uonly=uonly,imaginary=inc_imag,pme=pme)
 
 # Print the model vector
 print(':: ')

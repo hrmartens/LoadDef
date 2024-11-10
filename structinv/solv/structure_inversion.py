@@ -57,7 +57,7 @@ outfile  :  Suffix for output file
 
 """
 
-def main(dm_file,data_files,startmod,rank,procN,comm,tikhonov='zeroth',alpha=1.,beta=1.,outfile=".txt",uonly=False,imaginary=False,pme=False):
+def main(dm_file,data_files,startmod,planet_model,rank,procN,comm,tikhonov='zeroth',alpha=1.,beta=1.,outfile=".txt",uonly=False,imaginary=False,pme=False):
 
     # Determine Number of Datafiles
     if isinstance(data_files,float) == True:
