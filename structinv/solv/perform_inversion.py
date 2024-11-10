@@ -1,7 +1,7 @@
 # *********************************************************************
 # FUNCTION TO INVERT SURFACE DISPLACEMENTS FOR STRUCTURE
 # 
-# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2021-2024: HILARY R. MARTENS
 #
 # This file is part of LoadDef.
 #
@@ -25,11 +25,11 @@ import scipy as sc
 from scipy.sparse import linalg
 import sys
 import os
-from utility import read_datafile
-from utility import read_datafile_uonly
-from utility import read_datafile_harmonic
-from utility import read_datafile_uonly_harmonic
-from utility import read_starting_model
+from structinv.utility import read_datafile
+from structinv.utility import read_datafile_uonly
+from structinv.utility import read_datafile_harmonic
+from structinv.utility import read_datafile_uonly_harmonic
+from structinv.utility import read_starting_model
 
 def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,sta_comp_lon,pert_rad_bot,pert_rad_top,pert_param,tikhonov,alpha,beta,uonly=False,inc_imag=False,pme=False):
 

@@ -1,7 +1,7 @@
 # *********************************************************************
 # FUNCTION TO INVERT OBSERVED DISPLACEMENTS FOR Earth Structure
 # 
-# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2021-2024: HILARY R. MARTENS
 #
 # This file is part of LoadDef.
 #
@@ -26,8 +26,8 @@ from mpi4py import MPI
 import numpy as np
 import scipy as sc
 import netCDF4
-from utility import read_structureDM
-from solv import perform_inversion
+from structinv.utility import read_structureDM
+from structinv.solv import perform_inversion
 import sys
 import os
 

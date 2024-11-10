@@ -44,7 +44,7 @@ from structinv.utility import read_structureDM
 # --------------- SPECIFY USER INPUTS --------------------- #
  
 ### -- DESIGN MATRIX -- (created with run_dm_structure.py in LoadDef)
-dm_file = ("../output/DesignMatrixStructure/designmatrix_cn_OceanOnly_GOT410c-M2_cm_convgf_GOT410c_PREM_dens1030_commonMesh.nc")
+dm_file = ("../../output/DesignMatrixStructure/designmatrix_cn_OceanOnly_GOT410c-M2_cm_convgf_GOT410c_PREM_dens1030_commonMesh.nc")
 
 ### Have both real and imaginary components been included in the design matrix? Set "inc_imag" = True if imaginary components ARE included. 
 inc_imag = True
@@ -55,7 +55,7 @@ inc_imag = True
 ##   OPTION 1 (Only Real): Station,  Lat(+N,deg),  Lon(+E,deg),  E-Disp(mm),  N-Disp(mm),  U-Disp(mm)
 ##   OPTION 2 (Harmonic): Station, Lat(+N,deg), Lon(+E,deg), E-Disp-Re(mm), N-Disp-Re(mm), U-Disp-Re(mm), E-Disp-Im(mm), N-Disp-Im(mm), U-Disp-Im(mm)
 ##   The "inc_imag" parameter will determine which format is read.
-startmod = ("../output/DesignMatrixStructure/startingmodel_cn_OceanOnly_GOT410c-M2_cm_convgf_GOT410c_PREM_dens1030_commonMesh.txt")
+startmod = ("../../output/DesignMatrixStructure/startingmodel_cn_OceanOnly_GOT410c-M2_cm_convgf_GOT410c_PREM_dens1030_commonMesh.txt")
  
 ### -- DATA -- 
 ##  NOTE: One header line is assumed.
