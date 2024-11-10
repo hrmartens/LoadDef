@@ -1015,6 +1015,10 @@ if (rank == 0):
     print(main_files_out)
     print(':: ')
     print(':: ')
+    print(':: Reminder: The planetary model that you have used to compute the design matrix and starting model: ')
+    print(planet_model)
+    print(':: ')
+    print(':: ')
 
 # -------------- END FINITE DIFFERENCE --------------------- #
 
