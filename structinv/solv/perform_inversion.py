@@ -214,7 +214,7 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
 
     elif (tikhonov == 'second' or tikhonov == 'zeroth_second'): # Second-Order Tikhonov Regularization (in one dimension)
         # Create L matrix (see Aster, Borchers, & Thurber (2013), Chapter 4, Section 4.4: Higher Order Tikhonov Regularization)
-        L2 = []
+        L = []
         for cc in range(0,len(pert_param)):
             # Current parameter
             cparam = pert_param[cc]
