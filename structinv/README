@@ -1,0 +1,13 @@
+Invert GNSS-observed OTL displacements (or predicted displacements) for Earth structure.
+Step 1: Generate the ocean-tide model for LoadDef to read (GRDGEN/load_files/gen_otl.py)
+Step 2: Compute the design matrix (DESMAT/run_dm_structure.py)
+   -- Will compute the design matrix and a starting model, m0 [for PREM, for example]
+Step 3: Compute the predicted OTL displacements (or use GNSS observations instead)
+   -- Step 3a (for predictions): Compute load Love numbers [for STW105, for example] (working/run_ln.py)
+   -- Step 3b (for predictions): Compute load Green's functions [for STW105, for example] (working/run_gf.py)
+   -- Step 3c (for predictions): Compute load-induced displacements [for STW105 & GOT4.10c, for example] (working/run_cn_otl.py)
+   -- Step 3d (for predictions): Combine harmonics into one file (utility/pmes/run_combine_harmonics.py)
+   -- Step 3e (for predictions): Convert east, north, up (ENU) displacements to particle motion elipses (PMEs) (utility/pmes/run_env2pme.py)
+Step 4: Adjust any user-input parameters necessary and run the inversion (structinv/working/run_structinv.py)
+   -- Output will be directed to structinv/output/Inversion/
+Step 5: Plot the results (structinv/plots/plot_si.py)
