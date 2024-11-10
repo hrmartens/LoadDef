@@ -28,7 +28,7 @@ import scipy as sc
 import netCDF4
 from structinv.utility import read_structureDM
 from structinv.solv import perform_inversion
-from LOADGF.utility import perturb_pmod
+from structinv.utility import perturb_pmod_structinv
 import sys
 import os
 
@@ -182,14 +182,14 @@ def main(dm_file,data_files,startmod,planet_model,rank,procN,comm,tikhonov='zero
          
             # Prepare Output Files
             inv_out = (cfileid + outfile)
-            inv_file = ("../output/Inversion/Structure/iv_" + inv_out)
-            inv_head = ("../output/Inversion/Structure/"+str(np.random.randint(500))+"cn_head.txt")
-            inv_body = ("../output/Inversion/Structure/"+str(np.random.randint(500))+"cn_body.txt")
+            inv_file = ("../output/Inversion/iv_" + inv_out)
+            inv_head = ("../output/Inversion/"+str(np.random.randint(500))+"cn_head.txt")
+            inv_body = ("../output/Inversion/"+str(np.random.randint(500))+"cn_body.txt")
  
             # Prepare Data for Output (Create a Structured Array)
             all_inv_data = np.array(list(zip(pert_param,pert_rad_bot,pert_rad_top,cmv)), dtype=[('pert_param','U25'), \
                 ('pert_rad_bot',float),('pert_rad_top',float),('cmv',float)])
- 
+
             # Write Header Info to File
             hf = open(inv_head,'w')
             inv_str = 'MaterialParameter  LayerBottomRadius(km)  LayerTopRadius(km)  Perturbation  \n'
@@ -201,14 +201,126 @@ def main(dm_file,data_files,startmod,planet_model,rank,procN,comm,tikhonov='zero
  
             # Combine Header and Body Files
             filenames_inv = [inv_head, inv_body]
-            with open(inv_file,'w') as outfile:
+            with open(inv_file,'w') as outfileA:
                 for fname in filenames_inv:
                     with open(fname) as infile:
-                        outfile.write(infile.read())
+                        outfileA.write(infile.read())
  
             # Remove Header and Body Files
             os.remove(inv_head)
             os.remove(inv_body)
+
+            # Apply perturbations to the starting planetary model
+            radial_dist, mu_orig, ka_orig, rho_orig, mu_new, ka_new, rho_new = \
+                perturb_pmod_structinv.main(planet_model,pert_param,pert_rad_bot,pert_rad_top,cmv)
+     
+            # Compute Vp and Vs
+            vs_orig = np.sqrt(np.divide(mu_orig,rho_orig))
+            vp_orig = np.sqrt(np.divide((ka_orig + (4./3.)*mu_orig),rho_orig))
+            vs_new = np.sqrt(np.divide(mu_new,rho_new))
+            vp_new = np.sqrt(np.divide((ka_new + (4./3.)*mu_new),rho_new))
+          
+            # Print 
+            #print(radial_dist, mu_orig, ka_orig, rho_orig, mu_new, ka_new, rho_new)
+            #print(radial_dist, vp_orig, vp_new, vs_orig, vs_new)
+
+            # Prepare Output Files
+            inv_out = (cfileid + outfile)
+            inv_file = ("../output/Inversion/iv_elasticModuliChanges_" + inv_out)
+            inv_head = ("../output/Inversion/"+str(np.random.randint(500))+"cn_head1.txt")
+            inv_body = ("../output/Inversion/"+str(np.random.randint(500))+"cn_body1.txt")
+
+            # Prepare Data for Output (Create a Structured Array)
+            all_inv_data = np.array(list(zip(radial_dist,mu_orig,ka_orig,rho_orig,mu_new,ka_new,rho_new)), dtype=[('radial_dist',float), \
+                ('mu_orig',float),('ka_orig',float),('rho_orig',float),('mu_new',float),('ka_new',float),('rho_new',float)])
+
+            # Write Header Info to File
+            hf = open(inv_head,'w')
+            inv_str = 'Radius(m)  Original-ShearMod(Pa)  Original-BulkMod(Pa)  Original-Density(kg/m3)  Solution-ShearMod(Pa)  Solution-BulkMod(Pa)  Solution-Density(kg/m3)   \n'
+            hf.write(inv_str)
+            hf.close()
+
+            # Write Convolution Results to File
+            np.savetxt(inv_body,all_inv_data,fmt=["%.8f",]*7,delimiter="      ")
+
+            # Combine Header and Body Files
+            filenames_inv = [inv_head, inv_body]
+            with open(inv_file,'w') as outfileB:
+                for fname in filenames_inv:
+                    with open(fname) as infile:
+                        outfileB.write(infile.read())
+
+            # Remove Header and Body Files
+            os.remove(inv_head)
+            os.remove(inv_body)
+
+            # Prepare Output Files
+            inv_out = (cfileid + outfile)
+            inv_file = ("../output/Inversion/iv_seismicVelocityChanges_" + inv_out)
+            inv_head = ("../output/Inversion/"+str(np.random.randint(500))+"cn_head2.txt")
+            inv_body = ("../output/Inversion/"+str(np.random.randint(500))+"cn_body2.txt")
+    
+            # Prepare Data for Output (Create a Structured Array)
+            all_inv_data = np.array(list(zip(radial_dist,vp_orig,vs_orig,rho_orig,vp_new,vs_new,rho_new)), dtype=[('radial_dist',float), \
+                ('vp_orig',float),('vs_orig',float),('rho_orig',float),('vp_new',float),('vs_new',float),('rho_new',float)])
+
+            # Write Header Info to File
+            hf = open(inv_head,'w')
+            inv_str = 'Radius(m)  Original-Vp(m/s)  Original-Vs(m/s)  Original-Density(kg/m3)  Solution-Vp(m/s)  Solution-Vs(m/s)  Solution-Density(kg/m3)   \n'
+            hf.write(inv_str)
+            hf.close()
+
+            # Write Convolution Results to File
+            np.savetxt(inv_body,all_inv_data,fmt=["%.8f",]*7,delimiter="      ")
+
+            # Combine Header and Body Files
+            filenames_inv = [inv_head, inv_body]
+            with open(inv_file,'w') as outfileC:
+                for fname in filenames_inv:
+                    with open(fname) as infile:
+                        outfileC.write(infile.read())
+
+            # Remove Header and Body Files
+            os.remove(inv_head)
+            os.remove(inv_body)
+
+            # Prepare Output Files
+            inv_out = (cfileid + outfile)
+            inv_file = ("../output/Inversion/iv_newModel_" + inv_out)
+            #inv_head = ("../output/Inversion/"+str(np.random.randint(500))+"cn_head3.txt")
+            #inv_body = ("../output/Inversion/"+str(np.random.randint(500))+"cn_body3.txt")
+    
+            # Prepare Data for Output (Create a Structured Array)
+            radial_dist = radial_dist/1000. # convert to km
+            vp_new = vp_new/1000. # convert to km/s
+            vs_new = vs_new/1000. # convert to km/s
+            rho_new = rho_new/1000. # convert to g/cc
+            all_inv_data = np.array(list(zip(radial_dist,vp_new,vs_new,rho_new)), dtype=[('radial_dist',float), \
+                ('vp_new',float),('vs_new',float),('rho_new',float)])
+
+            # Write data to file 
+            #  NOTE: No header for this one, to stay consistent with input planetary models!
+            np.savetxt(inv_file,all_inv_data,fmt=["%.8f",]*4,delimiter="      ")
+
+            # Write Header Info to File
+            #hf = open(inv_head,'w')
+            #inv_str = 'Radius(km)  Solution-Vp(km/s)  Solution-Vs(km/s)  Solution-Density(g/cc)   \n'
+            #hf.write(inv_str)
+            #hf.close()
+
+            # Write Convolution Results to File
+            #np.savetxt(inv_body,all_inv_data,fmt=["%.8f",]*4,delimiter="      ")
+
+            # Combine Header and Body Files
+            #filenames_inv = [inv_head, inv_body]
+            #with open(inv_file,'w') as outfileD:
+            #    for fname in filenames_inv:
+            #        with open(fname) as infile:
+            #            outfileD.write(infile.read())
+
+            # Remove Header and Body Files
+            #os.remove(inv_head)
+            #os.remove(inv_body)
 
         # Return Model Vector
         return model_vector
