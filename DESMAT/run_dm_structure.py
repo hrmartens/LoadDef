@@ -80,7 +80,9 @@ perturbation = np.log10(1.01)
 # Regions perturbed in the forward-model runs
 #   Note: The second-order Tikhonov regularization in StructSolv will only work properly if the layers stack on one another.
 #         For example, the bottom radius of the top-most layer is the top radius of the next layer down. 
-nodes = [[6351.,6371.],[6331.,6351.],[6311.,6331.]]
+nodes = [[6351.,6371.],[6331.,6351.],[6311.,6331.],[6291.,6311.],[6271.,6291.],[6251.,6271.],[6231.,6251.],[6211.,6231.],[6191.,6211.],[6171.,6191.],\
+         [6151.,6171.],[6131.,6151.],[6111.,6131.],[6091.,6111.],[6071.,6091.],[6051.,6071.],[6031.,6051.],[6011.,6031.],[5991.,6011.],[5971.,5991.]]
+nodes_note = "_20x20kmLayers"
 
 # Reference frame [Blewitt 2003]
 rfm = "cm"
@@ -154,7 +156,7 @@ if (common_mesh == True):
     mtag = "commonMesh"
 else:
     mtag = "stationMesh"
-outstr_conv = ("_dens" + str(int(ldens)) + "_" + mtag)
+outstr_conv = ("_dens" + str(int(ldens)) + "_" + mtag + nodes_note)
  
 # ------------------ END USER INPUTS ----------------------- #
 
