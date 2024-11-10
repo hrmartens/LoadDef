@@ -743,6 +743,13 @@ if (rank == 0):
     # How many design matrices are we producing? (There will be one for each load model)
     main_files = combined_filenames[-1]
     main_files_out = []
+
+    # Print useful information to a file
+    # Ensure that an Output Directory Exists
+    if not (os.path.isdir("./log-dm-structure/")):
+        os.makedirs("./log-dm-structure/")
+    current_timestamp = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    log_out = ("./log-dm-structure/log-dm-structure_" + current_timestamp + ".txt")
  
     # Loop through main files
     for gg in range(0,len(main_files)):
@@ -1002,7 +1009,60 @@ if (rank == 0):
         perturb_param = f.variables['perturb_param'][:]
         f.close()
 
+        # Write Header Info to File
+        hf = open(log_out,'a')
+        str1 = ":: "
+        str2 = ":: "
+        str3 = ":: Writing netCDF-formatted file."
+        hf.write(str1)
+        hf.write(str2)
+        hf.write(str3)
+        hf.write(f_file)
+        hf.close()
+
     # Remind users that they will also need the original forward models when they run the inversion:
+    # Print to file
+    hf = open(log_out,'a')
+    str1 = ":: "
+    str2 = ":: "
+    str3 = ":: Reminder: You will also need the original forward model when running the inversion. [d-(Gm0)] = [d(Gm)/dm]*[dm]"
+    str4 = "::   (Gm0) represents the original forward model. [d-(Gm0)] represents the residual vector between GPS data and the original forward model"
+    str5 = "::   [d(Gm)/dm] represents the perturbations to the surface displacements with a perturbation to each model parameter."
+    str6 = "::      It is the design matrix computed here. The default perturbation is 1%."
+    str7 = "::   [dm] represents the model vector to be solved for in the inversion."
+    str8 = "::      It is the perturbation to each model parameter required to best fit the residual data."
+    str9 = ":: The original forward model(s) are: "
+    print(main_files)
+    str10 = ":: And the original forward model(s) recast into real and imaginary components are: "
+    print(main_files_out)
+    str11 = ":: "
+    str12 = ":: "
+    str13 = ":: Reminder: The planetary model that you have used to compute the design matrix and starting model: "
+    print(planet_model)
+    str14 = ":: "
+    str15 = ":: "
+    hf.write(str1)
+    hf.write(str2)
+    hf.write(str3)
+    hf.write(str4)
+    hf.write(str5)
+    hf.write(str6)
+    hf.write(str7)
+    hf.write(str8)
+    hf.write(str9)
+    hf.write(main_files)
+    hf.write(str10)
+    hf.write(main_files_out)
+    hf.write(str11)
+    hf.write(str12)
+    hf.write(str13)
+    hf.write(planet_model)
+    hf.write(str14)
+    hf.write(str15)
+    hf.close()
+ 
+    # Remind users that they will also need the original forward models when they run the inversion:
+    # Print to screen
     print(':: ')
     print(':: ')
     print(':: Reminder: You will also need the original forward model when running the inversion. [d-(Gm0)] = [d(Gm)/dm]*[dm]')
