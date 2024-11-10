@@ -1011,36 +1011,36 @@ if (rank == 0):
 
         # Write Header Info to File
         hf = open(log_out,'a')
-        str1 = ":: "
-        str2 = ":: "
-        str3 = ":: Writing netCDF-formatted file."
+        str1 = ":: \n"
+        str2 = ":: \n"
+        str3 = ":: Writing netCDF-formatted file. \n"
         hf.write(str1)
         hf.write(str2)
         hf.write(str3)
-        hf.write(f_file)
+        hf.write(f_file + " \n")
         hf.close()
 
     # Remind users that they will also need the original forward models when they run the inversion:
     # Print to file
     hf = open(log_out,'a')
-    str1 = ":: "
-    str2 = ":: "
-    str3 = ":: Reminder: You will also need the original forward model when running the inversion. [d-(Gm0)] = [d(Gm)/dm]*[dm]"
-    str4 = "::   (Gm0) represents the original forward model. [d-(Gm0)] represents the residual vector between GPS data and the original forward model"
-    str5 = "::   [d(Gm)/dm] represents the perturbations to the surface displacements with a perturbation to each model parameter."
-    str6 = "::      It is the design matrix computed here. The default perturbation is 1%."
-    str7 = "::   [dm] represents the model vector to be solved for in the inversion."
-    str8 = "::      It is the perturbation to each model parameter required to best fit the residual data."
-    str9 = ":: The original forward model(s) are: "
+    str1 = ":: \n"
+    str2 = ":: \n"
+    str3 = ":: Reminder: You will also need the original forward model when running the inversion. [d-(Gm0)] = [d(Gm)/dm]*[dm] \n"
+    str4 = "::   (Gm0) represents the original forward model. [d-(Gm0)] represents the residual vector between GPS data and the original forward model \n"
+    str5 = "::   [d(Gm)/dm] represents the perturbations to the surface displacements with a perturbation to each model parameter. \n"
+    str6 = "::      It is the design matrix computed here. The default perturbation is 1%. \n"
+    str7 = "::   [dm] represents the model vector to be solved for in the inversion. \n"
+    str8 = "::      It is the perturbation to each model parameter required to best fit the residual data. \n"
+    str9 = ":: The original forward model(s) are: \n"
     print(main_files)
-    str10 = ":: And the original forward model(s) recast into real and imaginary components are: "
-    print(main_files_out)
-    str11 = ":: "
-    str12 = ":: "
-    str13 = ":: Reminder: The planetary model that you have used to compute the design matrix and starting model: "
-    print(planet_model)
-    str14 = ":: "
-    str15 = ":: "
+    str10 = ":: And the original forward model(s) recast into real and imaginary components are: \n"
+    print(main_files_out + " \n")
+    str11 = ":: \n"
+    str12 = ":: \n"
+    str13 = ":: Reminder: The planetary model that you have used to compute the design matrix and starting model: \n"
+    print(planet_model + " \n")
+    str14 = ":: \n"
+    str15 = ":: \n"
     hf.write(str1)
     hf.write(str2)
     hf.write(str3)
@@ -1050,13 +1050,13 @@ if (rank == 0):
     hf.write(str7)
     hf.write(str8)
     hf.write(str9)
-    hf.write(main_files)
+    hf.write(main_files + " \n")
     hf.write(str10)
-    hf.write(main_files_out)
+    hf.write(main_files_out + " \n")
     hf.write(str11)
     hf.write(str12)
     hf.write(str13)
-    hf.write(planet_model)
+    hf.write(planet_model + " \n")
     hf.write(str14)
     hf.write(str15)
     hf.close()
