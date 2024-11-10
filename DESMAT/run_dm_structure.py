@@ -1032,13 +1032,10 @@ if (rank == 0):
     str7 = "::   [dm] represents the model vector to be solved for in the inversion. \n"
     str8 = "::      It is the perturbation to each model parameter required to best fit the residual data. \n"
     str9 = ":: The original forward model(s) are: \n"
-    print(main_files)
     str10 = ":: And the original forward model(s) recast into real and imaginary components are: \n"
-    print(main_files_out + " \n")
     str11 = ":: \n"
     str12 = ":: \n"
     str13 = ":: Reminder: The planetary model that you have used to compute the design matrix and starting model: \n"
-    print(planet_model + " \n")
     str14 = ":: \n"
     str15 = ":: \n"
     hf.write(str1)
