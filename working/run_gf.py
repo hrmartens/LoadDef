@@ -3,7 +3,7 @@
 # *********************************************************************
 # MAIN PROGRAM TO COMPUTE LOAD GREENS FUNCTIONS (DISPLACEMENT, GRAVITY, TILT, STRAIN)
 #
-# Copyright (c) 2014-2023: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
