@@ -160,7 +160,6 @@ print(perturb_radius_top)
 print(':: Material parameter perturbed: ')
 print(perturb_param) 
 print(':: ')
-print(':: ')
 
 # --------------------- END CODE --------------------------- #
 

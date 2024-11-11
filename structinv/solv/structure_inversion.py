@@ -324,7 +324,7 @@ def main(dm_file,data_files,startmod,planet_model,rank,procN,comm,tikhonov='zero
 
         # Let user know where the output is going:
         print(':: ')
-        print(':: Output directed to [structure_inversion.py]: ../output/Inversion/')
+        print(':: OUTPUT DIRECTED TO [structure_inversion.py]: ../output/Inversion/')
         print(':: ')
 
         # Return Model Vector
