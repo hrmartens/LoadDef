@@ -1047,11 +1047,23 @@ if (rank == 0):
     hf.write(str7)
     hf.write(str8)
     hf.write(str9)
-    hf.write(main_files)
-    hf.write("\n")
+    if main_files:
+        if (len(main_files) == 1):
+            hf.write(main_files[0])
+            hf.write("\n")
+        else:
+            for ww in range(0,len(main_files)):
+                hf.write(main_files[ww])
+                hf.write("\n")
     hf.write(str10)
-    hf.write(main_files_out)
-    hf.write("\n")
+    if main_files_out:
+        if (len(main_files_out) == 1):
+            hf.write(main_files_out[0])
+            hf.write("\n")
+        else:
+            for ff in range(0,len(main_files_out)):
+                hf.write(main_files_out[ff])
+                hf.write("\n")
     hf.write(str11)
     hf.write(str12)
     hf.write(str13)
