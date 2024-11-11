@@ -76,7 +76,7 @@ def main(planet_model,pert_param,pert_rad_bot,pert_rad_top,cmv,ref_rho=1,ref_mu=
         #print(cpert)
 
         # Find Indices to Perturb
-        print(':: Isolating Indices to Perturb')
+        print(':: Isolating Indices to Perturb [perturb_pmod_structinv.py]')
         myidx = np.where((radial_dist >= cbotrad*1000.) & (radial_dist <= ctoprad*1000.)); myidx = myidx[0]
         if (len(myidx) == 0):
             print(':: Warning: No Points Found in Depth Range.')

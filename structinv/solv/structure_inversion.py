@@ -322,6 +322,11 @@ def main(dm_file,data_files,startmod,planet_model,rank,procN,comm,tikhonov='zero
             #os.remove(inv_head)
             #os.remove(inv_body)
 
+        # Let user know where the output is going:
+        print(':: ')
+        print(':: Output directed to [structure_inversion.py]: ../output/Inversion/')
+        print(':: ')
+
         # Return Model Vector
         return model_vector
 

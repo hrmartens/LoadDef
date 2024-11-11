@@ -148,8 +148,6 @@ else:
     structure_inversion.main(dm_file,data_files,startmod,planet_model,rank,procN,comm,alpha=alpha,tikhonov=tikhonov,outfile=outfile,uonly=uonly,imaginary=inc_imag,pme=pme)
 
 # Print the model vector
-print(':: ')
-print(':: ')
 print(':: Model Solution Vector: ')
 print(model_vector)
 
@@ -161,6 +159,8 @@ print(':: Top radii of perturbed layers: ')
 print(perturb_radius_top)
 print(':: Material parameter perturbed: ')
 print(perturb_param) 
+print(':: ')
+print(':: ')
 
 # --------------------- END CODE --------------------------- #
 
