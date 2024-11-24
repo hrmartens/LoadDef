@@ -30,6 +30,7 @@ import os
 sys.path.append(os.getcwd() + "/../../")
 
 # IMPORT ADDITIONAL MODULES
+import numpy as np
 from utility.pmes import compute_residuals
 
 #### USER INPUTS ####
@@ -44,7 +45,20 @@ model2 = "cm_convgf_FES2014_stationMesh_PREM"
 input_directory = ("./output/")
 filename1 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + model1 + ".txt")
 filename2 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + model2 + ".txt")
-outfile = ("Residuals_" + harmonic + "_" + model1 + "-" + model2 + ".txt")
+
+# Filter stations based on latitude?
+filter_lat = False
+keep_north = False # If False, keep stations to the south; if True, keep stations to the north
+latitude = 50.
+
+# Output filename
+if filter_lat:
+    if keep_north:
+        outfile = ("Residuals_" + harmonic + "_" +  model1 + "-" + model2 + "_NorthStations.txt")
+    else: # keep south
+        outfile = ("Residuals_" + harmonic + "_" +  model1 + "-" + model2 + "_SouthStations.txt")
+else:
+    outfile = ("Residuals_" + harmonic + "_" +  model1 + "-" + model2 + ".txt")
 
 #### BEGIN CODE
 
@@ -55,6 +69,17 @@ outdir = "./output/Residuals/"
 
 # Output File
 myoutfile = (outdir + outfile)
+
+# Filter on latitude?
+if filter_lat:
+    stations = np.loadtxt(filename1,skiprows=1,unpack=True,usecols=(0,),dtype='U')
+    slat = np.loadtxt(filename1,skiprows=1,unpack=True,usecols=(1,))
+    if keep_north:
+        idx_to_exclude = np.where(slat < latitude)[0]
+        stations_to_exclude = stations[idx_to_exclude]
+    else:
+        idx_to_exclude = np.where(slat >= latitude)[0]
+        stations_to_exclude = stations[idx_to_exclude]
 
 # Compute Residuals and Remove Common Mode
 rmCMode = True
