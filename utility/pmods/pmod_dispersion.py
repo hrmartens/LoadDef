@@ -5,7 +5,7 @@
 # REFERENCED TO 1-SECOND PERIOD TO A DIFFERENT REFERENCE PERIOD
 # (e.g. M2 TIDAL PERIOD) | ACCOUNTS FOR PHYSICAL DISPERSION
 # 
-# Copyright (c) 2014-2019: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -92,6 +92,7 @@ print(('vs[D&T]', vs_pert))
 
 # Write to File
 fname = ("../../output/Planet_Models/" + outfile)
+print(':: Output file path: ', fname)
 params = np.column_stack((radial_dist,vp_pert,vs_pert,rho,Qk,Qmu))
 #f_handle = open(fname,'w')
 np.savetxt(fname,params,fmt='%f %f %f %f %f %f')
