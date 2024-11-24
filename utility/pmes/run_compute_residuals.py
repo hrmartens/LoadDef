@@ -35,9 +35,6 @@ from utility.pmes import compute_residuals
 
 #### USER INPUTS ####
 
-# Optional Stations to Exclude When Computing the Common-Mode
-stations_to_exclude = []
-
 # Specify Inputs: Forward Models
 harmonic = "M2"
 model1 = "cm_convgf_TPXO9-Atlas_stationMesh_PREM"
@@ -45,6 +42,9 @@ model2 = "cm_convgf_FES2014_stationMesh_PREM"
 input_directory = ("./output/")
 filename1 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + model1 + ".txt")
 filename2 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + model2 + ".txt")
+
+# Optional: Select Individual Stations to Exclude When Computing the Common-Mode
+stations_to_exclude = []
 
 # Filter stations based on latitude?
 filter_lat = False
@@ -76,10 +76,9 @@ if filter_lat:
     slat = np.loadtxt(filename1,skiprows=1,unpack=True,usecols=(1,))
     if keep_north:
         idx_to_exclude = np.where(slat < latitude)[0]
-        stations_to_exclude = stations[idx_to_exclude]
     else:
         idx_to_exclude = np.where(slat >= latitude)[0]
-        stations_to_exclude = stations[idx_to_exclude]
+    stations_to_exclude.extend(stations[idx_to_exclude].tolist())
 
 # Compute Residuals and Remove Common Mode
 rmCMode = True
