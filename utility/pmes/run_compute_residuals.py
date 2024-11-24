@@ -4,7 +4,7 @@
 # PROGRAM TO COMPUTE RESIDUALS BETWEEN PARTICLE MOTION ELLIPSES (PMEs)
 # LITERATURE: Martens et al. (2016, GJI)
 # 
-# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -42,10 +42,11 @@ harmonic = "M2"
 rfm = "cm"
 model1 = "FES2014"
 model2 = "GOT410c"
-input_directory = ("../../output/Convolution/")
-filename1 = (input_directory + "pme_OceanOnly_"+harmonic+"_"+rfm+"_convgf_"+model1+".txt")
-filename2 = (input_directory + "pme_OceanOnly_"+harmonic+"_"+rfm+"_convgf_"+model2+".txt")
-outfile = ("Residuals_"+harmonic+"_"+rfm+"_"+model1+"-"+model2+".txt")
+suffix = "commonMesh_PREM"
+input_directory = ("./output/")
+filename1 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + rfm + "_convgf_" + model1 + "_" + suffix + ".txt")
+filename2 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + rfm + "_convgf_" + model2 + "_" + suffix + ".txt")
+outfile = ("Residuals_" + harmonic + "_" + rfm + "_" + model1 + "-" + model2 + "_" + suffix + ".txt")
 
 #### BEGIN CODE
 
