@@ -39,14 +39,12 @@ stations_to_exclude = []
 
 # Specify Inputs: Forward Models
 harmonic = "M2"
-rfm = "cm"
-model1 = "FES2014"
-model2 = "GOT410c"
-suffix = "commonMesh_PREM"
+model1 = "cm_convgf_TPXO9-Atlas_stationMesh_PREM"
+model2 = "cm_convgf_FES2014_stationMesh_PREM"
 input_directory = ("./output/")
-filename1 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + rfm + "_convgf_" + model1 + "_" + suffix + ".txt")
-filename2 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + rfm + "_convgf_" + model2 + "_" + suffix + ".txt")
-outfile = ("Residuals_" + harmonic + "_" + rfm + "_" + model1 + "-" + model2 + "_" + suffix + ".txt")
+filename1 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + model1 + ".txt")
+filename2 = (input_directory + "pme_OceanOnly_" + harmonic + "_" + model2 + ".txt")
+outfile = ("Residuals_" + harmonic + "_" + model1 + "-" + model2 + ".txt")
 
 #### BEGIN CODE
 
