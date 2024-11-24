@@ -2,7 +2,7 @@
 # PURPOSE: Compute Residuals Between Two Sets of PMEs
 # LITERATURE: Martens et al. (2016, GJI)
 # 
-# Copyright (c) 2014-2022: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
+# Copyright (c) 2014-2024: HILARY R. MARTENS, LUIS RIVERA, MARK SIMONS         
 #
 # This file is part of LoadDef.
 #
@@ -150,8 +150,7 @@ def main(filename1,filename2,myoutfile,rmCMode,stations_to_exclude):
     if (rmCMode == True):
 
         # Optionally Exclude Stations from the Common-Mode Calculation
-        # NOTE: An Earlier Version Had Not Been Excluding Stations from the Calculation Properly (Essentially, no Stations were Excluded)
-        if stations_to_exclude:
+        if (len(stations_to_exclude) > 0):
             idxlst = []
             for ii in range(0,len(stations_to_exclude)):
                 mysta = np.where(sta == stations_to_exclude[ii]); mysta = mysta[0]
