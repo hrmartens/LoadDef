@@ -48,15 +48,12 @@ stations_to_exclude = []
 
 # Filter stations based on latitude?
 filter_lat = False
-keep_north = False # If False, keep stations to the south; if True, keep stations to the north
 latitude = 50.
 
 # Output filename
 if filter_lat:
-    if keep_north:
-        outfile = ("Residuals_" + harmonic + "_" +  model1 + "-" + model2 + "_NorthStations.txt")
-    else: # keep south
-        outfile = ("Residuals_" + harmonic + "_" +  model1 + "-" + model2 + "_SouthStations.txt")
+    outfile1 = ("Residuals_" + harmonic + "_" +  model1 + "-" + model2 + "_Alaska.txt")
+    outfile2 = ("Residuals_" + harmonic + "_" +  model1 + "-" + model2 + "_westUS.txt")
 else:
     outfile = ("Residuals_" + harmonic + "_" +  model1 + "-" + model2 + ".txt")
 
@@ -68,24 +65,51 @@ if not (os.path.isdir("./output/Residuals/")):
 outdir = "./output/Residuals/"
 
 # Output File
-myoutfile = (outdir + outfile)
+if filter_lat:
+    myoutfile1 = (outdir + outfile1)
+    myoutfile2 = (outdir + outfile2)
+else:
+    myoutfile = (outdir + outfile)
 
 # Filter on latitude?
 if filter_lat:
+
+    # Print information
+    print(':: Applying a latitude filter to the stations and results.')
+
+    # Identify stations for exclusion based on latitude
     stations = np.loadtxt(filename1,skiprows=1,unpack=True,usecols=(0,),dtype='U')
     slat = np.loadtxt(filename1,skiprows=1,unpack=True,usecols=(1,))
-    if keep_north:
-        idx_to_exclude = np.where(slat < latitude)[0]
-    else:
-        idx_to_exclude = np.where(slat >= latitude)[0]
-    stations_to_exclude.extend(stations[idx_to_exclude].tolist())
+    stations_to_exclude_south = stations_to_exclude[:]
+    stations_to_exclude_north = stations_to_exclude[:]
+    idx_to_exclude_south = np.where(slat < latitude)[0]
+    stations_to_exclude_south.extend(stations[idx_to_exclude_south].tolist())
+    idx_to_exclude_north = np.where(slat >= latitude)[0]
+    stations_to_exclude_north.extend(stations[idx_to_exclude_north].tolist())
 
-# Compute Residuals and Remove Common Mode
-rmCMode = True
-compute_residuals.main(filename1,filename2,myoutfile,rmCMode,stations_to_exclude)
+    # Compute Residuals and Remove Common Mode
+    rmCMode = True
+    compute_residuals.main(filename1,filename2,myoutfile1,rmCMode,stations_to_exclude_south)
 
-# Compute Residuals but do not Remove Common Mode
-rmCMode = False
-compute_residuals.main(filename1,filename2,myoutfile,rmCMode,stations_to_exclude)
+    # Compute Residuals but do not Remove Common Mode
+    rmCMode = False
+    compute_residuals.main(filename1,filename2,myoutfile1,rmCMode,stations_to_exclude_south)
 
+    # Compute Residuals and Remove Common Mode
+    rmCMode = True
+    compute_residuals.main(filename1,filename2,myoutfile2,rmCMode,stations_to_exclude_north)
+
+    # Compute Residuals but do not Remove Common Mode
+    rmCMode = False
+    compute_residuals.main(filename1,filename2,myoutfile2,rmCMode,stations_to_exclude_north)
+
+else:
+
+    # Compute Residuals and Remove Common Mode
+    rmCMode = True
+    compute_residuals.main(filename1,filename2,myoutfile,rmCMode,stations_to_exclude)
+
+    # Compute Residuals but do not Remove Common Mode
+    rmCMode = False
+    compute_residuals.main(filename1,filename2,myoutfile,rmCMode,stations_to_exclude)
 
