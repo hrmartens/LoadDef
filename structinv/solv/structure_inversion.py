@@ -45,7 +45,7 @@ beta   :  Coefficient for Zeroth-Order Tikhonov Regularization
     Default is 1
 
 tikhonov  :  Order of Tikhonov Regularization to Apply (Options: 'zeroth', 'second', 'zeroth_second', 'none')
-    Default is zeroth
+    Default is second
 
 uonly  :  Dataset contains only vertical components [NOTE: It is always assumed that the Design Matrix is built based on three components; this parameter applies only to the data!]
     Default is False (assumed that dataset contains three components -- e,n,u) 
@@ -56,9 +56,22 @@ imaginary  :  A flag to indicate whether (1) only real or (2) both real and imag
 outfile  :  Suffix for output file
     Default is ".txt"
 
+pme  :  Files are formatted in particle-motion-ellipse format; they contain additional information about the ellipses, in addition to the primary E, N, U parameters
+    Default is False
+
+lat_filter_flag  :  Boolean flag to switch the latitude filter on (True) or off (False); when switched on, stations will be filtered out based on latitude. 
+    Default is False
+
+keep_south  :  Boolean flag to determine whether stations south of the latitude cutoff are retained, when lat_filter_flag is set to True. 
+    Default is True (when True, stations south of lat_filter are kept; when False, stations north of lat_filter are kept)
+
+lat_filter  :  Latitude at which to filter stations, when lat_filter_flag is set to True.
+    Default is 50. (this is helpful for filtering stations from the NOTA network, when the user wishes to consider only stations in the contiguous US or only in Alaska.)
+
 """
 
-def main(dm_file,data_files,startmod,planet_model,rank,procN,comm,tikhonov='zeroth',alpha=1.,beta=1.,outfile=".txt",uonly=False,imaginary=False,pme=False):
+def main(dm_file,data_files,startmod,planet_model,rank,procN,comm,tikhonov='second',alpha=1.,beta=1.,outfile=".txt",uonly=False,imaginary=False,pme=False,\
+    lat_filter_flag=False,keep_south=True,lat_filter=50.):
 
     # Determine Number of Datafiles
     if isinstance(data_files,float) == True:
@@ -152,7 +165,9 @@ def main(dm_file,data_files,startmod,planet_model,rank,procN,comm,tikhonov='zero
             mv_sub[ii,:] = np.nan
             continue
         # Perform Inversion for Current File
-        mv_sub[ii,:] = perform_inversion.main(mfile,file_id,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,sta_comp_lon,pert_rad_bot,pert_rad_top,pert_param,tikhonov,alpha,beta,uonly=uonly,inc_imag=imaginary,pme=pme)
+        mv_sub[ii,:] = perform_inversion.main(mfile,file_id,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,sta_comp_lon,\
+            pert_rad_bot,pert_rad_top,pert_param,tikhonov,alpha,beta,uonly=uonly,inc_imag=imaginary,pme=pme,\
+            lat_filter_flag=lat_filter_flag,keep_south=keep_south,lat_filter=lat_filter)
 
     # Gather Results
     comm.Gatherv(mv_sub, [model_vector, (sendcounts, None), mvtype], root=0)
