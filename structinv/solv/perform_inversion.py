@@ -31,18 +31,19 @@ from structinv.utility import read_datafile_harmonic
 from structinv.utility import read_datafile_uonly_harmonic
 from structinv.utility import read_starting_model
 
-def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,sta_comp_lon,pert_rad_bot,pert_rad_top,pert_param,tikhonov,alpha,beta,uonly=False,inc_imag=False,pme=False):
+def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,sta_comp_lon,pert_rad_bot,pert_rad_top,pert_param,tikhonov,alpha,beta,uonly=False,inc_imag=False,pme=False,\
+    lat_filter_flag=False,keep_south=True,lat_filter=50.):
 
     # Read the Datafile
-    if (uonly == True): 
-        if (inc_imag == True):
+    if uonly: 
+        if inc_imag:
             #   Format: Station, Latitude[+N], Longitude[+E], Up-Amp[mm], Up-Pha[deg]
             sta,slat,slon,ure,uim = read_datafile_uonly_harmonic.main(datafile,pme=pme)
         else: 
             #   Format: Station, Latitude[+N], Longitude[+E], Up-Displacement[mm]
             sta,slat,slon,udisp = read_datafile_uonly.main(datafile)
     else:
-        if (inc_imag == True):
+        if inc_imag:
             #   Format: Station, Latitude[+N], Longitude[+E], East-Amp[mm], East-Pha[deg], North-Amp[mm], North-Pha[deg], Up-Amp[mm], Up-Pha[deg]
             sta,slat,slon,ere,eim,nre,nim,ure,uim = read_datafile_harmonic.main(datafile,pme=pme)
         else:
@@ -50,7 +51,7 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
             sta,slat,slon,edisp,ndisp,udisp = read_datafile.main(datafile)
 
     # Find and remove nans
-    if (inc_imag == True):
+    if inc_imag:
         ure_nan = np.isnan(ure)
         ure = ure[ure_nan == 0]
         uim = uim[ure_nan == 0]
@@ -72,8 +73,38 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
             edisp = edisp[udisp_nan == 0]
             ndisp = ndisp[udisp_nan == 0]
 
+    # Filter data by station latitude, if desired
+    if lat_filter_flag:
+        if inc_imag:
+            if keep_south:
+                keepidx = np.where(slat <= lat_filter)[0]
+            else:
+                keepidx = np.where(slat >= lat_filter)[0]
+            ure = ure[keepidx]
+            uim = uim[keepidx]
+            sta = sta[keepidx]
+            slat = slat[keepidx]
+            slon = slon[keepidx]
+            if not uonly:
+                ere = ere[keepidx]
+                eim = eim[keepidx]
+                nre = nre[keepidx]
+                nim = nim[keepidx]
+        else:
+            if keep_south: 
+                keepidx = np.where(slat <= lat_filter)[0]
+            else:
+                keepidx = np.where(slat >= lat_filter)[0]
+            udisp = udisp[keepidx]
+            sta = sta[keepidx]
+            slat = slat[keepidx]
+            slon = slon[keepidx]
+            if not uonly:
+                edisp = edisp[keepidx]
+                ndisp = ndisp[keepidx]
+
     # Read the Starting Model
-    if (inc_imag == True):
+    if inc_imag:
         msta,mlat,mlon,mere,meim,mnre,mnim,mure,muim = read_starting_model.main(startmod,inc_imag=inc_imag)
     else:
         msta,mlat,mlon,medisp,mndisp,mudisp = read_starting_model.main(startmod,inc_imag=inc_imag)
@@ -91,12 +122,12 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
     msta = msta[sm_idx]
     mlat = mlat[sm_idx]
     mlon = mlon[sm_idx]
-    if (inc_imag == True): 
+    if inc_imag: 
         ure = ure[data_idx]
         uim = uim[data_idx]
         mure = mure[sm_idx]
         muim = muim[sm_idx]
-        if (uonly == False):
+        if not uonly:
             ere = ere[data_idx]
             eim = eim[data_idx]
             nre = nre[data_idx]
@@ -108,21 +139,21 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
     else:
         udisp = udisp[data_idx]
         mudisp = mudisp[sm_idx]
-        if (uonly == False):
+        if not uonly:
             edisp = edisp[data_idx]
             ndisp = ndisp[data_idx]
             medisp = medisp[sm_idx]
             mndisp = mndisp[sm_idx]
 
     # Subtract model from the data to compute the data vector: d = Gm0 + [d(Gm)/d(m)]*m --> (d-Gm0) = [d(Gm)/d(m)] m
-    if (uonly == True): 
-        if (inc_imag == True): 
+    if uonly: 
+        if inc_imag: 
             dure = np.subtract(ure,mure)
             duim = np.subtract(uim,muim)        
         else:
             dudisp = np.subtract(udisp,mudisp)
     else: 
-        if (inc_imag == True):
+        if inc_imag:
             dere = np.subtract(ere,mere)
             deim = np.subtract(eim,meim)
             dnre = np.subtract(nre,mnre)
@@ -142,8 +173,8 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
     if (len(data_idx) != len(dm_idx)):
         sys.exit(':: Error: Mismatch in stations. [perform_inversion.py]')
     # Build G matrix and data vector differently depending on number of spatial components
-    if (uonly == True): # one spatial component
-        if (inc_imag == True): 
+    if uonly: # one spatial component
+        if inc_imag: 
             # Initialize updated Design Matrix
             G = np.empty((len(dm_idx)*2,len(pert_param))) # x2 because of real and imaginary
             # Initialize datavector
@@ -168,7 +199,7 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
                 G[bb,:] = design_matrix[crow_dm+2,:] # up (note: it is assumed that the Design Matrix was built for 3 components -- e,n,u; hence, the +2)
                 d[bb] = dudisp[crow_data] # up
     else: # three components (e,n,u)
-        if (inc_imag == True):
+        if inc_imag:
             # Initialize updated Design Matrix
             G = np.empty((len(dm_idx)*6,len(pert_param))) # x6 because of real and imaginary and three spatial components (e,n,u) for each
             # Initialize datavector
