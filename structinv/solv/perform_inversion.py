@@ -240,7 +240,7 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
         L0 = np.identity(len(pert_param))
         # ** Solve by redefining the design matrix and data vector to include regularization (Aster, Borchers, & Thurber [2013], Eq. 4.5)
         C = np.concatenate((G,(beta*L0)),axis=0)
-        zero_vec = np.zeros(len(load_cell_ids))
+        zero_vec = np.zeros(len(pert_param))
         b = np.concatenate((d,zero_vec))
 
     elif (tikhonov == 'second' or tikhonov == 'zeroth_second'): # Second-Order Tikhonov Regularization (in one dimension)
@@ -278,7 +278,7 @@ def main(datafile,fid,startmod,design_matrix,sta_ids,sta_comp_ids,sta_comp_lat,s
             L0 = np.identity(len(pert_param))
             # ** Solve by redefining the design matrix and data vector to include regularization (Aster, Borchers, & Thurber [2013], Eq. 4.5)
             C = np.concatenate((C,(beta*L0)),axis=0)
-            zero_vec = np.zeros(len(load_cell_ids))
+            zero_vec = np.zeros(len(pert_param))
             b = np.concatenate((b,zero_vec))
  
     elif (tikhonov == 'none'): # No regularization
