@@ -53,7 +53,7 @@ def main(myn,piG,lnd,mnd,gnd,rnd,a,L_sc):
 
     # Combine the Asymptotic Expressions (Guo et al. 2004)
     if (myn[0] == 0):
-        myn[0] = np.NAN
+        myn[0] = np.nan
     hprime_asym = h_inf + (1./myn)*h_inf_prime
     nlprime_asym = l_inf + (1./myn)*l_inf_prime
     nkprime_asym = k_inf + (1./myn)*k_inf_prime
